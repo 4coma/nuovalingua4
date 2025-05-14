@@ -1,0 +1,7 @@
+{
+  "name": "nuovalingua4",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
