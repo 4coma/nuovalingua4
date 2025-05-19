@@ -1,0 +1,130 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.exercise-header {
+  ion-icon {
+    font-size: 2rem;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+}
+
+.text-card {
+  margin: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.comprehension-text {
+  font-size: 18px;
+  line-height: 1.6;
+  text-align: justify;
+  
+  /* Style pour les mots du vocabulaire (mis en évidence) */
+  .highlighted-word.vocabulary-word {
+    color: var(--ion-color-primary);
+    font-weight: bold;
+    background-color: rgba(var(--ion-color-primary-rgb), 0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: rgba(var(--ion-color-primary-rgb), 0.2);
+      text-decoration: underline;
+    }
+  }
+  
+  /* Style pour tous les autres mots (cliquables mais pas mis en évidence) */
+  .clickable-word {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    
+    &:hover {
+      color: var(--ion-color-primary);
+      background-color: rgba(var(--ion-color-primary-rgb), 0.05);
+      border-radius: 3px;
+    }
+  }
+}
+
+.audio-controls {
+  margin: 15px 0;
+}
+
+.vocabulary-list {
+  margin-top: 20px;
+  
+  h3 {
+    margin-bottom: 16px;
+  }
+  
+  ion-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    --background: var(--ion-color-light);
+    margin-bottom: 8px;
+    border-radius: 8px;
+    
+    h2 {
+      font-weight: bold;
+      color: var(--ion-color-primary);
+    }
+    
+    p {
+      margin-top: 4px;
+    }
+  }
+}
+
+.translation {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--ion-color-primary);
+  margin: 15px 0;
+}
+
+.examples-section {
+  background-color: var(--ion-color-light);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 15px;
+  
+  h3 {
+    margin-top: 0;
+    color: var(--ion-color-medium);
+  }
+  
+  ion-item {
+    --background: transparent;
+    --border-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.audio-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  .transcription-control {
+    margin: 16px 0;
+  }
+  
+  .transcription-container {
+    margin-top: 16px;
+    padding: 16px;
+    background-color: rgba(var(--ion-color-light-rgb), 0.7);
+    border-radius: 8px;
+    border-left: 4px solid var(--ion-color-primary);
+    
+    &::before {
+      content: 'Transcription';
+      display: block;
+      font-size: 14px;
+      color: var(--ion-color-medium);
+      margin-bottom: 8px;
+      font-style: italic;
+    }
+  }
+}

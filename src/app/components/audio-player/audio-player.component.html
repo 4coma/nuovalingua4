@@ -1,0 +1,49 @@
+<div class="audio-player-container">
+  <div class="time-display">
+    <span>{{ formatTime(currentTime) }}</span>
+    <span> / </span>
+    <span>{{ formatTime(duration) }}</span>
+  </div>
+  
+  <div class="progress-container">
+    <ion-range 
+      [min]="0" 
+      [max]="duration || 100" 
+      [value]="sliderValue"
+      (ionChange)="onSliderChange($event)"
+      (ionFocus)="onSliderTouchStart()"
+      (ionBlur)="onSliderTouchEnd()"
+      color="primary">
+    </ion-range>
+  </div>
+  
+  <div class="controls-container">
+    <ion-button fill="clear" (click)="backwardAudio()" [disabled]="!audioUrl || currentTime < 5">
+      <ion-icon name="play-back" slot="icon-only"></ion-icon>
+    </ion-button>
+    
+    <ion-button *ngIf="!isPlaying" fill="clear" (click)="playAudio()">
+      <ion-icon name="play" slot="icon-only"></ion-icon>
+    </ion-button>
+    
+    <ion-button *ngIf="isPlaying" fill="clear" (click)="pauseAudio()">
+      <ion-icon name="pause" slot="icon-only"></ion-icon>
+    </ion-button>
+    
+    <ion-button fill="clear" (click)="stopAudio()" [disabled]="!isPlaying && !isPaused">
+      <ion-icon name="stop" slot="icon-only"></ion-icon>
+    </ion-button>
+    
+    <ion-button fill="clear" (click)="forwardAudio()" [disabled]="!audioUrl || currentTime >= duration - 5">
+      <ion-icon name="play-forward" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+  
+  <div class="speed-control">
+    <ion-segment [value]="playbackRate.toString()" (ionChange)="changeSpeed($event)">
+      <ion-segment-button *ngFor="let speed of speedOptions" [value]="speed.toString()">
+        <ion-label>{{ speed }}x</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+</div> 

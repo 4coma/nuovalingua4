@@ -1,0 +1,53 @@
+<ion-content>
+  <div class="container">
+    <h2 class="ion-text-center ion-padding">Choisissez une catégorie</h2>
+    
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" sizeMd="6" sizeXl="4" *ngFor="let category of categories">
+          <ion-card [class.selected]="selectedCategory === category.id" (click)="selectCategory(category.id)">
+            <ion-card-header>
+              <ion-icon [name]="category.icon" size="large"></ion-icon>
+              <ion-card-title>{{ category.name }}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              {{ category.description }}
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+    
+    <div *ngIf="selectedCategory" class="ion-padding">
+      <h3 class="ion-text-center">Choisissez un sujet</h3>
+      
+      <ion-list>
+        <ion-item *ngFor="let topic of getTopicsForCategory()" button (click)="confirmStartSession(topic)">
+          <ion-label>{{ topic }}</ion-label>
+          <ion-icon name="chevron-forward" slot="end"></ion-icon>
+        </ion-item>
+      </ion-list>
+    </div>
+    
+    <div class="ion-padding ion-text-center">
+      <ion-button routerLink="/home" color="medium" expand="block" class="ion-margin-top">
+        <ion-icon name="home-outline" slot="start"></ion-icon>
+        Retour à l'accueil
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Boîte de dialogue de confirmation -->
+<ion-alert
+  [isOpen]="showConfirmation"
+  [header]="'Démarrer une session'"
+  [message]="'Voulez-vous démarrer une session d\'apprentissage sur le thème : ' + selectedTopic + ' ?'"
+  [buttons]="alertButtons"
+></ion-alert>
+
+<!-- Indicateur de chargement -->
+<ion-loading
+  [isOpen]="isLoading"
+  message="Génération de votre session d'apprentissage..."
+></ion-loading>

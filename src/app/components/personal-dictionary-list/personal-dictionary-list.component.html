@@ -1,0 +1,91 @@
+<ion-content>
+  <ion-toolbar>
+    <ion-searchbar
+      placeholder="Rechercher un mot"
+      [(ngModel)]="searchTerm"
+      (ionInput)="onSearch($event)"
+      animated
+    ></ion-searchbar>
+  </ion-toolbar>
+
+  <div class="container">
+    <!-- Chargement -->
+    <div *ngIf="isLoading" class="loading-container">
+      <ion-spinner></ion-spinner>
+      <p>Chargement du dictionnaire...</p>
+    </div>
+
+    <!-- Dictionnaire vide -->
+    <div *ngIf="!isLoading && dictionaryWords.length === 0" class="empty-dictionary">
+      <ion-icon name="book-outline" size="large"></ion-icon>
+      <h3>Votre dictionnaire est vide</h3>
+      <p>Ajoutez des mots en cliquant sur le bouton + en bas de l'écran</p>
+    </div>
+
+    <!-- Liste des mots -->
+    <ion-list *ngIf="!isLoading && filteredWords.length > 0">
+      <ion-item-sliding *ngFor="let word of filteredWords">
+        <ion-item>
+          <ion-grid>
+            <ion-row>
+              <!-- Mot source et cible -->
+              <ion-col size="12">
+                <div class="word-pair">
+                  <div class="word source-word">
+                    <strong>{{ word.sourceWord }}</strong>
+                    <small>{{ getLanguageName(word.sourceLang) }}</small>
+                  </div>
+                  <ion-icon name="arrow-forward-outline"></ion-icon>
+                  <div class="word target-word">
+                    <strong>{{ word.targetWord }}</strong>
+                    <small>{{ getLanguageName(word.targetLang) }}</small>
+                  </div>
+                </div>
+              </ion-col>
+            </ion-row>
+            
+            <!-- Informations supplémentaires -->
+            <ion-row *ngIf="word.contextualMeaning">
+              <ion-col size="12">
+                <div class="meaning">
+                  <p>{{ word.contextualMeaning }}</p>
+                </div>
+              </ion-col>
+            </ion-row>
+            
+            <!-- Catégorie grammaticale et date d'ajout -->
+            <ion-row>
+              <ion-col size="6" *ngIf="word.partOfSpeech">
+                <small class="part-of-speech">{{ word.partOfSpeech }}</small>
+              </ion-col>
+              <ion-col size="6" [attr.size]="word.partOfSpeech ? '6' : '12'" class="text-right">
+                <small class="date-added">Ajouté le {{ getFormattedDate(word.dateAdded) }}</small>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-item>
+        
+        <!-- Options de glissement (suppression) -->
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="confirmDelete(word.id, word.sourceWord)">
+            <ion-icon slot="icon-only" name="trash"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-list>
+
+    <!-- Message si aucun résultat de recherche -->
+    <div *ngIf="!isLoading && dictionaryWords.length > 0 && filteredWords.length === 0" class="no-results">
+      <ion-icon name="search-outline" size="large"></ion-icon>
+      <h3>Aucun résultat</h3>
+      <p>Aucun mot ne correspond à votre recherche "{{ searchTerm }}"</p>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Bouton d'action flottant pour ajouter un mot -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab-button (click)="openAddWordModal()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab> 

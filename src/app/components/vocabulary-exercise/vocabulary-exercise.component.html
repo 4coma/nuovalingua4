@@ -1,0 +1,106 @@
+<ion-content>
+  <div class="container" *ngIf="sessionInfo">
+    <div class="exercise-header ion-padding">
+      <h2>{{ sessionInfo.category }} - {{ sessionInfo.topic }}</h2>
+      <ion-progress-bar [value]="(currentIndex + 1) / quizItems.length"></ion-progress-bar>
+      <p class="progress-text">Mot {{ currentIndex + 1 }} / {{ quizItems.length }}</p>
+    </div>
+
+    <div *ngIf="!quizCompleted && quizItems.length > 0" class="question-container ion-padding">
+      <div class="word-card">
+        <h1>{{ quizItems[currentIndex].question.it }}</h1>
+        <p *ngIf="quizItems[currentIndex].question.context" class="context">
+          Contexte: {{ quizItems[currentIndex].question.context }}
+        </p>
+      </div>
+
+      <div class="answer-container">
+        <ion-item>
+          <ion-input 
+            label="Traduction" 
+            [(ngModel)]="currentAnswer" 
+            (keyup.enter)="submitAnswer()"
+            [disabled]="quizItems[currentIndex].isCorrect !== null || quizItems[currentIndex].revealed"
+            placeholder="Écrivez votre réponse..."></ion-input>
+        </ion-item>
+        
+        <ion-button 
+          expand="block" 
+          color="primary" 
+          (click)="submitAnswer()"
+          [disabled]="!currentAnswer || quizItems[currentIndex].isCorrect !== null || quizItems[currentIndex].revealed">
+          Valider
+        </ion-button>
+        
+        <div *ngIf="quizItems[currentIndex].isCorrect !== null" class="feedback-container">
+          <div *ngIf="quizItems[currentIndex].isCorrect" class="correct-answer">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            <p>Correct !</p>
+          </div>
+          
+          <div *ngIf="quizItems[currentIndex].isCorrect === false" class="wrong-answer">
+            <ion-icon name="close-circle"></ion-icon>
+            <p>Incorrect. La bonne réponse est: {{ quizItems[currentIndex].question.fr }}</p>
+          </div>
+          
+          <ion-button expand="block" color="tertiary" (click)="nextWord()">
+            Mot suivant
+          </ion-button>
+        </div>
+        
+        <div *ngIf="quizItems[currentIndex].isCorrect === null && !quizItems[currentIndex].revealed" class="help-buttons">
+          <ion-button 
+            expand="block" 
+            fill="outline" 
+            color="medium" 
+            (click)="showAnswer()">
+            Voir la réponse
+          </ion-button>
+        </div>
+        
+        <div *ngIf="quizItems[currentIndex].revealed" class="revealed-answer">
+          <p>Réponse: {{ quizItems[currentIndex].question.fr }}</p>
+          <ion-button expand="block" color="tertiary" (click)="nextWord()">
+            Mot suivant
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="quizCompleted" class="results-container ion-padding ion-text-center">
+      <h2>Exercice terminé!</h2>
+      <div class="score-container">
+        <ion-icon name="ribbon"></ion-icon>
+        <h3>Score: {{ getScore() | number:'1.0-0' }}%</h3>
+      </div>
+
+      <h3 class="ion-padding-top">Que voulez-vous faire maintenant?</h3>
+      
+      <ion-button (click)="requestComprehension('written')" color="primary" expand="block" class="ion-margin-vertical" [disabled]="generatingComprehension">
+        <ion-icon name="book-outline" slot="start"></ion-icon>
+        Compréhension écrite
+      </ion-button>
+      
+      <ion-button (click)="requestComprehension('oral')" color="secondary" expand="block" class="ion-margin-vertical" [disabled]="generatingComprehension">
+        <ion-icon name="mic-outline" slot="start"></ion-icon>
+        Compréhension orale
+      </ion-button>
+      
+      <!-- Indicateur de chargement -->
+      <div *ngIf="generatingComprehension" class="loading-container ion-text-center ion-margin-vertical">
+        <ion-spinner></ion-spinner>
+        <p>Génération du texte de compréhension...</p>
+      </div>
+      
+      <ion-button (click)="finishExercise()" color="medium" expand="block" class="ion-margin-vertical">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        Retour aux catégories
+      </ion-button>
+      
+      <ion-button routerLink="/home" color="light" expand="block" class="ion-margin-vertical">
+        <ion-icon name="home-outline" slot="start"></ion-icon>
+        Retour à l'accueil
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

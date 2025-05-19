@@ -1,0 +1,33 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+ion-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  &.selected {
+    border: 2px solid var(--ion-color-primary);
+    background-color: rgba(var(--ion-color-primary-rgb), 0.1);
+  }
+}
+
+ion-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+ion-icon {
+  font-size: 2.5rem;
+  color: var(--ion-color-primary);
+  margin-bottom: 8px;
+}

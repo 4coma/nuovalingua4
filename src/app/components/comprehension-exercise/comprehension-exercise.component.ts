@@ -1,0 +1,349 @@
+import { Component, EventEmitter, Input, OnInit, Output, OnChanges } from '@angular/core';
+import { ComprehensionText, VocabularyItem, ComprehensionQuestion } from '../../models/vocabulary';
+import { CommonModule } from '@angular/common';
+import { IonicModule, PopoverController, LoadingController, ToastController } from '@ionic/angular';
+import { TextGeneratorService, TranslationResult } from '../../services/text-generator.service';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { SafeHtmlDirective } from '../../directives/click-outside.directive';
+import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
+import { AudioPlayerComponent } from '../audio-player/audio-player.component';
+import { SpeechService } from '../../services/speech.service';
+import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
+
+@Component({
+  selector: 'app-comprehension-exercise',
+  templateUrl: './comprehension-exercise.component.html',
+  styleUrls: ['./comprehension-exercise.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    IonicModule,
+    FormsModule,
+    SafeHtmlDirective,
+    SafeHtmlPipe,
+    AudioPlayerComponent,
+    RouterLink
+  ]
+})
+export class ComprehensionExerciseComponent implements OnInit, OnChanges {
+  @Input() comprehensionText: ComprehensionText | null = null;
+  @Output() complete = new EventEmitter<void>();
+  
+  // Titre de la page pour le header global
+  pageTitle: string = 'Compréhension';
+  
+  highlightedWords: string[] = [];
+  selectedWord: string = '';
+  translation: TranslationResult | null = null;
+  isTranslating: boolean = false;
+  
+  // Pour la transcription
+  showTranscription: boolean = false;
+
+  // Pour la génération de questions
+  isGeneratingQuestions: boolean = false;
+
+  constructor(
+    private textGeneratorService: TextGeneratorService,
+    private popoverController: PopoverController,
+    private router: Router,
+    private speechService: SpeechService,
+    private loadingCtrl: LoadingController,
+    private toastCtrl: ToastController,
+    private dictionaryService: PersonalDictionaryService
+  ) { }
+
+  ngOnInit() {
+    this.loadComprehensionText();
+    this.prepareHighlightedWords();
+    this.updatePageTitle();
+  }
+
+  ngOnChanges() {
+    this.prepareHighlightedWords();
+    this.updatePageTitle();
+  }
+
+  /**
+   * Met à jour le titre de la page en fonction du type de compréhension
+   */
+  updatePageTitle() {
+    if (this.comprehensionText) {
+      this.pageTitle = this.comprehensionText.type === 'written' ? 
+        'Compréhension écrite' : 
+        'Compréhension orale';
+    }
+  }
+
+  /**
+   * Charge le texte de compréhension depuis le localStorage
+   */
+  loadComprehensionText() {
+    const storedText = localStorage.getItem('comprehensionText');
+    if (storedText) {
+      try {
+        this.comprehensionText = JSON.parse(storedText);
+      } catch (e) {
+        console.error('Erreur lors du parsing du texte de compréhension:', e);
+      }
+    }
+    
+    // Si pas de texte, rediriger vers la page de vocabulaire
+    if (!this.comprehensionText) {
+      this.router.navigate(['/vocabulary']);
+    }
+  }
+
+  prepareHighlightedWords() {
+    if (this.comprehensionText?.vocabularyItems) {
+      this.highlightedWords = this.comprehensionText.vocabularyItems.map(item => item.word.toLowerCase());
+    } else {
+      this.highlightedWords = [];
+    }
+  }
+
+  getHighlightedText(): string {
+    if (!this.comprehensionText?.text) {
+      return '';
+    }
+
+    let text = this.comprehensionText.text;
+    
+    // Stocker les mots du vocabulaire pour les mettre en évidence
+    const vocabularyWords = this.highlightedWords.map(word => word.toLowerCase());
+    
+    // Diviser le texte en mots tout en préservant la ponctuation
+    const tokenRegex = /(\w+)|([^\w\s])/g;
+    let match;
+    let result = '';
+    let lastIndex = 0;
+    
+    // Pour chaque mot trouvé
+    while ((match = tokenRegex.exec(text)) !== null) {
+      // Ajouter le texte avant le mot actuel
+      result += text.substring(lastIndex, match.index);
+      
+      // Récupérer le mot trouvé (peut être un mot ou une ponctuation)
+      const token = match[0];
+      
+      // Si c'est un mot (pas une ponctuation)
+      if (/\w+/.test(token)) {
+        const isVocabularyWord = vocabularyWords.includes(token.toLowerCase());
+        
+        // Si c'est un mot du vocabulaire, le mettre en évidence spécialement
+        if (isVocabularyWord) {
+          result += `<span class="highlighted-word vocabulary-word" data-word="${token}">${token}</span>`;
+        } else {
+          // Sinon, le rendre cliquable mais sans mise en évidence particulière
+          result += `<span class="clickable-word" data-word="${token}">${token}</span>`;
+        }
+      } else {
+        // Si c'est une ponctuation, l'ajouter simplement
+        result += token;
+      }
+      
+      lastIndex = match.index + token.length;
+    }
+    
+    // Ajouter le reste du texte
+    result += text.substring(lastIndex);
+    
+    return result;
+  }
+
+  /**
+   * Gère un mot cliqué via la directive SafeHtmlDirective
+   */
+  onWordClicked(word: string): void {
+    console.log('Mot reçu de la directive:', word);
+    this.getWordTranslation(word);
+  }
+
+  /**
+   * Obtient la traduction contextuelle d'un mot
+   */
+  getWordTranslation(word: string): void {
+    this.selectedWord = word;
+    this.isTranslating = true;
+    this.translation = null;
+    
+    if (this.comprehensionText?.text) {
+      // Extraire le contexte autour du mot
+      const context = this.textGeneratorService.extractContext(this.comprehensionText.text, word);
+      
+      // Obtenir la traduction contextuelle
+      this.textGeneratorService.getContextualTranslation(word, context).subscribe({
+        next: (result) => {
+          this.translation = result;
+          this.isTranslating = false;
+        },
+        error: () => {
+          this.isTranslating = false;
+          // En cas d'erreur, utiliser la traduction de base du vocabulaire
+          const vocabularyItem = this.comprehensionText?.vocabularyItems.find(
+            item => item.word.toLowerCase() === word.toLowerCase()
+          );
+          
+          if (vocabularyItem) {
+            this.translation = {
+              originalWord: vocabularyItem.word,
+              translation: vocabularyItem.translation,
+              contextualMeaning: vocabularyItem.context || 'Pas d\'information supplémentaire disponible'
+            };
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Ferme la fenêtre de traduction
+   */
+  closeTranslation(): void {
+    this.translation = null;
+    this.selectedWord = '';
+  }
+
+  /**
+   * Fonction obsolète, remplacée par le service SpeechService
+   */
+  playAudio() {
+    if (!this.comprehensionText?.text) return;
+    
+    // Use the Web Speech API for text-to-speech
+    const utterance = new SpeechSynthesisUtterance(this.comprehensionText.text);
+    utterance.lang = 'it-IT'; // Italian language
+    utterance.rate = 0.8; // Slightly slower rate for learning
+    
+    window.speechSynthesis.speak(utterance);
+  }
+
+  /**
+   * Active/désactive l'affichage de la transcription (pour la compréhension orale)
+   */
+  toggleTranscription() {
+    this.showTranscription = !this.showTranscription;
+  }
+
+  /**
+   * Génère des questions de compréhension à partir du texte actuel
+   */
+  generateQuestions() {
+    if (!this.comprehensionText?.text) return;
+    
+    this.isGeneratingQuestions = true;
+    this.showLoading('Génération des questions...');
+    
+    // Créer une structure temporaire pour les questions
+    const tempQuestions: ComprehensionQuestion[] = [];
+    
+    // Appel à l'API pour générer des questions
+    this.textGeneratorService.generateComprehensionQuestions(this.comprehensionText.text)
+      .subscribe({
+        next: (result) => {
+          this.hideLoading();
+          this.isGeneratingQuestions = false;
+          
+          // Mettre à jour le texte de compréhension avec les questions générées
+          if (this.comprehensionText) {
+            this.comprehensionText.questions = result.questions;
+            
+            // Sauvegarder dans le localStorage pour les récupérer dans le composant de questions
+            localStorage.setItem('comprehensionText', JSON.stringify(this.comprehensionText));
+            
+            // Rediriger vers la page de questions
+            this.router.navigate(['/questions']);
+          }
+        },
+        error: (error) => {
+          this.hideLoading();
+          this.isGeneratingQuestions = false;
+          this.showErrorToast('Erreur lors de la génération des questions');
+          console.error('Erreur de génération de questions:', error);
+        }
+      });
+  }
+
+  /**
+   * Affiche un indicateur de chargement
+   */
+  private async showLoading(message: string): Promise<void> {
+    const loading = await this.loadingCtrl.create({
+      message: message,
+      spinner: 'crescent'
+    });
+    await loading.present();
+  }
+  
+  /**
+   * Cache l'indicateur de chargement
+   */
+  private hideLoading(): void {
+    this.loadingCtrl.getTop().then(loader => {
+      if (loader) {
+        loader.dismiss();
+      }
+    });
+  }
+  
+  /**
+   * Affiche un message d'erreur
+   */
+  private async showErrorToast(message: string): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: message,
+      duration: 3000,
+      position: 'bottom',
+      color: 'danger'
+    });
+    await toast.present();
+  }
+
+  /**
+   * Ajoute le mot actuel au dictionnaire personnel
+   */
+  addWordToDictionary(): void {
+    if (!this.translation) return;
+
+    const sourceLang = this.comprehensionText?.type === 'written' ? 'it' : 'it';
+    const targetLang = 'fr'; // Langue cible par défaut (français)
+    
+    const newWord: DictionaryWord = {
+      id: '',
+      sourceWord: this.translation.originalWord,
+      sourceLang: sourceLang,
+      targetWord: this.translation.translation,
+      targetLang: targetLang,
+      contextualMeaning: this.translation.contextualMeaning,
+      partOfSpeech: this.translation.partOfSpeech,
+      examples: this.translation.examples,
+      dateAdded: 0
+    };
+    
+    const added = this.dictionaryService.addWord(newWord);
+    
+    if (added) {
+      this.showSuccessToast('Mot ajouté à votre dictionnaire personnel');
+    } else {
+      this.showErrorToast('Ce mot existe déjà dans votre dictionnaire');
+    }
+  }
+
+  /**
+   * Affiche un message de succès
+   */
+  private async showSuccessToast(message: string): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      color: 'success'
+    });
+    await toast.present();
+  }
+
+  finishExercise() {
+    this.complete.emit();
+  }
+}
