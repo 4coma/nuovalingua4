@@ -1,0 +1,121 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.game-header {
+  margin-bottom: 20px;
+  
+  h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    
+    ion-icon {
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+  }
+  
+  .game-info {
+    p {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    
+    ion-progress-bar {
+      margin-bottom: 20px;
+    }
+  }
+  
+  .game-complete {
+    padding: 20px 0;
+    
+    ion-badge {
+      padding: 10px;
+      font-size: 16px;
+    }
+  }
+}
+
+.pairs-grid {
+  margin-bottom: 30px;
+  
+  .word-card {
+    margin-bottom: 16px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    
+    ion-card-content {
+      padding: 20px 15px;
+      font-size: 18px;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    &.selected {
+      background-color: #4d8dff;
+      transform: translateY(-4px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      border: 2px solid #3171e0;
+      color: white;
+    }
+    
+    &.matched {
+      background-color: #2dd36f;
+      border: 2px solid #28ba62;
+      opacity: 0.9;
+      color: white;
+    }
+    
+    &.error {
+      background-color: #eb445a;
+      border: 2px solid #cf3c4f;
+      color: white;
+    }
+  }
+}
+
+.source-words, .target-words {
+  display: flex;
+  flex-direction: column;
+}
+
+.actions-section {
+  margin-top: 30px;
+  
+  h3 {
+    margin-bottom: 20px;
+  }
+  
+  ion-button {
+    margin-bottom: 15px;
+  }
+}
+
+.no-data-message {
+  ion-card {
+    text-align: center;
+    padding: 20px;
+    
+    ion-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+    
+    p {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+  }
+}
+
+// Styles pour les écrans plus petits
+@media (max-width: 576px) {
+  .word-card ion-card-content {
+    padding: 15px 10px;
+    font-size: 16px;
+  }
+} 

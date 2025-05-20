@@ -4,15 +4,18 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { WordPair } from '../../services/llm.service';
+import { WordPair, TranslationDirection } from '../../services/llm.service';
 import { TextGeneratorService } from '../../services/text-generator.service';
 import { ComprehensionText } from '../../models/vocabulary';
+import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
 
 interface QuizItem {
   question: WordPair;
   userAnswer: string;
   isCorrect: boolean | null;
   revealed: boolean;
+  sourceWord: string; // Le mot à afficher comme question
+  targetWord: string; // La traduction attendue
 }
 
 @Component({
@@ -35,7 +38,13 @@ export class VocabularyExerciseComponent implements OnInit {
   // Titre de la page pour le header global
   pageTitle: string = 'Exercice de vocabulaire';
 
-  sessionInfo: { category: string, topic: string, date: string } | null = null;
+  sessionInfo: { 
+    category: string, 
+    topic: string, 
+    date: string,
+    translationDirection?: TranslationDirection 
+  } | null = null;
+  
   wordPairs: WordPair[] = [];
   quizItems: QuizItem[] = [];
   currentIndex = 0;
@@ -50,7 +59,8 @@ export class VocabularyExerciseComponent implements OnInit {
   
   constructor(
     private router: Router,
-    private textGeneratorService: TextGeneratorService
+    private textGeneratorService: TextGeneratorService,
+    private vocabularyTrackingService: VocabularyTrackingService
   ) { }
 
   ngOnInit() {
@@ -58,7 +68,19 @@ export class VocabularyExerciseComponent implements OnInit {
   }
 
   loadSessionData() {
-    // Charger les paires de mots du localStorage
+    // Essayer d'abord de charger l'exercice prédéfini
+    const exerciseJson = localStorage.getItem('vocabularyExercise');
+    if (exerciseJson) {
+      try {
+        const exercise = JSON.parse(exerciseJson);
+        this.loadExerciseData(exercise);
+        return;
+      } catch (error) {
+        console.error('Erreur lors du chargement de l\'exercice:', error);
+      }
+    }
+
+    // Si pas d'exercice spécifique, charger depuis les paires de mots
     const wordPairsJson = localStorage.getItem('wordPairs');
     const sessionInfoJson = localStorage.getItem('sessionInfo');
     
@@ -72,18 +94,51 @@ export class VocabularyExerciseComponent implements OnInit {
     }
   }
 
+  // Charge les données d'un exercice prédéfini
+  loadExerciseData(exercise: VocabularyExercise) {
+    // Récupérer les infos de session
+    const sessionInfoJson = localStorage.getItem('sessionInfo');
+    if (sessionInfoJson) {
+      this.sessionInfo = JSON.parse(sessionInfoJson);
+    } else {
+      this.sessionInfo = {
+        category: 'Vocabulaire',
+        topic: exercise.topic || 'Général',
+        date: new Date().toISOString()
+      };
+    }
+    
+    // Convertir les items en paires de mots (format WordPair)
+    this.wordPairs = exercise.items.map(item => ({
+      it: item.word,
+      fr: item.translation,
+      context: item.context
+    }));
+    
+    this.prepareQuiz();
+  }
+
   prepareQuiz() {
     this.quizItems = [];
     this.currentIndex = 0;
     this.quizCompleted = false;
     
+    // Déterminer la direction de traduction
+    const direction = this.sessionInfo?.translationDirection || 'fr2it';
+    
     // Créer les éléments du quiz à partir des paires de mots
     this.wordPairs.forEach((pair) => {
+      // Adapter selon la direction choisie
+      const sourceWord = direction === 'fr2it' ? pair.fr : pair.it;
+      const targetWord = direction === 'fr2it' ? pair.it : pair.fr;
+      
       this.quizItems.push({
         question: pair,
         userAnswer: '',
         isCorrect: null,
-        revealed: false
+        revealed: false,
+        sourceWord: sourceWord,
+        targetWord: targetWord
       });
     });
   }
@@ -96,9 +151,31 @@ export class VocabularyExerciseComponent implements OnInit {
     
     // Vérifier la réponse (en ignorant la casse et les espaces supplémentaires)
     const normalizedUserAnswer = this.currentAnswer.trim().toLowerCase();
-    const normalizedCorrectAnswer = currentItem.question.fr.trim().toLowerCase();
+    const normalizedCorrectAnswer = currentItem.targetWord.trim().toLowerCase();
     
     currentItem.isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
+    
+    // Suivre ce mot dans le service de suivi du vocabulaire
+    if (this.sessionInfo) {
+      // Déterminer les mots source et cible en fonction de la direction
+      let sourceWord, targetWord;
+      if (this.sessionInfo.translationDirection === 'fr2it') {
+        sourceWord = currentItem.question.fr;
+        targetWord = currentItem.question.it;
+      } else {
+        sourceWord = currentItem.question.it;
+        targetWord = currentItem.question.fr;
+      }
+      
+      this.vocabularyTrackingService.trackWord(
+        sourceWord, 
+        targetWord,
+        this.sessionInfo.category,
+        this.sessionInfo.topic,
+        currentItem.isCorrect,
+        currentItem.question.context
+      );
+    }
     
     // Réinitialiser le champ de saisie
     this.currentAnswer = '';
@@ -116,6 +193,28 @@ export class VocabularyExerciseComponent implements OnInit {
   showAnswer() {
     const currentItem = this.quizItems[this.currentIndex];
     currentItem.revealed = true;
+    
+    // Suivre ce mot dans le service de suivi du vocabulaire comme incorrect (puisque révélé)
+    if (this.sessionInfo) {
+      // Déterminer les mots source et cible en fonction de la direction
+      let sourceWord, targetWord;
+      if (this.sessionInfo.translationDirection === 'fr2it') {
+        sourceWord = currentItem.question.fr;
+        targetWord = currentItem.question.it;
+      } else {
+        sourceWord = currentItem.question.it;
+        targetWord = currentItem.question.fr;
+      }
+      
+      this.vocabularyTrackingService.trackWord(
+        sourceWord,
+        targetWord,
+        this.sessionInfo.category,
+        this.sessionInfo.topic,
+        false, // Considéré comme une réponse incorrecte
+        currentItem.question.context
+      );
+    }
   }
 
   nextWord() {

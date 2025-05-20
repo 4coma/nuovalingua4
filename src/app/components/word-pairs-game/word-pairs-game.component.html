@@ -1,0 +1,116 @@
+<ion-content>
+  <div class="container ion-padding">
+    <!-- En-tête du jeu -->
+    <div class="game-header ion-text-center">
+      <h2 *ngIf="!gameComplete">
+        <ion-icon name="link-outline"></ion-icon>
+        Associez les mots
+      </h2>
+      <h2 *ngIf="gameComplete">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        Bravo !
+      </h2>
+      
+      <div class="game-info" *ngIf="!gameComplete && currentPairs && currentPairs.length > 0">
+        <p>
+          <span class="set-indicator">Set {{ currentPairsSet }}/{{ wordPairs.length > 6 ? 2 : 1 }}</span>
+          <span class="progress-indicator">{{ matchedPairs }} / {{ currentPairs.length / 2 }} paires</span>
+        </p>
+        <ion-progress-bar [value]="matchedPairs / (currentPairs.length / 2)"></ion-progress-bar>
+      </div>
+      
+      <div class="game-complete" *ngIf="gameComplete">
+        <p>Vous avez terminé l'exercice d'association !</p>
+        <ion-badge color="success">
+          {{ totalPairs }} paires associées | {{ attempts }} tentatives
+        </ion-badge>
+      </div>
+    </div>
+
+    <!-- Grille de jeu -->
+    <div class="pairs-grid" *ngIf="!gameComplete && currentPairs && currentPairs.length > 0">
+      <ion-grid>
+        <ion-row>
+          <!-- Colonne de mots sources (à gauche) -->
+          <ion-col size="6">
+            <div class="source-words">
+              <ion-card 
+                *ngFor="let pair of currentPairs | filter:'isSource':true" 
+                class="word-card" 
+                [class]="getCardClass(pair)"
+                (click)="selectWord(pair)">
+                <ion-card-content>
+                  {{ pair.word }}
+                </ion-card-content>
+              </ion-card>
+            </div>
+          </ion-col>
+          
+          <!-- Colonne de mots cibles (à droite) -->
+          <ion-col size="6">
+            <div class="target-words">
+              <ion-card 
+                *ngFor="let pair of currentPairs | filter:'isSource':false" 
+                class="word-card" 
+                [class]="getCardClass(pair)"
+                (click)="selectWord(pair)">
+                <ion-card-content>
+                  {{ pair.word }}
+                </ion-card-content>
+              </ion-card>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <!-- Message d'erreur s'il n'y a pas de données -->
+    <div class="no-data-message" *ngIf="!currentPairs || currentPairs.length === 0">
+      <ion-card>
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="alert-circle-outline" size="large" color="warning"></ion-icon>
+          <p>Aucune donnée de jeu disponible.</p>
+          <ion-button routerLink="/category" expand="block" color="primary" class="ion-margin-top">
+            Retour aux catégories
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Section des actions (visible uniquement quand le jeu est terminé) -->
+    <div class="actions-section" *ngIf="gameComplete">
+      <h3 class="ion-text-center">Exercices disponibles</h3>
+      
+      <ion-button (click)="generateWrittenComprehension()" expand="block" color="success" class="ion-margin-vertical" [disabled]="isGenerating">
+        <ion-icon name="book-outline" slot="start"></ion-icon>
+        Compréhension écrite
+      </ion-button>
+      
+      <ion-button (click)="generateOralComprehension()" expand="block" color="tertiary" class="ion-margin-vertical" [disabled]="isGenerating">
+        <ion-icon name="mic-outline" slot="start"></ion-icon>
+        Compréhension orale
+      </ion-button>
+      
+      <ion-button (click)="goToVocabularyExercise()" expand="block" color="primary" class="ion-margin-vertical">
+        <ion-icon name="create-outline" slot="start"></ion-icon>
+        Exercice d'encodage
+      </ion-button>
+      
+      <!-- Indicateur de chargement pour la génération -->
+      <div *ngIf="isGenerating" class="loading-container ion-text-center ion-margin-vertical">
+        <ion-spinner></ion-spinner>
+        <p>Génération du texte en cours...</p>
+      </div>
+      
+      <ion-button routerLink="/category" expand="block" color="medium" class="ion-margin-vertical">
+        <ion-icon name="list-outline" slot="start"></ion-icon>
+        Retour aux catégories
+      </ion-button>
+      
+      <ion-button routerLink="/home" expand="block" color="light" class="ion-margin-vertical">
+        <ion-icon name="home-outline" slot="start"></ion-icon>
+        Retour à l'accueil
+      </ion-button>
+    </div>
+  </div>
+</ion-content> 

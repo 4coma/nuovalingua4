@@ -2,6 +2,29 @@
   <div class="container">
     <h2 class="ion-text-center ion-padding">Choisissez une catégorie</h2>
     
+    <!-- Sélection de la direction de traduction -->
+    <ion-card class="direction-card">
+      <ion-card-header>
+        <ion-icon name="language-outline" size="large"></ion-icon>
+        <ion-card-title>Direction de traduction</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-segment [(ngModel)]="translationDirection" (ionChange)="changeTranslationDirection($event.detail.value)">
+          <ion-segment-button value="fr2it">
+            <ion-label>Français → Italien</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="it2fr">
+            <ion-label>Italien → Français</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+        <p class="ion-text-center ion-padding-top">
+          <ion-text color="medium">
+            Choisissez dans quelle direction vous souhaitez traduire les mots
+          </ion-text>
+        </p>
+      </ion-card-content>
+    </ion-card>
+    
     <ion-grid>
       <ion-row>
         <ion-col size="12" sizeMd="6" sizeXl="4" *ngFor="let category of categories">

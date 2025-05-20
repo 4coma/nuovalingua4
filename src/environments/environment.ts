@@ -6,7 +6,8 @@ export const environment = {
   production: false,
   openaiApiKey: 'REMOVED_API_KEY', // À remplir avec votre clé API OpenAI
   openaiModel: 'gpt-4.1-nano', // ou 'gpt-3.5-turbo' selon le modèle souhaité
-  openaiApiUrl: 'https://api.openai.com/v1/chat/completions'
+  openaiApiUrl: 'https://api.openai.com/v1/chat/completions',
+  llmApiUrl: 'https://api.openai.com/v1/chat/completions' // Même URL que openaiApiUrl en développement
 };
 
 /*

@@ -8,7 +8,7 @@
 
     <div *ngIf="!quizCompleted && quizItems.length > 0" class="question-container ion-padding">
       <div class="word-card">
-        <h1>{{ quizItems[currentIndex].question.it }}</h1>
+        <h1>{{ quizItems[currentIndex].sourceWord }}</h1>
         <p *ngIf="quizItems[currentIndex].question.context" class="context">
           Contexte: {{ quizItems[currentIndex].question.context }}
         </p>
@@ -40,7 +40,7 @@
           
           <div *ngIf="quizItems[currentIndex].isCorrect === false" class="wrong-answer">
             <ion-icon name="close-circle"></ion-icon>
-            <p>Incorrect. La bonne réponse est: {{ quizItems[currentIndex].question.fr }}</p>
+            <p>Incorrect. La bonne réponse est: {{ quizItems[currentIndex].targetWord }}</p>
           </div>
           
           <ion-button expand="block" color="tertiary" (click)="nextWord()">
@@ -59,7 +59,7 @@
         </div>
         
         <div *ngIf="quizItems[currentIndex].revealed" class="revealed-answer">
-          <p>Réponse: {{ quizItems[currentIndex].question.fr }}</p>
+          <p>Réponse: {{ quizItems[currentIndex].targetWord }}</p>
           <ion-button expand="block" color="tertiary" (click)="nextWord()">
             Mot suivant
           </ion-button>
@@ -74,7 +74,7 @@
         <h3>Score: {{ getScore() | number:'1.0-0' }}%</h3>
       </div>
 
-      <h3 class="ion-padding-top">Que voulez-vous faire maintenant?</h3>
+      <h3 class="ion-padding-top">Exercices disponibles</h3>
       
       <ion-button (click)="requestComprehension('written')" color="primary" expand="block" class="ion-margin-vertical" [disabled]="generatingComprehension">
         <ion-icon name="book-outline" slot="start"></ion-icon>

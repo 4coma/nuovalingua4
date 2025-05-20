@@ -10,6 +10,7 @@ import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { AudioPlayerComponent } from '../audio-player/audio-player.component';
 import { SpeechService } from '../../services/speech.service';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
+import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
 
 @Component({
   selector: 'app-comprehension-exercise',
@@ -43,6 +44,9 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
 
   // Pour la génération de questions
   isGeneratingQuestions: boolean = false;
+  
+  // Pour le suivi de la session
+  sessionInfo: { category: string, topic: string, date: string } | null = null;
 
   constructor(
     private textGeneratorService: TextGeneratorService,
@@ -51,11 +55,13 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
     private speechService: SpeechService,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
-    private dictionaryService: PersonalDictionaryService
+    private dictionaryService: PersonalDictionaryService,
+    private vocabularyTrackingService: VocabularyTrackingService
   ) { }
 
   ngOnInit() {
     this.loadComprehensionText();
+    this.loadSessionInfo();
     this.prepareHighlightedWords();
     this.updatePageTitle();
   }
@@ -73,6 +79,20 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
       this.pageTitle = this.comprehensionText.type === 'written' ? 
         'Compréhension écrite' : 
         'Compréhension orale';
+    }
+  }
+
+  /**
+   * Charge les informations sur la session depuis le localStorage
+   */
+  loadSessionInfo() {
+    const sessionInfoJson = localStorage.getItem('sessionInfo');
+    if (sessionInfoJson) {
+      try {
+        this.sessionInfo = JSON.parse(sessionInfoJson);
+      } catch (e) {
+        console.error('Erreur lors du parsing des infos de session:', e);
+      }
     }
   }
 
@@ -177,6 +197,23 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
         next: (result) => {
           this.translation = result;
           this.isTranslating = false;
+          
+          // Vérifier si ce mot fait partie du vocabulaire de la session
+          const vocabularyItem = this.comprehensionText?.vocabularyItems.find(
+            item => item.word.toLowerCase() === word.toLowerCase()
+          );
+          
+          // Suivre l'interaction avec ce mot s'il fait partie du vocabulaire et si on a les infos de session
+          if (vocabularyItem && this.sessionInfo) {
+            this.vocabularyTrackingService.trackWord(
+              vocabularyItem.word,
+              vocabularyItem.translation,
+              this.sessionInfo.category,
+              this.sessionInfo.topic,
+              true, // Considéré comme une reconnaissance, car l'utilisateur a cherché la traduction
+              vocabularyItem.context
+            );
+          }
         },
         error: () => {
           this.isTranslating = false;
@@ -191,6 +228,18 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
               translation: vocabularyItem.translation,
               contextualMeaning: vocabularyItem.context || 'Pas d\'information supplémentaire disponible'
             };
+            
+            // Suivre l'interaction si on a les infos de session
+            if (this.sessionInfo) {
+              this.vocabularyTrackingService.trackWord(
+                vocabularyItem.word,
+                vocabularyItem.translation,
+                this.sessionInfo.category,
+                this.sessionInfo.topic,
+                true, // Considéré comme une reconnaissance
+                vocabularyItem.context
+              );
+            }
           }
         }
       });
@@ -325,6 +374,18 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
     
     if (added) {
       this.showSuccessToast('Mot ajouté à votre dictionnaire personnel');
+      
+      // Suivre également ce mot pour la révision si on a les infos de session
+      if (this.sessionInfo) {
+        this.vocabularyTrackingService.trackWord(
+          this.translation.originalWord,
+          this.translation.translation,
+          this.sessionInfo.category,
+          this.sessionInfo.topic,
+          true, // Considéré comme reconnu car ajouté au dictionnaire
+          this.translation.contextualMeaning
+        );
+      }
     } else {
       this.showErrorToast('Ce mot existe déjà dans votre dictionnaire');
     }

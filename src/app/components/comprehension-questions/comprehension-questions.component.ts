@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ComprehensionText, ComprehensionQuestion, EvaluationResult } from '../../models/vocabulary';
 import { TextGeneratorService } from '../../services/text-generator.service';
+import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
 
 @Component({
   selector: 'app-comprehension-questions',
@@ -27,15 +28,20 @@ export class ComprehensionQuestionsComponent implements OnInit {
   isSubmitting: boolean = false;
   evaluationResult: EvaluationResult | null = null;
   showResult: boolean = false;
+  
+  // Pour le suivi de la session
+  sessionInfo: { category: string, topic: string, date: string } | null = null;
 
   constructor(
     private router: Router,
     private navCtrl: NavController,
-    private textGeneratorService: TextGeneratorService
+    private textGeneratorService: TextGeneratorService,
+    private vocabularyTrackingService: VocabularyTrackingService
   ) { }
 
   ngOnInit() {
     this.loadComprehensionData();
+    this.loadSessionInfo();
   }
 
   /**
@@ -66,6 +72,20 @@ export class ComprehensionQuestionsComponent implements OnInit {
       this.router.navigate(['/comprehension']);
     }
   }
+  
+  /**
+   * Charge les informations sur la session depuis le localStorage
+   */
+  loadSessionInfo() {
+    const sessionInfoJson = localStorage.getItem('sessionInfo');
+    if (sessionInfoJson) {
+      try {
+        this.sessionInfo = JSON.parse(sessionInfoJson);
+      } catch (e) {
+        console.error('Erreur lors du parsing des infos de session:', e);
+      }
+    }
+  }
 
   /**
    * Soumet les réponses pour évaluation
@@ -90,6 +110,9 @@ export class ComprehensionQuestionsComponent implements OnInit {
           
           // Sauvegarder l'évaluation dans le localStorage
           localStorage.setItem('evaluationResult', JSON.stringify(result));
+          
+          // Suivre la performance sur les mots de vocabulaire
+          this.trackVocabularyPerformance(result);
         },
         error: (error) => {
           console.error('Erreur lors de l\'évaluation des réponses:', error);
@@ -97,6 +120,40 @@ export class ComprehensionQuestionsComponent implements OnInit {
           alert('Erreur lors de l\'évaluation des réponses. Veuillez réessayer.');
         }
       });
+  }
+  
+  /**
+   * Suit la performance sur les mots de vocabulaire mentionnés dans les questions et réponses
+   */
+  private trackVocabularyPerformance(result: EvaluationResult) {
+    if (!this.comprehensionText?.vocabularyItems || !this.sessionInfo) return;
+    
+    const vocabularyWords = this.comprehensionText.vocabularyItems;
+    
+    // Pour chaque feedback de question
+    result.feedback.forEach(feedback => {
+      const isCorrect = feedback.isCorrect;
+      
+      // Vérifier si des mots du vocabulaire sont mentionnés dans la question ou la réponse
+      vocabularyWords.forEach(vocabItem => {
+        // Si le mot est présent dans la question ou la réponse
+        const wordInQuestion = feedback.question.toLowerCase().includes(vocabItem.word.toLowerCase());
+        const wordInUserAnswer = feedback.userAnswer.toLowerCase().includes(vocabItem.word.toLowerCase());
+        const wordInCorrectAnswer = feedback.correctAnswer?.toLowerCase().includes(vocabItem.word.toLowerCase());
+        
+        if (wordInQuestion || wordInUserAnswer || wordInCorrectAnswer) {
+          // Suivre l'utilisation de ce mot dans la question
+          this.vocabularyTrackingService.trackWord(
+            vocabItem.word,
+            vocabItem.translation,
+            this.sessionInfo!.category,
+            this.sessionInfo!.topic,
+            isCorrect, // La réponse correcte indique une bonne maîtrise
+            vocabItem.context
+          );
+        }
+      });
+    });
   }
 
   /**

@@ -2,8 +2,9 @@ import { Component, OnInit, Output, EventEmitter, OnDestroy } from '@angular/cor
 import { IonicModule, ToastController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { LlmService, WordPair } from '../../services/llm.service';
+import { LlmService, WordPair, TranslationDirection } from '../../services/llm.service';
 import { PersonalDictionaryService } from '../../services/personal-dictionary.service';
+import { FormsModule } from '@angular/forms';
 
 interface Category {
   id: string;
@@ -20,7 +21,8 @@ interface Category {
   imports: [
     CommonModule,
     IonicModule,
-    RouterModule
+    RouterModule,
+    FormsModule
   ]
 })
 export class CategorySelectionComponent implements OnInit, OnDestroy {
@@ -56,6 +58,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
   selectedCategory: string | null = null;
   selectedTopic: string | null = null;
   
+  // Direction de traduction
+  translationDirection: TranslationDirection = 'fr2it';
+  
   // États pour les composants d'interface
   showConfirmation: boolean = false;
   isLoading: boolean = false;
@@ -70,7 +75,10 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     private toastController: ToastController
   ) { }
 
-  ngOnInit() {}
+  ngOnInit() {
+    // Charger la direction de traduction depuis le service
+    this.translationDirection = this.llmService.translationDirection;
+  }
 
   selectCategory(categoryId: string) {
     this.selectedCategory = categoryId;
@@ -107,6 +115,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     console.log('Démarrage session, isLoading:', this.isLoading);
 
     if (this.selectedCategory && this.selectedTopic) {
+      // Mettre à jour la direction de traduction dans le service
+      this.llmService.translationDirection = this.translationDirection;
+      
       // Cas spécial pour le dictionnaire personnel
       if (this.selectedCategory === 'vocabulary' && this.selectedTopic === 'Personnel') {
         this.handlePersonalDictionary();
@@ -129,14 +140,16 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
           localStorage.setItem('sessionInfo', JSON.stringify({
             category: this.selectedCategory,
             topic: this.selectedTopic,
-            date: new Date().toISOString()
+            date: new Date().toISOString(),
+            translationDirection: this.translationDirection
           }));
           
           this.isLoading = false;
           console.log('Chargement terminé, isLoading:', this.isLoading);
-          // Naviguer vers l'exercice de vocabulaire
+          
+          // Naviguer vers le jeu d'association (nouveau composant)
           setTimeout(() => {
-            this.router.navigate(['/vocabulary']);
+            this.router.navigate(['/word-pairs-game']);
           }, 100);
         },
         error: (error) => {
@@ -190,13 +203,29 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     localStorage.setItem('sessionInfo', JSON.stringify({
       category: this.selectedCategory,
       topic: this.selectedTopic,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      translationDirection: this.translationDirection
     }));
     
     this.isLoading = false;
     setTimeout(() => {
-      this.router.navigate(['/vocabulary']);
+      this.router.navigate(['/word-pairs-game']);
     }, 100);
+  }
+
+  /**
+   * Change la direction de traduction
+   */
+  changeTranslationDirection(direction: string | number | undefined) {
+    // Convertir la valeur en string si nécessaire
+    const directionStr = direction !== undefined ? String(direction) : undefined;
+    
+    // Vérifier que la valeur est définie et est bien 'fr2it' ou 'it2fr'
+    if (directionStr && (directionStr === 'fr2it' || directionStr === 'it2fr')) {
+      this.translationDirection = directionStr as TranslationDirection;
+    } else {
+      console.warn('Direction de traduction invalide:', direction);
+    }
   }
 
   /**
