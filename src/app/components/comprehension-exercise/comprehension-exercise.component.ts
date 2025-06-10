@@ -484,5 +484,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
 
   finishExercise() {
     this.complete.emit();
+    // Ajouter la navigation vers la page de vocabulaire
+    this.router.navigate(['/vocabulary']);
   }
 }
