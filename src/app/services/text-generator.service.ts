@@ -59,6 +59,16 @@ export class TextGeneratorService {
   }
 
   /**
+   * Évalue les réponses aux questions de compréhension
+   * @param text Le texte original de l'exercice de compréhension
+   * @param questions Les questions avec les réponses de l'utilisateur
+   * @returns Un résultat d'évaluation avec feedback
+   */
+  evaluateComprehensionAnswers(text: string, questions: ComprehensionQuestion[]): Observable<EvaluationResult> {
+    return this.evaluateUserAnswers(text, questions);
+  }
+
+  /**
    * Crée le prompt pour générer un texte de compréhension avec des questions
    */
   private createComprehensionTextPrompt(wordPairs: WordPair[], type: 'written' | 'oral'): string {

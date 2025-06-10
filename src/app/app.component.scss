@@ -1,0 +1,17 @@
+// Styles spécifiques pour le composant app-root
+
+// Assure que le bouton FAB est toujours accessible
+.safe-area-fab {
+  margin-bottom: var(--ion-safe-area-bottom, 20px);
+}
+
+// Ajuste le contenu pour éviter qu'il soit masqué par la barre de navigation
+.ion-padding-bottom {
+  --padding-bottom: calc(var(--ion-safe-area-bottom, 20px) + 20px);
+}
+
+// Pour les appareils Android et iOS, on s'assure que les éléments interactifs
+// en bas de l'écran sont bien accessibles
+ion-content {
+  --keyboard-offset: var(--ion-safe-area-bottom, 0);
+}

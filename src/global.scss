@@ -35,3 +35,35 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+/**
+ * Safe Area Handling
+ * -----------------------------------------------------
+ * CSS pour gérer les "safe areas" sur les appareils modernes,
+ * notamment autour de la barre de navigation Android et du notch iOS.
+ */
+
+/* Ajoute un padding en bas pour éviter que le contenu soit masqué par la barre de navigation */
+ion-content {
+  --padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* Gestion spécifique pour les FAB qui sont en bas de l'écran */
+ion-fab[vertical="bottom"] {
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Gestion pour les tabs */
+ion-tabs ion-tab-bar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Assure que les modaux prennent en compte la safe area */
+ion-modal ion-content {
+  --padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* Adjust footer bars to respect safe area */
+ion-footer {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}

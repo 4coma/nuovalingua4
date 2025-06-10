@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, OnChanges } from '@angular/core';
-import { ComprehensionText, VocabularyItem, ComprehensionQuestion } from '../../models/vocabulary';
+import { ComprehensionText, VocabularyItem, ComprehensionQuestion, EvaluationResult } from '../../models/vocabulary';
 import { CommonModule } from '@angular/common';
 import { IonicModule, PopoverController, LoadingController, ToastController } from '@ionic/angular';
 import { TextGeneratorService, TranslationResult } from '../../services/text-generator.service';
@@ -44,6 +44,9 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
 
   // Pour la génération de questions
   isGeneratingQuestions: boolean = false;
+  isSubmitting: boolean = false;
+  evaluationResult: EvaluationResult | null = null;
+  showResult: boolean = false;
   
   // Pour le suivi de la session
   sessionInfo: { category: string, topic: string, date: string } | null = null;
@@ -60,15 +63,24 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
   ) { }
 
   ngOnInit() {
-    this.loadComprehensionText();
-    this.loadSessionInfo();
-    this.prepareHighlightedWords();
     this.updatePageTitle();
+    this.loadSessionInfo();
+    this.loadComprehensionText();
+    
+    // Générer automatiquement les questions si le texte existe mais pas de questions
+    if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
+      this.autoGenerateQuestions();
+    }
   }
 
   ngOnChanges() {
-    this.prepareHighlightedWords();
     this.updatePageTitle();
+    this.prepareHighlightedWords();
+    
+    // Générer automatiquement les questions si le texte existe mais pas de questions
+    if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
+      this.autoGenerateQuestions();
+    }
   }
 
   /**
@@ -276,6 +288,19 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
   }
 
   /**
+   * Génère automatiquement des questions après un délai pour laisser le temps à l'utilisateur de lire/écouter
+   */
+  private autoGenerateQuestions() {
+    // Attendre quelques secondes pour générer les questions automatiquement
+    // Cela donne le temps à l'utilisateur de commencer à lire ou écouter
+    setTimeout(() => {
+      if (!this.comprehensionText?.questions?.length) {
+        this.generateQuestions();
+      }
+    }, 1000); // 1 seconde de délai
+  }
+
+  /**
    * Génère des questions de compréhension à partir du texte actuel
    */
   generateQuestions() {
@@ -283,9 +308,6 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
     
     this.isGeneratingQuestions = true;
     this.showLoading('Génération des questions...');
-    
-    // Créer une structure temporaire pour les questions
-    const tempQuestions: ComprehensionQuestion[] = [];
     
     // Appel à l'API pour générer des questions
     this.textGeneratorService.generateComprehensionQuestions(this.comprehensionText.text)
@@ -296,13 +318,13 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
           
           // Mettre à jour le texte de compréhension avec les questions générées
           if (this.comprehensionText) {
-            this.comprehensionText.questions = result.questions;
+            this.comprehensionText.questions = result.questions.map(q => ({ 
+              ...q, 
+              userAnswer: '' 
+            }));
             
-            // Sauvegarder dans le localStorage pour les récupérer dans le composant de questions
+            // Sauvegarder dans le localStorage pour conserver l'état
             localStorage.setItem('comprehensionText', JSON.stringify(this.comprehensionText));
-            
-            // Rediriger vers la page de questions
-            this.router.navigate(['/questions']);
           }
         },
         error: (error) => {
@@ -310,6 +332,62 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
           this.isGeneratingQuestions = false;
           this.showErrorToast('Erreur lors de la génération des questions');
           console.error('Erreur de génération de questions:', error);
+        }
+      });
+  }
+
+  /**
+   * Soumet les réponses aux questions pour évaluation
+   */
+  submitAnswers() {
+    if (!this.comprehensionText?.questions?.length) return;
+    
+    this.isSubmitting = true;
+    this.showLoading('Évaluation de vos réponses...');
+    
+    // Préparer les données pour l'évaluation
+    const originalText = this.comprehensionText.text;
+    const questionsWithAnswers = this.comprehensionText.questions;
+    
+    // Appel au service pour évaluer les réponses
+    this.textGeneratorService.evaluateComprehensionAnswers(originalText, questionsWithAnswers)
+      .subscribe({
+        next: (result: EvaluationResult) => {
+          this.hideLoading();
+          this.isSubmitting = false;
+          this.evaluationResult = result;
+          this.showResult = true;
+          
+          // Sauvegarder le résultat dans le localStorage
+          localStorage.setItem('evaluationResult', JSON.stringify(result));
+          
+          // Mise à jour du suivi de la session si disponible
+          if (this.sessionInfo && this.comprehensionText?.vocabularyItems) {
+            const category = this.sessionInfo.category;
+            const topic = this.sessionInfo.topic;
+            
+            this.comprehensionText.vocabularyItems.forEach(item => {
+              // Détermine si l'item a été correctement compris en contexte
+              const understood = this.evaluationResult && typeof this.evaluationResult.score === 'number' 
+                ? this.evaluationResult.score > 70 
+                : false;
+              
+              this.vocabularyTrackingService.trackWord(
+                item.word,
+                item.translation,
+                category,
+                topic,
+                understood,
+                item.context
+              );
+            });
+          }
+        },
+        error: (error: any) => {
+          this.hideLoading();
+          this.isSubmitting = false;
+          this.showErrorToast('Erreur lors de l\'évaluation des réponses');
+          console.error('Erreur d\'évaluation:', error);
         }
       });
   }

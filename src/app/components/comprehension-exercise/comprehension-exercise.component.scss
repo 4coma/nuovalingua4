@@ -4,22 +4,41 @@
 }
 
 .exercise-header {
-  ion-icon {
-    font-size: 2rem;
-    vertical-align: middle;
-    margin-right: 8px;
+  margin-bottom: 20px;
+  
+  h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    
+    ion-icon {
+      font-size: 24px;
+    }
+  }
+  
+  p {
+    color: var(--ion-color-medium);
+    font-size: 16px;
+    margin-top: 5px;
   }
 }
 
 .text-card {
-  margin: 20px;
+  margin-bottom: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  
+  ion-card-content {
+    padding: 16px;
+  }
 }
 
 .comprehension-text {
-  font-size: 18px;
-  line-height: 1.6;
-  text-align: justify;
+  line-height: 1.7;
+  font-size: 16px;
   
   /* Style pour les mots du vocabulaire (mis en évidence) */
   .highlighted-word.vocabulary-word {
@@ -47,6 +66,20 @@
       border-radius: 3px;
     }
   }
+  
+  /* Style pour les mots surlignés */
+  span.highlighted {
+    background-color: rgba(var(--ion-color-primary-rgb), 0.15);
+    color: var(--ion-color-primary-shade);
+    border-radius: 3px;
+    padding: 0 3px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:hover {
+      background-color: rgba(var(--ion-color-primary-rgb), 0.3);
+    }
+  }
 }
 
 .audio-controls {
@@ -54,51 +87,40 @@
 }
 
 .vocabulary-list {
-  margin-top: 20px;
-  
   h3 {
-    margin-bottom: 16px;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 15px;
   }
   
   ion-item {
     --padding-start: 0;
     --inner-padding-end: 0;
-    --background: var(--ion-color-light);
-    margin-bottom: 8px;
-    border-radius: 8px;
     
     h2 {
-      font-weight: bold;
-      color: var(--ion-color-primary);
+      font-weight: 500;
+      font-size: 16px;
+      margin-bottom: 4px;
     }
     
     p {
-      margin-top: 4px;
+      color: var(--ion-color-medium);
     }
   }
 }
 
 .translation {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 18px;
+  font-weight: 500;
   color: var(--ion-color-primary);
-  margin: 15px 0;
 }
 
 .examples-section {
-  background-color: var(--ion-color-light);
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 15px;
+  margin-top: 16px;
   
   h3 {
-    margin-top: 0;
-    color: var(--ion-color-medium);
-  }
-  
-  ion-item {
-    --background: transparent;
-    --border-color: rgba(0, 0, 0, 0.1);
+    font-size: 18px;
+    margin-bottom: 10px;
   }
 }
 
@@ -126,5 +148,73 @@
       margin-bottom: 8px;
       font-style: italic;
     }
+  }
+}
+
+/* Styles pour la section des questions */
+.questions-section {
+  margin-top: 30px;
+  
+  .questions-header {
+    h3 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--ion-color-success);
+      
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+  }
+  
+  .question-item {
+    border-bottom: 1px solid var(--ion-color-light);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    h2 {
+      font-weight: 600;
+      color: var(--ion-color-primary);
+    }
+  }
+  
+  .answer-input {
+    --background: var(--ion-color-light-shade);
+    --padding-start: 10px;
+    --padding-end: 10px;
+    --border-radius: 5px;
+    margin-top: 8px;
+  }
+  
+  ion-card {
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Styles pour les résultats d'évaluation */
+ion-chip {
+  margin-top: 5px;
+}
+
+ion-card-header {
+  background-color: var(--ion-color-light);
+  
+  ion-card-title {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  
+  ion-card-subtitle {
+    font-size: 18px;
+    margin-top: 8px;
   }
 }
