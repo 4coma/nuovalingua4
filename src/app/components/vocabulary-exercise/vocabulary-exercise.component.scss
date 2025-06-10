@@ -2,19 +2,25 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .exercise-header {
   text-align: center;
+  margin-bottom: 20px;
   
   h2 {
-    margin-bottom: 20px;
-    font-weight: bold;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 15px;
   }
   
   .progress-text {
-    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
     color: var(--ion-color-medium);
+    margin-top: 8px;
   }
 }
 
@@ -29,84 +35,71 @@
 .word-card {
   background-color: var(--ion-color-light);
   border-radius: 12px;
-  padding: 30px;
+  padding: 20px;
   margin-bottom: 20px;
   width: 100%;
-  max-width: 500px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   
   h1 {
     font-size: 28px;
-    margin-bottom: 15px;
-    color: var(--ion-color-dark);
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--ion-color-primary);
   }
   
   .context {
     font-style: italic;
-    margin-bottom: 15px;
-    font-size: 16px;
     color: var(--ion-color-medium);
-  }
-  
-  .hint {
-    font-size: 16px;
-    color: var(--ion-color-medium);
+    margin-top: 10px;
   }
 }
 
 .answer-container {
   width: 100%;
-  max-width: 500px;
   
   ion-item {
-    --background: var(--ion-color-light);
-    border-radius: 8px;
-    margin-bottom: 16px;
-  }
-  
-  ion-button {
-    margin-bottom: 16px;
+    --background: var(--ion-color-light-shade);
+    --border-radius: 8px;
+    margin-bottom: 15px;
   }
 }
 
 .feedback-container {
-  margin-top: 16px;
-  background-color: var(--ion-color-light);
-  border-radius: 8px;
-  padding: 16px;
-  text-align: center;
-}
-
-.correct-answer {
-  color: var(--ion-color-success);
+  margin-top: 20px;
   
-  ion-icon {
-    font-size: 36px;
-    margin-bottom: 8px;
+  .correct-answer, .wrong-answer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    
+    ion-icon {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+    
+    p {
+      margin: 0;
+      font-weight: 600;
+    }
   }
   
-  p {
-    font-size: 18px;
-    font-weight: bold;
-  }
-}
-
-.wrong-answer {
-  color: var(--ion-color-danger);
-  
-  ion-icon {
-    font-size: 36px;
-    margin-bottom: 8px;
+  .correct-answer {
+    background-color: rgba(var(--ion-color-success-rgb), 0.15);
+    color: var(--ion-color-success);
   }
   
-  p {
-    font-size: 16px;
+  .wrong-answer {
+    background-color: rgba(var(--ion-color-danger-rgb), 0.15);
+    color: var(--ion-color-danger);
   }
 }
 
 .help-buttons {
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .revealed-answer {
@@ -147,5 +140,87 @@
       font-size: 24px;
       font-weight: bold;
     }
+  }
+}
+
+// Styles pour la section des erreurs
+.error-summary-section {
+  margin: 20px 0;
+  
+  .error-list {
+    margin-top: 10px;
+    background-color: var(--ion-color-light-shade);
+    border-radius: 8px;
+    
+    ion-item-divider {
+      --background: var(--ion-color-danger-tint);
+      --color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+  }
+  
+  .error-item {
+    margin-bottom: 8px;
+    --background: var(--ion-color-light);
+    --border-color: rgba(var(--ion-color-danger-rgb), 0.2);
+    --border-style: solid;
+    --border-width: 0 0 1px 0;
+    
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ion-color-primary);
+      margin-bottom: 8px;
+    }
+    
+    .context-error {
+      font-style: italic;
+      color: var(--ion-color-medium);
+      margin: 6px 0;
+    }
+    
+    .error-details {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+      
+      .user-answer, .correct-answer {
+        padding: 8px;
+        border-radius: 4px;
+        
+        ion-label {
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 4px;
+        }
+        
+        p {
+          margin: 5px 0 0 0;
+          font-weight: 500;
+        }
+      }
+      
+      .user-answer {
+        background-color: rgba(var(--ion-color-danger-rgb), 0.1);
+      }
+      
+      .correct-answer {
+        background-color: rgba(var(--ion-color-success-rgb), 0.1);
+      }
+    }
+  }
+}
+
+.loading-container {
+  padding: 20px;
+  
+  ion-spinner {
+    margin-bottom: 10px;
+  }
+  
+  p {
+    color: var(--ion-color-medium);
   }
 }

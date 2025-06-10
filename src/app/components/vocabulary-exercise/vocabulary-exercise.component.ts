@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { VocabularyExercise, VocabularyItem } from '../../models/vocabulary';
+import { VocabularyExercise, VocabularyItem, VocabularyError } from '../../models/vocabulary';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Router } from '@angular/router';
@@ -56,6 +56,10 @@ export class VocabularyExerciseComponent implements OnInit {
   // Pour la fonction de compréhension
   generatingComprehension: boolean = false;
   comprehensionText: ComprehensionText | null = null;
+  
+  // Pour le suivi des erreurs
+  errorList: VocabularyError[] = [];
+  showErrorSummary: boolean = false;
   
   constructor(
     private router: Router,
@@ -155,6 +159,16 @@ export class VocabularyExerciseComponent implements OnInit {
     
     currentItem.isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
     
+    // Si la réponse est incorrecte, ajouter à la liste des erreurs
+    if (!currentItem.isCorrect) {
+      this.errorList.push({
+        sourceWord: currentItem.sourceWord,
+        targetWord: currentItem.targetWord,
+        userAnswer: this.currentAnswer,
+        context: currentItem.question.context
+      });
+    }
+    
     // Suivre ce mot dans le service de suivi du vocabulaire
     if (this.sessionInfo) {
       // Déterminer les mots source et cible en fonction de la direction
@@ -193,6 +207,14 @@ export class VocabularyExerciseComponent implements OnInit {
   showAnswer() {
     const currentItem = this.quizItems[this.currentIndex];
     currentItem.revealed = true;
+    
+    // Ajouter à la liste des erreurs puisque l'utilisateur n'a pas répondu correctement
+    this.errorList.push({
+      sourceWord: currentItem.sourceWord,
+      targetWord: currentItem.targetWord,
+      userAnswer: "(non répondu)",
+      context: currentItem.question.context
+    });
     
     // Suivre ce mot dans le service de suivi du vocabulaire comme incorrect (puisque révélé)
     if (this.sessionInfo) {
@@ -271,5 +293,26 @@ export class VocabularyExerciseComponent implements OnInit {
     
     this.complete.emit(vocabularyItems);
     this.router.navigate(['/category']);
+  }
+
+  /**
+   * Active ou désactive l'affichage du résumé des erreurs
+   */
+  toggleErrorSummary() {
+    this.showErrorSummary = !this.showErrorSummary;
+  }
+
+  /**
+   * Vérifie si l'utilisateur a fait des erreurs
+   */
+  hasErrors(): boolean {
+    return this.errorList.length > 0;
+  }
+
+  /**
+   * Réinitialise la liste des erreurs
+   */
+  clearErrors() {
+    this.errorList = [];
   }
 }

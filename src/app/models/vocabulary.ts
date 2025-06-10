@@ -34,4 +34,11 @@ export interface EvaluationResult {
   feedback: AnswerFeedback[];
   score?: number;
   overallFeedback?: string;
+}
+
+export interface VocabularyError {
+  sourceWord: string;
+  targetWord: string;
+  userAnswer: string;
+  context?: string;
 } 

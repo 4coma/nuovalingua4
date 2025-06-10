@@ -74,6 +74,43 @@
         <h3>Score: {{ getScore() | number:'1.0-0' }}%</h3>
       </div>
 
+      <!-- Résumé des erreurs -->
+      <div *ngIf="hasErrors()" class="error-summary-section ion-margin-vertical">
+        <ion-button 
+          expand="block" 
+          color="danger" 
+          (click)="toggleErrorSummary()"
+          class="ion-margin-bottom">
+          <ion-icon [name]="showErrorSummary ? 'eye-off-outline' : 'eye-outline'" slot="start"></ion-icon>
+          {{ showErrorSummary ? 'Masquer mes erreurs' : 'Voir mes erreurs' }}
+        </ion-button>
+        
+        <ion-list *ngIf="showErrorSummary" class="error-list">
+          <ion-item-divider color="light">
+            <ion-label>
+              Mots à réviser ({{ errorList.length }})
+            </ion-label>
+          </ion-item-divider>
+          
+          <ion-item *ngFor="let error of errorList" class="error-item">
+            <ion-label>
+              <h2>{{ error.sourceWord }}</h2>
+              <p *ngIf="error.context" class="context-error">Contexte: {{ error.context }}</p>
+              <div class="error-details">
+                <div class="user-answer">
+                  <ion-label color="medium">Votre réponse:</ion-label>
+                  <p>{{ error.userAnswer }}</p>
+                </div>
+                <div class="correct-answer">
+                  <ion-label color="success">Réponse correcte:</ion-label>
+                  <p>{{ error.targetWord }}</p>
+                </div>
+              </div>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+
       <h3 class="ion-padding-top">Exercices disponibles</h3>
       
       <ion-button (click)="requestComprehension('written')" color="primary" expand="block" class="ion-margin-vertical" [disabled]="generatingComprehension">
