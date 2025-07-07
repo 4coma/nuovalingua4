@@ -65,15 +65,24 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
   ) { }
 
   ngOnInit() {
-    this.loadComprehensionText();
-    this.loadSessionInfo();
-    this.prepareHighlightedWords();
     this.updatePageTitle();
+    this.loadSessionInfo();
+    this.loadComprehensionText();
+    
+    // Générer automatiquement les questions si le texte existe mais pas de questions
+    if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
+      this.autoGenerateQuestions();
+    }
   }
 
   ngOnChanges() {
-    this.prepareHighlightedWords();
     this.updatePageTitle();
+    this.prepareHighlightedWords();
+    
+    // Générer automatiquement les questions si le texte existe mais pas de questions
+    if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
+      this.autoGenerateQuestions();
+    }
   }
 
   /**
@@ -281,6 +290,19 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
   }
 
   /**
+   * Génère automatiquement des questions après un délai pour laisser le temps à l'utilisateur de lire/écouter
+   */
+  private autoGenerateQuestions() {
+    // Attendre quelques secondes pour générer les questions automatiquement
+    // Cela donne le temps à l'utilisateur de commencer à lire ou écouter
+    setTimeout(() => {
+      if (!this.comprehensionText?.questions?.length) {
+        this.generateQuestions();
+      }
+    }, 1000); // 1 seconde de délai
+  }
+
+  /**
    * Génère des questions de compréhension à partir du texte actuel
    */
   generateQuestions() {
@@ -298,7 +320,10 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
           
           // Mettre à jour le texte de compréhension avec les questions générées
           if (this.comprehensionText) {
-            this.comprehensionText.questions = result.questions;
+            this.comprehensionText.questions = result.questions.map(q => ({ 
+              ...q, 
+              userAnswer: '' 
+            }));
             
             // Sauvegarder dans le localStorage
             localStorage.setItem('comprehensionText', JSON.stringify(this.comprehensionText));
@@ -317,7 +342,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
    * Soumet les réponses aux questions pour évaluation
    */
   submitAnswers() {
-    if (!this.comprehensionText?.questions) return;
+    if (!this.comprehensionText?.questions?.length) return;
     
     this.isSubmitting = true;
     this.showLoading('Évaluation de vos réponses...');
@@ -434,5 +459,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
 
   finishExercise() {
     this.complete.emit();
+    // Ajouter la navigation vers la page de vocabulaire
+    this.router.navigate(['/vocabulary']);
   }
 }

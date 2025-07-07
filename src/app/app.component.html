@@ -44,12 +44,12 @@
       </ion-toolbar>
     </ion-header>
     
-    <ion-content>
+    <ion-content class="ion-padding-bottom">
       <ion-router-outlet (activate)="onRouteActivate($event)"></ion-router-outlet>
     </ion-content>
   </div>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="safe-area-fab">
     <ion-fab-button (click)="openAddWordModal()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>

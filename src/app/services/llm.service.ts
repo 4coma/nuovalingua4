@@ -232,6 +232,38 @@ export class LlmService {
     );
   }
 
+  /**
+   * Génère des paires de mots à partir d'une consigne personnalisée de l'utilisateur
+   * @param customPrompt La consigne personnalisée de l'utilisateur
+   * @param direction La direction de traduction
+   * @returns Un Observable contenant les paires de mots générées
+   */
+  generateCustomWordPairs(customPrompt: string, direction: TranslationDirection): Observable<WordPair[]> {
+    // Adapter le prompt en fonction de la direction de traduction
+    const translationDirection = direction === 'fr2it' 
+      ? 'du français vers l\'italien'
+      : 'de l\'italien vers le français';
+    
+    const prompt = `
+      Je souhaite apprendre du vocabulaire italien selon cette consigne personnalisée: "${customPrompt}".
+      
+      Génère 12 paires de mots en italien avec leur traduction en français qui correspondent à ma demande.
+      
+      La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
+      
+      Retourne uniquement un tableau JSON avec la structure suivante:
+      [
+        {"it": "mot_italien", "fr": "traduction_française", "context": "phrase d'exemple ou contexte d'utilisation pour mieux comprendre le mot"},
+        // Répète pour 12 paires au total
+      ]
+      
+      Attention, le mot italien et le mot français doivent uniquement contenir la traduction de l'un et de l'autre.
+      N'inclus aucun texte avant ou après le JSON.
+    `;
+
+    return this.callOpenAI<WordPair[]>(prompt);
+  }
+
   private callOpenAI<T>(prompt: string): Observable<T> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',

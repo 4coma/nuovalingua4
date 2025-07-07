@@ -1,10 +1,11 @@
 import { Component, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { LlmService, WordPair, TranslationDirection } from '../../services/llm.service';
 import { PersonalDictionaryService } from '../../services/personal-dictionary.service';
 import { FormsModule } from '@angular/forms';
+import { CustomPromptModalComponent } from '../custom-prompt-modal/custom-prompt-modal.component';
 
 interface Category {
   id: string;
@@ -46,6 +47,12 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       name: 'Vocabulaire',
       icon: 'chatbubbles',
       description: 'Enrichir votre vocabulaire italien'
+    },
+    {
+      id: 'custom',
+      name: 'Libre',
+      icon: 'rocket',
+      description: 'Créer une session personnalisée selon vos besoins'
     }
   ];
 
@@ -72,7 +79,8 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     private llmService: LlmService,
     private router: Router,
     private personalDictionaryService: PersonalDictionaryService,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private modalController: ModalController
   ) { }
 
   ngOnInit() {
@@ -83,6 +91,10 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
   selectCategory(categoryId: string) {
     this.selectedCategory = categoryId;
     this.selectedTopic = null;
+    
+    if (categoryId === 'custom') {
+      this.openCustomPromptModal();
+    }
   }
 
   confirmStartSession(topic: string) {
@@ -248,5 +260,74 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     // S'assurer que isLoading est false lorsque le composant est détruit
     this.isLoading = false;
+  }
+
+  /**
+   * Ouvre le modal pour saisir une consigne personnalisée
+   */
+  async openCustomPromptModal() {
+    const modal = await this.modalController.create({
+      component: CustomPromptModalComponent,
+      cssClass: 'custom-prompt-modal'
+    });
+    
+    await modal.present();
+    
+    const { data } = await modal.onDidDismiss();
+    
+    if (data && data.prompt) {
+      // Lancer la génération avec la consigne personnalisée
+      this.startCustomSession(data.prompt);
+    } else {
+      // Réinitialiser la sélection si l'utilisateur annule
+      this.selectedCategory = null;
+    }
+  }
+
+  /**
+   * Démarre une session personnalisée avec la consigne de l'utilisateur
+   */
+  startCustomSession(customPrompt: string) {
+    this.isLoading = true;
+    console.log('Démarrage session personnalisée, isLoading:', this.isLoading);
+    
+    // Sauvegarder les informations de la session
+    const sessionInfo = {
+      category: 'Personnalisé',
+      topic: customPrompt.length > 30 ? customPrompt.substring(0, 27) + '...' : customPrompt,
+      date: new Date().toISOString(),
+      translationDirection: this.translationDirection
+    };
+    console.log('Info session personnalisée:', sessionInfo);
+    localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
+    
+    // Appeler le service LLM pour générer des paires de mots avec la consigne personnalisée
+    this.llmService.generateCustomWordPairs(customPrompt, this.translationDirection)
+      .subscribe({
+        next: (wordPairs: WordPair[]) => {
+          console.log('Paires de mots personnalisées générées:', wordPairs);
+          localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
+          this.isLoading = false;
+          console.log('Navigation vers word-pairs-game');
+          
+          // Utiliser setTimeout pour s'assurer que la navigation se déclenche après les autres opérations
+          setTimeout(() => {
+            this.router.navigate(['/word-pairs-game'])
+              .then(success => {
+                console.log('Navigation réussie:', success);
+              })
+              .catch(err => {
+                console.error('Erreur de navigation:', err);
+                // Si la navigation échoue, tenter une autre approche
+                this.router.navigateByUrl('/word-pairs-game');
+              });
+          }, 100);
+        },
+        error: (error: any) => {
+          console.error('Erreur lors de la génération des paires de mots:', error);
+          this.isLoading = false;
+          this.showToast('Erreur lors de la génération de la session personnalisée. Veuillez réessayer.');
+        }
+      });
   }
 }

@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { IonicModule, ModalController, Platform } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
 import { LlmService } from './services/llm.service';
 import { VocabularyExercise, ComprehensionText, VocabularyItem } from './models/vocabulary';
 import { AddWordComponent } from './components/add-word/add-word.component';
 import { filter } from 'rxjs/operators';
+import { StatusBar } from '@capacitor/status-bar';
+import { App } from '@capacitor/app';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -61,9 +63,33 @@ export class AppComponent {
   constructor(
     private llmService: LlmService,
     private router: Router,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private platform: Platform
   ) {
     this.setupRouteListener();
+    this.initializeApp();
+  }
+
+  /**
+   * Initialise l'application et configure les barres de statut et de navigation
+   */
+  private async initializeApp() {
+    await this.platform.ready();
+    
+    if (this.platform.is('android') || this.platform.is('ios')) {
+      try {
+        StatusBar.setBackgroundColor({ color: '#3880ff' });
+        
+        // Gestion du bouton retour sur Android
+        App.addListener('backButton', () => {
+          if (!this.router.navigated) {
+            App.exitApp();
+          }
+        });
+      } catch (error) {
+        console.error('Error initializing status bar', error);
+      }
+    }
   }
 
   /**
