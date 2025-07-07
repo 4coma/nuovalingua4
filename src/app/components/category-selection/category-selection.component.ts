@@ -6,6 +6,7 @@ import { LlmService, WordPair, TranslationDirection } from '../../services/llm.s
 import { PersonalDictionaryService } from '../../services/personal-dictionary.service';
 import { FormsModule } from '@angular/forms';
 import { CustomPromptModalComponent } from '../custom-prompt-modal/custom-prompt-modal.component';
+import { CustomInstructionModalComponent } from '../custom-instruction-modal/custom-instruction-modal.component';
 
 interface Category {
   id: string;
@@ -110,7 +111,7 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       {
         text: 'Démarrer',
         handler: () => {
-          this.startSession();
+          this.askForCustomInstruction();
         }
       }
     ];
@@ -285,6 +286,28 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Demande à l'utilisateur s'il veut ajouter une consigne spécifique
+   */
+  async askForCustomInstruction() {
+    const modal = await this.modalController.create({
+      component: CustomInstructionModalComponent,
+      cssClass: 'custom-instruction-modal'
+    });
+    
+    await modal.present();
+    
+    const { data } = await modal.onDidDismiss();
+    
+    if (data && data.instruction) {
+      // Lancer la session avec la consigne personnalisée
+      this.startSessionWithCustomInstruction(data.instruction);
+    } else {
+      // Lancer la session normale
+      this.startSession();
+    }
+  }
+
+  /**
    * Démarre une session personnalisée avec la consigne de l'utilisateur
    */
   startCustomSession(customPrompt: string) {
@@ -329,5 +352,69 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
           this.showToast('Erreur lors de la génération de la session personnalisée. Veuillez réessayer.');
         }
       });
+  }
+
+  /**
+   * Démarre une session avec une consigne personnalisée
+   */
+  startSessionWithCustomInstruction(customInstruction: string) {
+    this.isLoading = true;
+    console.log('Démarrage session avec consigne personnalisée, isLoading:', this.isLoading);
+
+    if (this.selectedCategory && this.selectedTopic) {
+      // Mettre à jour la direction de traduction dans le service
+      this.llmService.translationDirection = this.translationDirection;
+      
+      // Cas spécial pour le dictionnaire personnel
+      if (this.selectedCategory === 'vocabulary' && this.selectedTopic === 'Personnel') {
+        this.handlePersonalDictionary();
+        return;
+      }
+
+      // Émettre l'événement de sélection de catégorie pour compatibilité
+      this.categorySelected.emit({
+        category: this.selectedCategory,
+        topic: this.selectedTopic
+      });
+
+      // Générer les paires de mots via l'API OpenAI avec la consigne personnalisée
+      this.llmService.generateWordPairsWithCustomInstruction(
+        this.selectedTopic, 
+        this.selectedCategory, 
+        customInstruction
+      ).subscribe({
+        next: (wordPairs: WordPair[]) => {
+          console.log('Paires de mots générées avec consigne personnalisée:', wordPairs);
+          // Stocker les paires de mots dans le localStorage pour la session
+          localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
+          // Stocker les informations sur la session
+          localStorage.setItem('sessionInfo', JSON.stringify({
+            category: this.selectedCategory,
+            topic: this.selectedTopic,
+            date: new Date().toISOString(),
+            translationDirection: this.translationDirection,
+            customInstruction: customInstruction
+          }));
+          
+          this.isLoading = false;
+          console.log('Chargement terminé, isLoading:', this.isLoading);
+          
+          // Naviguer vers le jeu d'association (nouveau composant)
+          setTimeout(() => {
+            this.router.navigate(['/word-pairs-game']);
+          }, 100);
+        },
+        error: (error: any) => {
+          console.error('Erreur lors de la génération des paires de mots:', error);
+          this.isLoading = false;
+          console.log('Erreur de chargement, isLoading:', this.isLoading);
+          // Gérer l'erreur (peut-être afficher une alerte)
+          alert('Erreur lors de la génération des paires de mots. Veuillez réessayer.');
+        }
+      });
+    } else {
+      this.isLoading = false;
+      console.log('Pas de catégorie/sujet sélectionné, isLoading:', this.isLoading);
+    }
   }
 }

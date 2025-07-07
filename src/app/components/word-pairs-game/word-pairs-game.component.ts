@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, ModalController } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { WordPair, TranslationDirection, LlmService } from '../../services/llm.service';
 import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
@@ -8,6 +8,7 @@ import { FilterPipe } from '../../pipes/filter.pipe';
 import { FormsModule } from '@angular/forms';
 import { TextGeneratorService } from '../../services/text-generator.service';
 import { ComprehensionText } from '../../models/vocabulary';
+import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-selection-modal.component';
 
 interface GamePair {
   id: number;
@@ -62,7 +63,8 @@ export class WordPairsGameComponent implements OnInit {
     private vocabularyTrackingService: VocabularyTrackingService,
     private toastController: ToastController,
     private llmService: LlmService,
-    private textGeneratorService: TextGeneratorService
+    private textGeneratorService: TextGeneratorService,
+    private modalController: ModalController
   ) { }
 
   ngOnInit() {
@@ -298,7 +300,18 @@ export class WordPairsGameComponent implements OnInit {
   /**
    * Génère un texte de compréhension écrite
    */
-  generateWrittenComprehension() {
+  async generateWrittenComprehension() {
+    // Demander à l'utilisateur s'il veut préciser des thèmes
+    const modal = await this.modalController.create({
+      component: ThemeSelectionModalComponent,
+      cssClass: 'theme-selection-modal'
+    });
+    
+    await modal.present();
+    
+    const { data } = await modal.onDidDismiss();
+    const selectedThemes = data?.themes || [];
+    
     // Convertir les WordPair en VocabularyItem pour être compatible avec l'interface existante
     const vocabularyItems = this.wordPairs.map(pair => ({
       word: pair.it,
@@ -308,11 +321,20 @@ export class WordPairsGameComponent implements OnInit {
     
     this.isGenerating = true;
     
-    // Générer le texte de compréhension via le service
-    this.textGeneratorService.generateComprehensionText(this.wordPairs, 'written').subscribe({
+    // Générer le texte de compréhension via le service avec les thèmes sélectionnés
+    this.textGeneratorService.generateComprehensionText(this.wordPairs, 'written', selectedThemes).subscribe({
       next: (result: ComprehensionText) => {
         // Stocker le texte dans le localStorage pour y accéder depuis le composant de compréhension
         localStorage.setItem('comprehensionText', JSON.stringify(result));
+        
+        // Mettre à jour le sessionInfo dans le localStorage pour la sauvegarde
+        if (this.sessionInfo) {
+          const sessionInfoWithThemes = {
+            ...this.sessionInfo,
+            themes: selectedThemes
+          };
+          localStorage.setItem('sessionInfo', JSON.stringify(sessionInfoWithThemes));
+        }
         
         this.isGenerating = false;
         
@@ -330,7 +352,18 @@ export class WordPairsGameComponent implements OnInit {
   /**
    * Génère un texte de compréhension orale
    */
-  generateOralComprehension() {
+  async generateOralComprehension() {
+    // Demander à l'utilisateur s'il veut préciser des thèmes
+    const modal = await this.modalController.create({
+      component: ThemeSelectionModalComponent,
+      cssClass: 'theme-selection-modal'
+    });
+    
+    await modal.present();
+    
+    const { data } = await modal.onDidDismiss();
+    const selectedThemes = data?.themes || [];
+    
     // Convertir les WordPair en VocabularyItem pour être compatible avec l'interface existante
     const vocabularyItems = this.wordPairs.map(pair => ({
       word: pair.it,
@@ -340,11 +373,20 @@ export class WordPairsGameComponent implements OnInit {
     
     this.isGenerating = true;
     
-    // Générer le texte de compréhension via le service
-    this.textGeneratorService.generateComprehensionText(this.wordPairs, 'oral').subscribe({
+    // Générer le texte de compréhension via le service avec les thèmes sélectionnés
+    this.textGeneratorService.generateComprehensionText(this.wordPairs, 'oral', selectedThemes).subscribe({
       next: (result: ComprehensionText) => {
         // Stocker le texte dans le localStorage pour y accéder depuis le composant de compréhension
         localStorage.setItem('comprehensionText', JSON.stringify(result));
+        
+        // Mettre à jour le sessionInfo dans le localStorage pour la sauvegarde
+        if (this.sessionInfo) {
+          const sessionInfoWithThemes = {
+            ...this.sessionInfo,
+            themes: selectedThemes
+          };
+          localStorage.setItem('sessionInfo', JSON.stringify(sessionInfoWithThemes));
+        }
         
         this.isGenerating = false;
         

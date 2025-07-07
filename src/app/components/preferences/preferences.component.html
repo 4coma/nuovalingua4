@@ -41,6 +41,11 @@
       <ion-text color="medium" class="ion-padding-top">
         <p><small>Votre clé API est stockée localement sur votre appareil et n'est jamais transmise à nos serveurs.</small></p>
       </ion-text>
+      
+      <ion-button fill="clear" color="primary" size="small" (click)="showApiKeyInfo()" class="ion-margin-top">
+        <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+        Pourquoi configurer ma clé API ?
+      </ion-button>
     </ion-card-content>
   </ion-card>
 
@@ -70,24 +75,6 @@
       
       <ion-text color="medium" class="ion-padding-top">
         <p><small>Saisissez le nombre exact d'associations souhaitées (1-100).</small></p>
-      </ion-text>
-      
-      <ion-item>
-        <ion-label>Suggestions rapides</ion-label>
-        <ion-select 
-          (ionChange)="selectQuickOption($event.detail.value)"
-          interface="popover"
-          placeholder="Choisir une option">
-          <ion-select-option 
-            *ngFor="let option of associationOptions" 
-            [value]="option.value">
-            {{ option.label }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
-      
-      <ion-text color="medium" class="ion-padding-top">
-        <p><small>Un nombre plus élevé permet des sessions plus longues mais peut être plus difficile à mémoriser.</small></p>
       </ion-text>
     </ion-card-content>
   </ion-card>

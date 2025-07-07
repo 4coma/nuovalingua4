@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Consigne personnalisée</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="modal-content">
+    <h2>Veux-tu ajouter une consigne ?</h2>
+    
+    <p class="instruction-example">
+      Exemple : "donne moi uniquement des mots de vocabulaire avancé"
+    </p>
+    
+    <ion-item>
+      <ion-textarea
+        [(ngModel)]="customInstruction"
+        placeholder="Entrez votre consigne spécifique..."
+        rows="4"
+        autoGrow="true">
+      </ion-textarea>
+    </ion-item>
+    
+    <div class="button-container">
+      <ion-button (click)="cancel()" fill="outline" expand="block">
+        Annuler
+      </ion-button>
+      
+      <ion-button (click)="confirm()" expand="block" [disabled]="!customInstruction.trim()">
+        Confirmer
+      </ion-button>
+    </div>
+  </div>
+</ion-content> 

@@ -1,13 +1,14 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { VocabularyExercise, VocabularyItem, VocabularyError } from '../../models/vocabulary';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ModalController } from '@ionic/angular';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { WordPair, TranslationDirection } from '../../services/llm.service';
 import { TextGeneratorService } from '../../services/text-generator.service';
 import { ComprehensionText } from '../../models/vocabulary';
 import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
+import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-selection-modal.component';
 
 interface QuizItem {
   question: WordPair;
@@ -64,7 +65,8 @@ export class VocabularyExerciseComponent implements OnInit {
   constructor(
     private router: Router,
     private textGeneratorService: TextGeneratorService,
-    private vocabularyTrackingService: VocabularyTrackingService
+    private vocabularyTrackingService: VocabularyTrackingService,
+    private modalController: ModalController
   ) { }
 
   ngOnInit() {
@@ -253,7 +255,18 @@ export class VocabularyExerciseComponent implements OnInit {
     return (correctAnswers / this.quizItems.length) * 100;
   }
 
-  requestComprehension(type: 'written' | 'oral') {
+  async requestComprehension(type: 'written' | 'oral') {
+    // Demander à l'utilisateur s'il veut préciser des thèmes
+    const modal = await this.modalController.create({
+      component: ThemeSelectionModalComponent,
+      cssClass: 'theme-selection-modal'
+    });
+    
+    await modal.present();
+    
+    const { data } = await modal.onDidDismiss();
+    const selectedThemes = data?.themes || [];
+    
     // Convertir les WordPair en VocabularyItem pour être compatible avec l'interface existante
     const vocabularyItems = this.wordPairs.map(pair => ({
       word: pair.it,
@@ -263,8 +276,8 @@ export class VocabularyExerciseComponent implements OnInit {
     
     this.generatingComprehension = true;
     
-    // Générer le texte de compréhension via le service
-    this.textGeneratorService.generateComprehensionText(this.wordPairs, type).subscribe({
+    // Générer le texte de compréhension via le service avec les thèmes sélectionnés
+    this.textGeneratorService.generateComprehensionText(this.wordPairs, type, selectedThemes).subscribe({
       next: (result) => {
         this.comprehensionText = result;
         this.generatingComprehension = false;
@@ -274,7 +287,11 @@ export class VocabularyExerciseComponent implements OnInit {
         
         // Mettre à jour le sessionInfo dans le localStorage pour la sauvegarde
         if (this.sessionInfo) {
-          localStorage.setItem('sessionInfo', JSON.stringify(this.sessionInfo));
+          const sessionInfoWithThemes = {
+            ...this.sessionInfo,
+            themes: selectedThemes
+          };
+          localStorage.setItem('sessionInfo', JSON.stringify(sessionInfoWithThemes));
         }
         
         // Naviguer vers la page de compréhension

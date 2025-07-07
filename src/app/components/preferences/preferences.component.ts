@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { StorageService } from '../../services/storage.service';
 
@@ -24,19 +24,10 @@ export class PreferencesComponent implements OnInit {
   wordAssociationsCount: number = 10;
   showApiKey: boolean = false;
   
-  // Options pour le nombre d'associations (pour les suggestions rapides)
-  associationOptions = [
-    { value: 5, label: '5 associations' },
-    { value: 10, label: '10 associations' },
-    { value: 15, label: '15 associations' },
-    { value: 20, label: '20 associations' },
-    { value: 25, label: '25 associations' },
-    { value: 30, label: '30 associations' }
-  ];
-
   constructor(
     private storageService: StorageService,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private alertController: AlertController
   ) { }
 
   ngOnInit() {
@@ -102,10 +93,23 @@ export class PreferencesComponent implements OnInit {
   }
 
   /**
-   * Sélectionne une option rapide pour le nombre d'associations
+   * Affiche des informations sur la configuration de la clé API
    */
-  selectQuickOption(value: number) {
-    this.wordAssociationsCount = value;
+  async showApiKeyInfo() {
+    const alert = await this.alertController.create({
+      header: 'Clé API requise',
+      message: `
+        <p>Cette application utilise l'API OpenAI pour générer du contenu d'apprentissage personnalisé. Pour utiliser toutes les fonctionnalités, vous devez :</p>
+        <ul>
+          <li>Créer un compte sur <a href="https://platform.openai.com" target="_blank">OpenAI Platform</a></li>
+          <li>Générer une clé API dans votre dashboard</li>
+          <li>La saisir ici pour utiliser vos propres crédits</li>
+        </ul>
+        <p><strong>Note :</strong> Sans clé API, les fonctionnalités de génération de contenu ne seront pas disponibles.</p>
+      `,
+      buttons: ['Compris']
+    });
+    await alert.present();
   }
 
   /**

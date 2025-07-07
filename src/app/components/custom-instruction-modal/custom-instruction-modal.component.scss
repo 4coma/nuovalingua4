@@ -1,0 +1,33 @@
+.modal-content {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+h2 {
+  text-align: center;
+  color: var(--ion-color-primary);
+  margin-bottom: 16px;
+}
+
+.instruction-example {
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-style: italic;
+  margin-bottom: 24px;
+}
+
+.button-container {
+  margin-top: 24px;
+  
+  ion-button {
+    margin-bottom: 12px;
+  }
+}
+
+ion-textarea {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  border: 1px solid var(--ion-color-light);
+  border-radius: 8px;
+  margin-bottom: 16px;
+} 

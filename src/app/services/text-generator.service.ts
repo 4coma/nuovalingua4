@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
@@ -35,8 +35,8 @@ export class TextGeneratorService {
   /**
    * Génère un texte de compréhension à partir d'une liste de mots
    */
-  generateComprehensionText(wordPairs: WordPair[], type: 'written' | 'oral'): Observable<ComprehensionText> {
-    return this.callOpenAI<ComprehensionText>(this.createComprehensionTextPrompt(wordPairs, type));
+  generateComprehensionText(wordPairs: WordPair[], type: 'written' | 'oral', themes?: string[]): Observable<ComprehensionText> {
+    return this.callOpenAI<ComprehensionText>(this.createComprehensionTextPrompt(wordPairs, type, themes));
   }
 
   /**
@@ -73,7 +73,7 @@ export class TextGeneratorService {
   /**
    * Crée le prompt pour générer un texte de compréhension avec des questions
    */
-  private createComprehensionTextPrompt(wordPairs: WordPair[], type: 'written' | 'oral'): string {
+  private createComprehensionTextPrompt(wordPairs: WordPair[], type: 'written' | 'oral', themes?: string[]): string {
     // Extraire les mots italiens
     const italianWords = wordPairs.map(pair => pair.it);
     
@@ -82,6 +82,11 @@ export class TextGeneratorService {
       `"${pair.it}" (it) - "${pair.fr}" (fr)${pair.context ? ` - Contexte: ${pair.context}` : ''}`
     );
     
+    // Construire la partie thèmes si fournie
+    const themesSection = themes && themes.length > 0 
+      ? `\nTHÈMES SPÉCIFIÉS: ${themes.join(', ')}\nLe texte doit être centré sur ces thèmes.`
+      : '';
+    
     return `
       Tu es un assistant de langue spécialisé dans la création de textes pédagogiques pour l'apprentissage de l'italien.
       
@@ -89,7 +94,7 @@ export class TextGeneratorService {
       ${italianWords.map(word => `"${word}"`).join(', ')}
       
       Pour information, ces mots proviennent des paires de traduction suivantes:
-      ${formattedPairs.join('\n')}
+      ${formattedPairs.join('\n')}${themesSection}
       
       Peux-tu créer un ${type === 'written' ? 'texte narratif' : 'dialogue'} original UNIQUEMENT EN ITALIEN d'environ 150-200 mots qui utilise tous ces mots italiens de manière naturelle?
       Le texte doit être de niveau intermédiaire, facile à comprendre mais avec une structure correcte.
@@ -102,7 +107,7 @@ export class TextGeneratorService {
       - Crée une histoire cohérente et intéressante${type === 'oral' ? ' sous forme de dialogue entre 2-3 personnes' : ''}
       - Ne fais pas de liste, mais un texte narratif fluide
       - Ne mets PAS en évidence les mots, laisse-les intégrés naturellement dans le texte
-      - Les questions doivent être en français et porter sur la compréhension du texte
+      - Les questions doivent être en français et porter sur la compréhension du texte${themes && themes.length > 0 ? '\n- Le texte doit être centré sur les thèmes spécifiés' : ''}
       
       TRES IMPORTANT:
       - RETOURNE TA RÉPONSE SOUS FORME D'OBJET JSON AVEC LA STRUCTURE SUIVANTE:
@@ -234,8 +239,16 @@ export class TextGeneratorService {
   private callOpenAI<T>(prompt: string): Observable<T> {
     this.showLoading('Traitement en cours...');
     
-    // Utiliser la clé API utilisateur si disponible, sinon la clé par défaut
+    // Vérifier si l'utilisateur a défini sa propre clé API
     const userApiKey = this.storageService.get('userOpenaiApiKey');
+    
+    // Si aucune clé utilisateur n'est définie, afficher une notification
+    if (!userApiKey) {
+      this.hideLoading();
+      this.showApiKeyNotification();
+      return throwError(() => new Error('Clé API non configurée'));
+    }
+    
     const apiKeyToUse = userApiKey || this.apiKey;
     
     const headers = new HttpHeaders()
@@ -348,6 +361,31 @@ export class TextGeneratorService {
       duration: 3000,
       position: 'bottom',
       color: 'danger'
+    });
+    await toast.present();
+  }
+
+  /**
+   * Affiche une notification pour informer l'utilisateur qu'il doit configurer sa clé API
+   */
+  private async showApiKeyNotification(): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: 'Veuillez configurer votre clé API OpenAI dans les préférences pour utiliser cette fonctionnalité.',
+      duration: 5000,
+      position: 'bottom',
+      color: 'warning',
+      buttons: [
+        {
+          text: 'Préférences',
+          handler: () => {
+            window.location.href = '/preferences';
+          }
+        },
+        {
+          text: 'Fermer',
+          role: 'cancel'
+        }
+      ]
     });
     await toast.present();
   }

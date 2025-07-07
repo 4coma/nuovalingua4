@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map, of, switchMap } from 'rxjs';
+import { Observable, map, of, switchMap, throwError } from 'rxjs';
 import { VocabularyExercise, ComprehensionText, VocabularyItem } from '../models/vocabulary';
 import { environment } from '../../environments/environment';
 import { VocabularyTrackingService, WordMastery } from './vocabulary-tracking.service';
 import { StorageService } from './storage.service';
+import { ToastController } from '@ionic/angular';
 
 export interface WordPair {
   it: string;
@@ -48,7 +49,8 @@ export class LlmService {
   constructor(
     private http: HttpClient,
     private vocabularyTrackingService: VocabularyTrackingService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private toastController: ToastController
   ) {
     // Charger la direction de traduction sauvegardée
     const savedDirection = localStorage.getItem('translationDirection') as TranslationDirection;
@@ -175,6 +177,59 @@ export class LlmService {
 
     return this.callOpenAI<WordPair[]>(prompt);
   }
+
+  /**
+   * Génère de nouveaux mots de vocabulaire avec une consigne personnalisée
+   */
+  private generateNewWordPairsWithCustomInstruction(
+    topic: string, 
+    customInstruction: string,
+    category?: string, 
+    count: number = 12,
+    wordsToReview: WordPair[] = [],
+    direction: TranslationDirection = 'fr2it'
+  ): Observable<WordPair[]> {
+    let prompt: string;
+    
+    // Liste des mots à réviser pour le contexte
+    const reviewWordsContext = wordsToReview.length > 0 
+      ? `Inclure ces mots dans les ${count} mots générés pour révision: ${wordsToReview.map(w => w.it).join(', ')}. ` 
+      : '';
+    
+    // Adapter le prompt en fonction de la direction de traduction
+    const translationDirection = direction === 'fr2it' 
+      ? 'du français vers l\'italien'
+      : 'de l\'italien vers le français';
+      
+    if (category === 'conjugation') {
+      prompt = `Génère ${count} verbes en italien avec leur traduction en français pour pratiquer la conjugaison au temps "${topic}". 
+      ${reviewWordsContext}
+      CONSIGNE SPÉCIFIQUE: ${customInstruction}
+      Varie les personnes. La traduction française doit inclure la personne (ex: "it": "mangio", "fr": "je mange").
+      Pour la 3e personne du singulier et du pluriel, utilise uniquement le masculin. N'oublie pas les apostrophes quand nécessaire pour les traductions françaises (ex : "j'allais" et pas "je allais")
+      La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
+      Retourne uniquement un tableau JSON avec la structure suivante:
+      [
+        {"it": "verbe_italien", "fr": "traduction_française", "context": "exemple de phrase conjuguée au temps ${topic}"},
+        // Répète pour ${count} verbes au total.
+      ]
+      N'inclus aucun texte avant ou après le JSON.`;
+    } else {
+      prompt = `Génère ${count} paires de mots en italien avec leur traduction en français sur le thème: "${topic}".
+      ${reviewWordsContext}
+      CONSIGNE SPÉCIFIQUE: ${customInstruction}
+      La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
+      Retourne uniquement un tableau JSON avec la structure suivante:
+      [
+        {"it": "mot_italien", "fr": "traduction_française", "context": "phrase d'exemple ou contexte d'utilisation (optionnel)"},
+        // Répète pour ${count} paires au total
+      ]
+      Attention, le mot italien et le mot français doivent uniquement contenir la traduction de l'un et de l'autre.
+      N'inclus aucun texte avant ou après le JSON.`;
+    }
+
+    return this.callOpenAI<WordPair[]>(prompt);
+  }
   
   /**
    * Récupère les mots à réviser pour une catégorie/sujet donnés
@@ -273,9 +328,59 @@ export class LlmService {
     return this.callOpenAI<WordPair[]>(prompt);
   }
 
+  /**
+   * Génère des paires de mots avec une consigne personnalisée pour une catégorie et un sujet spécifiques
+   * @param topic Le sujet de la session
+   * @param category La catégorie de la session
+   * @param customInstruction La consigne personnalisée
+   * @returns Un Observable contenant les paires de mots générées
+   */
+  generateWordPairsWithCustomInstruction(topic: string, category: string, customInstruction: string): Observable<WordPair[]> {
+    // Utiliser le même système que generateWordPairs mais avec la consigne personnalisée
+    const userAssociationsCount = this.storageService.get('wordAssociationsCount') || 10;
+    
+    // Récupérer les mots suivis pour cette catégorie et ce sujet
+    return this.getReviewWords(category, topic).pipe(
+      switchMap(wordsToReview => {
+        // Si la direction de traduction est inverse à celle dans laquelle les mots ont été stockés,
+        // nous devons inverser les paires word/translation
+        const reviewWords = wordsToReview.map(w => ({
+          it: w.word,
+          fr: w.translation,
+          context: w.context || undefined
+        }));
+        
+        const numReviewWords = reviewWords.length;
+        const maxReviewWords = Math.min(6, Math.floor(userAssociationsCount / 2)); // Max 50% de mots de révision
+        const numNewWords = userAssociationsCount - Math.min(numReviewWords, maxReviewWords);
+        
+        // S'il n'y a pas de mots à réviser, générer tous les nouveaux mots avec la consigne personnalisée
+        if (numReviewWords === 0) {
+          return this.generateNewWordPairsWithCustomInstruction(topic, customInstruction, category, userAssociationsCount, []);
+        }
+        
+        // Sinon, générer des nouveaux mots pour compléter avec la consigne personnalisée
+        return this.generateNewWordPairsWithCustomInstruction(topic, customInstruction, category, numNewWords, reviewWords.slice(0, maxReviewWords))
+          .pipe(
+            map(newWords => {
+              // Combiner les mots à réviser avec les nouveaux mots
+              return [...reviewWords.slice(0, maxReviewWords), ...newWords];
+            })
+          );
+      })
+    );
+  }
+
   private callOpenAI<T>(prompt: string): Observable<T> {
-    // Utiliser la clé API utilisateur si disponible, sinon la clé par défaut
+    // Vérifier si l'utilisateur a défini sa propre clé API
     const userApiKey = this.storageService.get('userOpenaiApiKey');
+    
+    // Si aucune clé utilisateur n'est définie, afficher une notification
+    if (!userApiKey) {
+      this.showApiKeyNotification();
+      return throwError(() => new Error('Clé API non configurée'));
+    }
+    
     const apiKeyToUse = userApiKey || this.apiKey;
     
     const headers = new HttpHeaders({
@@ -316,5 +421,30 @@ export class LlmService {
         }
       })
     );
+  }
+
+  /**
+   * Affiche une notification pour informer l'utilisateur qu'il doit configurer sa clé API
+   */
+  private async showApiKeyNotification() {
+    const toast = await this.toastController.create({
+      message: 'Veuillez configurer votre clé API OpenAI dans les préférences pour utiliser cette fonctionnalité.',
+      duration: 5000,
+      position: 'bottom',
+      color: 'warning',
+      buttons: [
+        {
+          text: 'Préférences',
+          handler: () => {
+            window.location.href = '/preferences';
+          }
+        },
+        {
+          text: 'Fermer',
+          role: 'cancel'
+        }
+      ]
+    });
+    toast.present();
   }
 }

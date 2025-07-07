@@ -41,7 +41,7 @@ export interface VocabularyError {
   targetWord: string;
   userAnswer: string;
   context?: string;
-}
+} 
 
 export interface SavedText {
   id: string;

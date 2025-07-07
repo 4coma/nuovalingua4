@@ -1,0 +1,69 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Préciser un thème ?</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="modal-content">
+    <h2>Sélectionnez un ou plusieurs thèmes</h2>
+    
+    <!-- Thèmes prédéfinis -->
+    <div class="themes-grid">
+      <ion-chip 
+        *ngFor="let theme of themes" 
+        [color]="theme.selected ? 'primary' : 'medium'"
+        (click)="toggleTheme(theme)"
+        [class.selected]="theme.selected">
+        {{ theme.name }}
+      </ion-chip>
+    </div>
+    
+    <!-- Ajout de thème personnalisé -->
+    <div class="custom-theme-section">
+      <h3>Ajouter un thème personnalisé</h3>
+      <ion-item>
+        <ion-input
+          [(ngModel)]="customTheme"
+          placeholder="Entrez un nouveau thème..."
+          (keyup.enter)="addCustomTheme()">
+        </ion-input>
+        <ion-button 
+          slot="end" 
+          (click)="addCustomTheme()"
+          [disabled]="!customTheme.trim()">
+          <ion-icon name="add"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </div>
+    
+    <!-- Thèmes sélectionnés -->
+    <div class="selected-themes" *ngIf="selectedThemes.length > 0">
+      <h3>Thèmes sélectionnés</h3>
+      <div class="selected-chips">
+        <ion-chip 
+          *ngFor="let theme of selectedThemes" 
+          color="primary"
+          (click)="removeTheme(theme)">
+          {{ theme }}
+          <ion-icon name="close"></ion-icon>
+        </ion-chip>
+      </div>
+    </div>
+    
+    <div class="button-container">
+      <ion-button (click)="cancel()" fill="outline" expand="block">
+        Annuler
+      </ion-button>
+      
+      <ion-button (click)="confirm()" expand="block">
+        Confirmer ({{ selectedThemes.length }} thème{{ selectedThemes.length > 1 ? 's' : '' }})
+      </ion-button>
+    </div>
+  </div>
+</ion-content> 
