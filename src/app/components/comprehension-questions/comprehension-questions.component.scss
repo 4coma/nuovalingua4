@@ -54,4 +54,66 @@ ion-card {
 
 ion-item {
   --background: transparent;
+}
+
+// Styles pour la section audio
+.audio-card {
+  background-color: var(--ion-color-light);
+  
+  ion-card-header {
+    padding-bottom: 0;
+  }
+  
+  ion-card-subtitle {
+    font-weight: 500;
+    font-size: 16px;
+  }
+}
+
+// Styles pour la transcription
+.transcription-container {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.comprehension-text {
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+// Styles pour les mots cliquables
+.clickable-word {
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+    color: var(--ion-color-primary);
+  }
+}
+
+.vocabulary-word {
+  color: var(--ion-color-primary);
+  font-weight: 500;
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.highlighted-word {
+  background-color: rgba(var(--ion-color-success-rgb), 0.2);
+  padding: 2px 1px;
+  border-radius: 3px;
+}
+
+// Style pour la traduction
+.translation {
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--ion-color-dark);
 } 

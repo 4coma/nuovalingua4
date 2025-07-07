@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, OnChanges } from '@angular/core';
-import { ComprehensionText, VocabularyItem, ComprehensionQuestion } from '../../models/vocabulary';
+import { ComprehensionText, VocabularyItem, ComprehensionQuestion, EvaluationResult } from '../../models/vocabulary';
 import { CommonModule } from '@angular/common';
 import { IonicModule, PopoverController, LoadingController, ToastController } from '@ionic/angular';
 import { TextGeneratorService, TranslationResult } from '../../services/text-generator.service';
@@ -44,6 +44,11 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
 
   // Pour la génération de questions
   isGeneratingQuestions: boolean = false;
+  
+  // Pour la soumission et évaluation des questions
+  isSubmitting: boolean = false;
+  showResult: boolean = false;
+  evaluationResult: EvaluationResult | null = null;
   
   // Pour le suivi de la session
   sessionInfo: { category: string, topic: string, date: string } | null = null;
@@ -284,9 +289,6 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
     this.isGeneratingQuestions = true;
     this.showLoading('Génération des questions...');
     
-    // Créer une structure temporaire pour les questions
-    const tempQuestions: ComprehensionQuestion[] = [];
-    
     // Appel à l'API pour générer des questions
     this.textGeneratorService.generateComprehensionQuestions(this.comprehensionText.text)
       .subscribe({
@@ -298,11 +300,8 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
           if (this.comprehensionText) {
             this.comprehensionText.questions = result.questions;
             
-            // Sauvegarder dans le localStorage pour les récupérer dans le composant de questions
+            // Sauvegarder dans le localStorage
             localStorage.setItem('comprehensionText', JSON.stringify(this.comprehensionText));
-            
-            // Rediriger vers la page de questions
-            this.router.navigate(['/questions']);
           }
         },
         error: (error) => {
@@ -312,6 +311,35 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
           console.error('Erreur de génération de questions:', error);
         }
       });
+  }
+
+  /**
+   * Soumet les réponses aux questions pour évaluation
+   */
+  submitAnswers() {
+    if (!this.comprehensionText?.questions) return;
+    
+    this.isSubmitting = true;
+    this.showLoading('Évaluation de vos réponses...');
+    
+    // Appel à l'API pour évaluer les réponses
+    this.textGeneratorService.evaluateUserAnswers(
+      this.comprehensionText.text,
+      this.comprehensionText.questions
+    ).subscribe({
+      next: (result: EvaluationResult) => {
+        this.hideLoading();
+        this.isSubmitting = false;
+        this.evaluationResult = result;
+        this.showResult = true;
+      },
+      error: (error: any) => {
+        this.hideLoading();
+        this.isSubmitting = false;
+        this.showErrorToast('Erreur lors de l\'évaluation des réponses');
+        console.error('Erreur d\'évaluation:', error);
+      }
+    });
   }
 
   /**

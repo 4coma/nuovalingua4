@@ -117,6 +117,82 @@
         </ion-item>
       </ion-list>
     </div>
+
+    <!-- Section des questions intégrée -->
+    <div class="questions-section ion-padding" *ngIf="comprehensionText?.questions?.length">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title class="ion-text-center">
+            <ion-icon name="help-circle-outline"></ion-icon>
+            Questions de compréhension
+          </ion-card-title>
+          <ion-card-subtitle class="ion-text-center">
+            Répondez aux questions en vous référant au texte ci-dessus
+          </ion-card-subtitle>
+        </ion-card-header>
+        
+        <ion-card-content>
+          <form>
+            <div *ngFor="let question of comprehensionText.questions; let i = index" class="question-item ion-margin-vertical">
+              <ion-item lines="none" class="ion-margin-bottom">
+                <ion-label class="ion-text-wrap">
+                  <h2>Question {{i+1}}</h2>
+                  <p>{{question.question}}</p>
+                </ion-label>
+              </ion-item>
+              
+              <ion-item>
+                <ion-textarea 
+                  [(ngModel)]="question.userAnswer" 
+                  name="answer{{i}}" 
+                  placeholder="Votre réponse..."
+                  rows="3"
+                  class="answer-input">
+                </ion-textarea>
+              </ion-item>
+            </div>
+            
+            <div class="ion-text-center ion-margin-vertical">
+              <ion-button (click)="submitAnswers()" expand="block" color="primary" [disabled]="isSubmitting">
+                <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                Valider mes réponses
+              </ion-button>
+            </div>
+          </form>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Résultats d'évaluation -->
+      <ion-card *ngIf="showResult && evaluationResult">
+        <ion-card-header>
+          <ion-card-title class="ion-text-center">Évaluation</ion-card-title>
+          <ion-card-subtitle class="ion-text-center">
+            Score: {{evaluationResult.score}}%
+          </ion-card-subtitle>
+        </ion-card-header>
+        
+        <ion-card-content>
+          <p class="ion-text-center ion-padding">{{evaluationResult.overallFeedback}}</p>
+          
+          <ion-list>
+            <ion-item *ngFor="let feedback of evaluationResult.feedback" class="ion-margin-vertical">
+              <ion-label class="ion-text-wrap">
+                <h3>{{feedback.question}}</h3>
+                <p><strong>Votre réponse:</strong> {{feedback.userAnswer}}</p>
+                <p>
+                  <ion-chip [color]="feedback.isCorrect ? 'success' : 'danger'">
+                    <ion-icon [name]="feedback.isCorrect ? 'checkmark-circle' : 'close-circle'"></ion-icon>
+                    <ion-label>{{feedback.isCorrect ? 'Correct' : 'Incorrect'}}</ion-label>
+                  </ion-chip>
+                </p>
+                <p><strong>Explication:</strong> {{feedback.explanation}}</p>
+                <p *ngIf="!feedback.isCorrect"><strong>Réponse correcte:</strong> {{feedback.correctAnswer}}</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+    </div>
     
     <div class="ion-padding ion-text-center">
       <ion-button 
@@ -127,16 +203,6 @@
         class="ion-margin-vertical">
         <ion-icon name="help-circle-outline" slot="start"></ion-icon>
         Générer des questions
-      </ion-button>
-      
-      <ion-button 
-        *ngIf="comprehensionText?.questions?.length" 
-        routerLink="/questions" 
-        expand="block" 
-        color="success" 
-        class="ion-margin-vertical">
-        <ion-icon name="help-circle-outline" slot="start"></ion-icon>
-        Répondre aux questions
       </ion-button>
       
       <ion-button (click)="finishExercise()" expand="block" color="medium" class="ion-margin-vertical">
