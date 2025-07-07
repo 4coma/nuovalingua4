@@ -66,7 +66,11 @@ import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
                  class="comprehension-text"
                  appSafeHtml
                  (wordClick)="onWordClicked($event, selectedText)"></div>
-            <button *ngIf="showTranslateButton" class="translate-popover" [ngStyle]="{'top.px': translateButtonPosition.top, 'left.px': translateButtonPosition.left}" (click)="translateSelection()">Traduire</button>
+            <div *ngIf="selectedText && selectedFragment">
+              <button class="translate-fixed-btn" (click)="translateSelection()">
+                Traduire la sélection
+              </button>
+            </div>
           </ion-content>
         </ng-template>
       </ion-modal>
@@ -143,8 +147,34 @@ import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
     .translation { font-size: 18px; font-weight: 500; color: var(--ion-color-primary); }
     .examples-section { margin-top: 16px; }
     .examples-section h3 { font-size: 18px; margin-bottom: 10px; }
-    .translate-popover { position: absolute; z-index: 10000; background: var(--ion-color-primary); color: #fff; border: none; border-radius: 20px; padding: 8px 16px; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; transition: background 0.2s; }
-    .translate-popover:hover { background: var(--ion-color-primary-shade); }
+    .translate-fixed-btn {
+      position: fixed;
+      left: 50%;
+      bottom: 32px;
+      transform: translateX(-50%);
+      z-index: 99999;
+      background: var(--ion-color-primary);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 12px 32px;
+      font-size: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+      opacity: 1;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .translate-fixed-btn:disabled {
+      background: #ccc;
+      color: #888;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .comprehension-text, .translate-fixed-btn {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      -ms-user-select: text !important;
+    }
   `],
   standalone: true,
   imports: [
@@ -170,8 +200,6 @@ export class SavedTextsListComponent implements OnInit {
 
   // Pour la sélection d'extrait
   selectedFragment = '';
-  showTranslateButton = false;
-  translateButtonPosition = { top: 0, left: 0 };
 
   constructor(
     private savedTextsService: SavedTextsService,
@@ -228,7 +256,6 @@ export class SavedTextsListComponent implements OnInit {
     this.translation = null;
     this.selectedWord = '';
     this.selectedFragment = '';
-    this.showTranslateButton = false;
     setTimeout(() => this.attachSelectionListener(), 0);
   }
 
@@ -237,8 +264,6 @@ export class SavedTextsListComponent implements OnInit {
     this.translation = null;
     this.selectedWord = '';
     this.selectedFragment = '';
-    this.showTranslateButton = false;
-    this.detachSelectionListener();
   }
 
   attachSelectionListener() {
@@ -253,34 +278,34 @@ export class SavedTextsListComponent implements OnInit {
     // Vérifie si la modale est ouverte et le texte affiché
     if (!this.selectedText) return;
     const selection = window.getSelection();
-    if (!selection || selection.isCollapsed) {
+    console.log('[DEBUG] selectionchange event');
+    if (!selection) {
+      console.log('[DEBUG] Pas de selection');
       this.selectedFragment = '';
-      this.showTranslateButton = false;
+      return;
+    }
+    if (selection.isCollapsed) {
+      console.log('[DEBUG] Selection is collapsed');
+      this.selectedFragment = '';
       return;
     }
     const selectedText = selection.toString().trim();
+    console.log('[DEBUG] selectedText:', selectedText);
     if (selectedText.length > 0) {
       // Vérifie que la sélection est dans la div du texte
       const anchorNode = selection.anchorNode as HTMLElement;
       const focusNode = selection.focusNode as HTMLElement;
       const container = document.querySelector('.comprehension-text');
+      console.log('[DEBUG] anchorNode:', anchorNode, 'focusNode:', focusNode, 'container:', container);
       if (container && (container.contains(anchorNode) || container.contains(focusNode))) {
         this.selectedFragment = selectedText;
-        // Calcule la position du bouton (fin de la sélection)
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        this.translateButtonPosition = {
-          top: rect.bottom + window.scrollY,
-          left: rect.right + window.scrollX - 40 // Décale un peu à gauche
-        };
-        this.showTranslateButton = true;
       } else {
+        console.log('[DEBUG] Selection hors .comprehension-text');
         this.selectedFragment = '';
-        this.showTranslateButton = false;
       }
     } else {
+      console.log('[DEBUG] Selection vide après trim');
       this.selectedFragment = '';
-      this.showTranslateButton = false;
     }
   };
 
@@ -294,21 +319,12 @@ export class SavedTextsListComponent implements OnInit {
       next: (result) => {
         this.translation = result;
         this.isTranslating = false;
-        this.clearSelection();
       },
       error: () => {
         this.isTranslating = false;
-        this.clearSelection();
         this.showToast('Erreur lors de la traduction', 'danger');
       }
     });
-  }
-
-  clearSelection() {
-    const selection = window.getSelection();
-    if (selection) selection.removeAllRanges();
-    this.selectedFragment = '';
-    this.showTranslateButton = false;
   }
 
   getHighlightedText(text: SavedText | null): string {
