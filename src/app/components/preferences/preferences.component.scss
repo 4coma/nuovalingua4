@@ -1,0 +1,74 @@
+ion-card {
+  margin-bottom: 16px;
+}
+
+ion-card-header {
+  padding-bottom: 8px;
+}
+
+ion-card-title {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+ion-card-title ion-icon {
+  margin-right: 8px;
+  color: var(--ion-color-primary);
+}
+
+.api-key-input {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+}
+
+ion-text p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+ion-text small {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+ion-button {
+  margin-bottom: 8px;
+}
+
+ion-button[color="primary"] {
+  --background: var(--ion-color-primary);
+  --color: white;
+}
+
+ion-button[fill="outline"] {
+  --border-color: var(--ion-color-medium);
+  --color: var(--ion-color-medium);
+}
+
+ion-item {
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+}
+
+ion-label[position="stacked"] {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+ion-select {
+  --padding-start: 12px;
+  --padding-end: 12px;
+}
+
+.ion-padding-top {
+  padding-top: 16px;
+}
+
+.ion-margin-bottom {
+  margin-bottom: 12px;
+} 

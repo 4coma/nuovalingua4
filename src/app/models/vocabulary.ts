@@ -41,4 +41,19 @@ export interface VocabularyError {
   targetWord: string;
   userAnswer: string;
   context?: string;
+}
+
+export interface SavedText {
+  id: string;
+  title: string;
+  text: string;
+  type: 'written' | 'oral';
+  category: string;
+  topic: string;
+  vocabularyItems: VocabularyItem[];
+  questions?: ComprehensionQuestion[];
+  dateCreated: number;
+  dateLastAccessed?: number;
+  accessCount: number;
+  isFavorite: boolean;
 } 

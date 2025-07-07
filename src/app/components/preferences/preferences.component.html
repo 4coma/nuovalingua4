@@ -1,0 +1,97 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goHome()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Préférences</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="key-outline" slot="start"></ion-icon>
+        Clé API OpenAI
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>Entrez votre clé API OpenAI personnelle pour utiliser vos propres crédits. Si aucun clé n'est fournie, l'application utilisera la clé par défaut.</p>
+      </ion-text>
+      
+      <ion-item>
+        <ion-label position="stacked">Clé API OpenAI</ion-label>
+        <ion-input 
+          [(ngModel)]="openaiApiKey" 
+          [type]="showApiKey ? 'text' : 'password'"
+          placeholder="sk-..."
+          class="api-key-input">
+        </ion-input>
+        <ion-button 
+          fill="clear" 
+          slot="end" 
+          (click)="toggleApiKeyVisibility()">
+          <ion-icon [name]="showApiKey ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+        </ion-button>
+      </ion-item>
+      
+      <ion-text color="medium" class="ion-padding-top">
+        <p><small>Votre clé API est stockée localement sur votre appareil et n'est jamais transmise à nos serveurs.</small></p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="game-controller-outline" slot="start"></ion-icon>
+        Nombre d'associations de mots
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>Choisissez le nombre de paires de mots générées lors du démarrage d'une session d'apprentissage.</p>
+      </ion-text>
+      
+      <ion-item>
+        <ion-label>Nombre d'associations</ion-label>
+        <ion-select 
+          [(ngModel)]="wordAssociationsCount" 
+          interface="popover">
+          <ion-select-option 
+            *ngFor="let option of associationOptions" 
+            [value]="option.value">
+            {{ option.label }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      
+      <ion-text color="medium" class="ion-padding-top">
+        <p><small>Un nombre plus élevé permet des sessions plus longues mais peut être plus difficile à mémoriser.</small></p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="ion-padding-top">
+    <ion-button 
+      expand="block" 
+      color="primary" 
+      (click)="savePreferences()"
+      class="ion-margin-bottom">
+      <ion-icon name="save-outline" slot="start"></ion-icon>
+      Sauvegarder les préférences
+    </ion-button>
+    
+    <ion-button 
+      expand="block" 
+      color="medium" 
+      fill="outline"
+      (click)="resetPreferences()">
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Réinitialiser aux valeurs par défaut
+    </ion-button>
+  </div>
+</ion-content> 

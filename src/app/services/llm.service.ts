@@ -4,6 +4,7 @@ import { Observable, map, of, switchMap } from 'rxjs';
 import { VocabularyExercise, ComprehensionText, VocabularyItem } from '../models/vocabulary';
 import { environment } from '../../environments/environment';
 import { VocabularyTrackingService, WordMastery } from './vocabulary-tracking.service';
+import { StorageService } from './storage.service';
 
 export interface WordPair {
   it: string;
@@ -46,7 +47,8 @@ export class LlmService {
 
   constructor(
     private http: HttpClient,
-    private vocabularyTrackingService: VocabularyTrackingService
+    private vocabularyTrackingService: VocabularyTrackingService,
+    private storageService: StorageService
   ) {
     // Charger la direction de traduction sauvegardée
     const savedDirection = localStorage.getItem('translationDirection') as TranslationDirection;
@@ -89,6 +91,9 @@ export class LlmService {
     // Utiliser la direction spécifiée ou celle par défaut
     const translationDirection = direction || this._translationDirection;
     
+    // Récupérer le nombre d'associations défini par l'utilisateur
+    const userAssociationsCount = this.storageService.get('wordAssociationsCount') || 10;
+    
     // Récupérer les mots suivis pour cette catégorie et ce sujet
     return this.getReviewWords(category || '', topic).pipe(
       switchMap(wordsToReview => {
@@ -101,19 +106,20 @@ export class LlmService {
         }));
         
         const numReviewWords = reviewWords.length;
-        const numNewWords = 12 - Math.min(numReviewWords, 6); // Garder 6 mots max pour révision
+        const maxReviewWords = Math.min(6, Math.floor(userAssociationsCount / 2)); // Max 50% de mots de révision
+        const numNewWords = userAssociationsCount - Math.min(numReviewWords, maxReviewWords);
         
-        // S'il n'y a pas de mots à réviser, générer 12 nouveaux mots
+        // S'il n'y a pas de mots à réviser, générer tous les nouveaux mots
         if (numReviewWords === 0) {
-          return this.generateNewWordPairs(topic, category, 12, [], translationDirection);
+          return this.generateNewWordPairs(topic, category, userAssociationsCount, [], translationDirection);
         }
         
         // Sinon, générer des nouveaux mots pour compléter
-        return this.generateNewWordPairs(topic, category, numNewWords, reviewWords.slice(0, 6), translationDirection)
+        return this.generateNewWordPairs(topic, category, numNewWords, reviewWords.slice(0, maxReviewWords), translationDirection)
           .pipe(
             map(newWords => {
-              // Combiner les mots à réviser (max 6) avec les nouveaux mots
-              return [...reviewWords.slice(0, 6), ...newWords];
+              // Combiner les mots à réviser avec les nouveaux mots
+              return [...reviewWords.slice(0, maxReviewWords), ...newWords];
             })
           );
       })
@@ -244,17 +250,20 @@ export class LlmService {
       ? 'du français vers l\'italien'
       : 'de l\'italien vers le français';
     
+    // Récupérer le nombre d'associations défini par l'utilisateur
+    const userAssociationsCount = this.storageService.get('wordAssociationsCount') || 10;
+    
     const prompt = `
       Je souhaite apprendre du vocabulaire italien selon cette consigne personnalisée: "${customPrompt}".
       
-      Génère 12 paires de mots en italien avec leur traduction en français qui correspondent à ma demande.
+      Génère ${userAssociationsCount} paires de mots en italien avec leur traduction en français qui correspondent à ma demande.
       
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
       
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
         {"it": "mot_italien", "fr": "traduction_française", "context": "phrase d'exemple ou contexte d'utilisation pour mieux comprendre le mot"},
-        // Répète pour 12 paires au total
+        // Répète pour ${userAssociationsCount} paires au total
       ]
       
       Attention, le mot italien et le mot français doivent uniquement contenir la traduction de l'un et de l'autre.
@@ -265,9 +274,13 @@ export class LlmService {
   }
 
   private callOpenAI<T>(prompt: string): Observable<T> {
+    // Utiliser la clé API utilisateur si disponible, sinon la clé par défaut
+    const userApiKey = this.storageService.get('userOpenaiApiKey');
+    const apiKeyToUse = userApiKey || this.apiKey;
+    
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.apiKey}`
+      'Authorization': `Bearer ${apiKeyToUse}`
     });
 
     const body = {

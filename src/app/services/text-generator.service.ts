@@ -6,6 +6,7 @@ import { LoadingController, ToastController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
 import { WordPair } from './llm.service';
 import { ComprehensionText, ComprehensionQuestion, EvaluationResult } from '../models/vocabulary';
+import { StorageService } from './storage.service';
 
 export interface TranslationResult {
   originalWord: string;
@@ -27,7 +28,8 @@ export class TextGeneratorService {
   constructor(
     private http: HttpClient,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private storageService: StorageService
   ) {}
 
   /**
@@ -232,9 +234,13 @@ export class TextGeneratorService {
   private callOpenAI<T>(prompt: string): Observable<T> {
     this.showLoading('Traitement en cours...');
     
+    // Utiliser la clé API utilisateur si disponible, sinon la clé par défaut
+    const userApiKey = this.storageService.get('userOpenaiApiKey');
+    const apiKeyToUse = userApiKey || this.apiKey;
+    
     const headers = new HttpHeaders()
       .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${this.apiKey}`);
+      .set('Authorization', `Bearer ${apiKeyToUse}`);
     
     const data = {
       model: this.model,

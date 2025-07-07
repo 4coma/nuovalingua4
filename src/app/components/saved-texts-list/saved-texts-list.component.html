@@ -1,0 +1,167 @@
+<ion-content [fullscreen]="true">
+  <div class="container">
+    <!-- Header -->
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="goHome()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>Mes textes sauvegardés</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <!-- Barre de recherche -->
+    <ion-searchbar 
+      [(ngModel)]="searchTerm" 
+      (ionInput)="onSearchChange()"
+      placeholder="Rechercher un texte..."
+      class="ion-margin">
+    </ion-searchbar>
+
+    <!-- Filtres et tri -->
+    <ion-segment 
+      [(ngModel)]="selectedFilter" 
+      (ionChange)="onFilterChange()"
+      class="ion-margin-horizontal">
+      <ion-segment-button value="all">
+        <ion-label>Tous</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="favorites">
+        <ion-label>Favoris</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="written">
+        <ion-label>Écrits</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="oral">
+        <ion-label>Oraux</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <!-- Options de tri -->
+    <ion-item class="ion-margin-horizontal">
+      <ion-label>Trier par :</ion-label>
+      <ion-select 
+        [(ngModel)]="sortBy" 
+        (ionChange)="onSortChange()"
+        interface="popover">
+        <ion-select-option value="date">Date d'accès</ion-select-option>
+        <ion-select-option value="access">Nombre d'accès</ion-select-option>
+        <ion-select-option value="title">Titre</ion-select-option>
+      </ion-select>
+      <ion-button 
+        fill="clear" 
+        (click)="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'; onSortChange()">
+        <ion-icon [name]="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'"></ion-icon>
+      </ion-button>
+    </ion-item>
+
+    <!-- Liste des textes -->
+    <div class="ion-padding">
+      <div *ngIf="filteredTexts.length === 0" class="ion-text-center ion-padding">
+        <ion-icon name="bookmark-outline" size="large" color="medium"></ion-icon>
+        <h3>Aucun texte sauvegardé</h3>
+        <p *ngIf="searchTerm || selectedFilter !== 'all'">
+          Aucun texte ne correspond à vos critères de recherche.
+        </p>
+        <p *ngIf="!searchTerm && selectedFilter === 'all'">
+          Vous n'avez pas encore sauvegardé de textes. 
+          Commencez par faire des exercices de compréhension !
+        </p>
+        <ion-button routerLink="/category" color="primary" class="ion-margin-top">
+          <ion-icon name="school-outline" slot="start"></ion-icon>
+          Commencer l'apprentissage
+        </ion-button>
+      </div>
+
+      <ion-list *ngIf="filteredTexts.length > 0">
+        <ion-item-sliding *ngFor="let text of filteredTexts">
+          <ion-item button (click)="openText(text)">
+            <ion-icon 
+              [name]="text.type === 'written' ? 'book-outline' : 'mic-outline'" 
+              slot="start" 
+              [color]="text.type === 'written' ? 'primary' : 'secondary'">
+            </ion-icon>
+            
+            <ion-label>
+              <h2>{{ text.title }}</h2>
+              <p>
+                <ion-chip size="small" color="tertiary">
+                  <ion-label>{{ text.category }}</ion-label>
+                </ion-chip>
+                <ion-chip size="small" color="medium">
+                  <ion-label>{{ text.topic }}</ion-label>
+                </ion-chip>
+              </p>
+              <p>
+                <ion-icon name="time-outline" size="small"></ion-icon>
+                {{ formatDate(text.dateLastAccessed || text.dateCreated) }}
+                <span class="ion-margin-start">
+                  <ion-icon name="eye-outline" size="small"></ion-icon>
+                  {{ text.accessCount }} accès
+                </span>
+              </p>
+              <p *ngIf="text.vocabularyItems?.length">
+                <ion-icon name="language-outline" size="small"></ion-icon>
+                {{ text.vocabularyItems.length }} mots de vocabulaire
+              </p>
+            </ion-label>
+
+            <ion-icon 
+              [name]="text.isFavorite ? 'heart' : 'heart-outline'" 
+              slot="end" 
+              [color]="text.isFavorite ? 'danger' : 'medium'"
+              (click)="toggleFavorite(text); $event.stopPropagation()">
+            </ion-icon>
+          </ion-item>
+
+          <ion-item-options side="end">
+            <ion-item-option color="danger" (click)="deleteText(text)">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+    </div>
+
+    <!-- Statistiques -->
+    <ion-card *ngIf="savedTexts.length > 0" class="ion-margin">
+      <ion-card-header>
+        <ion-card-title>Statistiques</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="6">
+              <div class="stat-item">
+                <h3>{{ savedTexts.length }}</h3>
+                <p>Textes sauvegardés</p>
+              </div>
+            </ion-col>
+            <ion-col size="6">
+              <div class="stat-item">
+                <h3>{{ savedTexts.filter(t => t.isFavorite).length }}</h3>
+                <p>Favoris</p>
+              </div>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="6">
+              <div class="stat-item">
+                <h3>{{ savedTexts.filter(t => t.type === 'written').length }}</h3>
+                <p>Compréhension écrite</p>
+              </div>
+            </ion-col>
+            <ion-col size="6">
+              <div class="stat-item">
+                <h3>{{ savedTexts.filter(t => t.type === 'oral').length }}</h3>
+                <p>Compréhension orale</p>
+              </div>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content> 

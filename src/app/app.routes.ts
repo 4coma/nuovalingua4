@@ -8,7 +8,7 @@ export const routes: Routes = [
   },
   {
     path: 'home',
-    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent)
+    loadComponent: () => import('./home/home.page').then(m => m.HomePage)
   },
   {
     path: 'category',
@@ -16,11 +16,11 @@ export const routes: Routes = [
   },
   {
     path: 'vocabulary',
-    loadComponent: () => import('./pages/vocabulary-exercise/vocabulary-exercise.component').then(m => m.VocabularyExerciseComponent)
+    loadComponent: () => import('./components/vocabulary-exercise/vocabulary-exercise.component').then(m => m.VocabularyExerciseComponent)
   },
   {
     path: 'comprehension',
-    loadComponent: () => import('./pages/comprehension-exercise/comprehension-exercise.component').then(m => m.ComprehensionExerciseComponent)
+    loadComponent: () => import('./components/comprehension-exercise/comprehension-exercise.component').then(m => m.ComprehensionExerciseComponent)
   },
   {
     path: 'questions',
@@ -29,6 +29,22 @@ export const routes: Routes = [
   {
     path: 'personal-dictionary',
     loadComponent: () => import('./components/personal-dictionary-list/personal-dictionary-list.component').then(m => m.PersonalDictionaryListComponent)
+  },
+  {
+    path: 'saved-texts',
+    loadComponent: () => import('./components/test-component').then(m => m.TestComponent)
+  },
+  {
+    path: 'test',
+    loadComponent: () => import('./components/saved-texts-list/saved-texts-list.component').then(m => m.SavedTextsListComponent)
+  },
+  {
+    path: 'test2',
+    loadComponent: () => import('./components/test-component').then(m => m.TestComponent)
+  },
+  {
+    path: 'preferences',
+    loadComponent: () => import('./components/preferences/preferences.component').then(m => m.PreferencesComponent)
   },
   {
     path: '**',

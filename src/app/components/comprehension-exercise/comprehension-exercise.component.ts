@@ -108,17 +108,27 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     // Vérifie si le texte de compréhension est affiché
     if (!this.comprehensionText) return;
     const selection = window.getSelection();
-    if (!selection || selection.isCollapsed) {
+    console.log('[DEBUG] selectionchange event');
+    if (!selection) {
+      console.log('[DEBUG] Pas de selection');
+      this.selectedFragment = '';
+      this.showTranslateButton = false;
+      return;
+    }
+    if (selection.isCollapsed) {
+      console.log('[DEBUG] Selection is collapsed');
       this.selectedFragment = '';
       this.showTranslateButton = false;
       return;
     }
     const selectedText = selection.toString().trim();
+    console.log('[DEBUG] selectedText:', selectedText);
     if (selectedText.length > 0) {
       // Vérifie que la sélection est dans la div du texte
       const anchorNode = selection.anchorNode as HTMLElement;
       const focusNode = selection.focusNode as HTMLElement;
       const container = document.querySelector('.comprehension-text');
+      console.log('[DEBUG] anchorNode:', anchorNode, 'focusNode:', focusNode, 'container:', container);
       if (container && (container.contains(anchorNode) || container.contains(focusNode))) {
         this.selectedFragment = selectedText;
         // Calcule la position du bouton (fin de la sélection)
@@ -129,11 +139,14 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
           left: rect.right + window.scrollX - 40
         };
         this.showTranslateButton = true;
+        console.log('[DEBUG] Affichage du bouton Traduire à', this.translateButtonPosition);
       } else {
+        console.log('[DEBUG] Selection hors .comprehension-text');
         this.selectedFragment = '';
         this.showTranslateButton = false;
       }
     } else {
+      console.log('[DEBUG] Selection vide après trim');
       this.selectedFragment = '';
       this.showTranslateButton = false;
     }

@@ -272,6 +272,11 @@ export class VocabularyExerciseComponent implements OnInit {
         // Stocker le texte dans le localStorage pour y accéder depuis le composant de compréhension
         localStorage.setItem('comprehensionText', JSON.stringify(this.comprehensionText));
         
+        // Mettre à jour le sessionInfo dans le localStorage pour la sauvegarde
+        if (this.sessionInfo) {
+          localStorage.setItem('sessionInfo', JSON.stringify(this.sessionInfo));
+        }
+        
         // Naviguer vers la page de compréhension
         this.router.navigate(['/comprehension']);
       },

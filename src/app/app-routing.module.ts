@@ -38,6 +38,22 @@ export const routes: Routes = [
   {
     path: 'word-pairs-game',
     loadComponent: () => import('./components/word-pairs-game/word-pairs-game.component').then(m => m.WordPairsGameComponent)
+  },
+  {
+    path: 'saved-texts',
+    loadComponent: () => import('./components/saved-texts-list/saved-texts-list.component').then(m => m.SavedTextsListComponent)
+  },
+  {
+    path: 'test',
+    loadComponent: () => import('./components/test-component').then(m => m.TestComponent)
+  },
+  {
+    path: 'test2',
+    loadComponent: () => import('./components/test-component').then(m => m.TestComponent)
+  },
+  {
+    path: 'preferences',
+    loadComponent: () => import('./components/preferences/preferences.component').then(m => m.PreferencesComponent)
   }
 ];
 

@@ -49,7 +49,8 @@ export class AppComponent {
     '/vocabulary': 'Vocabulaire',
     '/comprehension': 'Compréhension',
     '/questions': 'Questions',
-    '/personal-dictionary': 'Mon dictionnaire personnel'
+    '/personal-dictionary': 'Mon dictionnaire personnel',
+    '/preferences': 'Préférences'
   };
 
   // Routes où le bouton retour doit être affiché
