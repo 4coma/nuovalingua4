@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, OnChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, OnChanges, OnDestroy } from '@angular/core';
 import { ComprehensionText, VocabularyItem, ComprehensionQuestion, EvaluationResult } from '../../models/vocabulary';
 import { CommonModule } from '@angular/common';
 import { IonicModule, PopoverController, LoadingController, ToastController } from '@ionic/angular';
@@ -11,6 +11,7 @@ import { AudioPlayerComponent } from '../audio-player/audio-player.component';
 import { SpeechService } from '../../services/speech.service';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
+import { SavedTextsService } from '../../services/saved-texts.service';
 
 @Component({
   selector: 'app-comprehension-exercise',
@@ -27,7 +28,7 @@ import { VocabularyTrackingService } from '../../services/vocabulary-tracking.se
     RouterLink
   ]
 })
-export class ComprehensionExerciseComponent implements OnInit, OnChanges {
+export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDestroy {
   @Input() comprehensionText: ComprehensionText | null = null;
   @Output() complete = new EventEmitter<void>();
   
@@ -53,6 +54,10 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
   // Pour le suivi de la session
   sessionInfo: { category: string, topic: string, date: string } | null = null;
 
+  selectedFragment: string = '';
+  showTranslateButton: boolean = false;
+  translateButtonPosition = { top: 0, left: 0 };
+
   constructor(
     private textGeneratorService: TextGeneratorService,
     private popoverController: PopoverController,
@@ -61,7 +66,8 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private dictionaryService: PersonalDictionaryService,
-    private vocabularyTrackingService: VocabularyTrackingService
+    private vocabularyTrackingService: VocabularyTrackingService,
+    private savedTextsService: SavedTextsService
   ) { }
 
   ngOnInit() {
@@ -73,6 +79,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
     if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
       this.autoGenerateQuestions();
     }
+    setTimeout(() => this.attachSelectionListener(), 0);
   }
 
   ngOnChanges() {
@@ -83,6 +90,80 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
     if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
       this.autoGenerateQuestions();
     }
+  }
+
+  ngOnDestroy() {
+    this.detachSelectionListener();
+  }
+
+  attachSelectionListener() {
+    document.addEventListener('selectionchange', this.onSelectionChange);
+  }
+
+  detachSelectionListener() {
+    document.removeEventListener('selectionchange', this.onSelectionChange);
+  }
+
+  onSelectionChange = () => {
+    // Vérifie si le texte de compréhension est affiché
+    if (!this.comprehensionText) return;
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      this.selectedFragment = '';
+      this.showTranslateButton = false;
+      return;
+    }
+    const selectedText = selection.toString().trim();
+    if (selectedText.length > 0) {
+      // Vérifie que la sélection est dans la div du texte
+      const anchorNode = selection.anchorNode as HTMLElement;
+      const focusNode = selection.focusNode as HTMLElement;
+      const container = document.querySelector('.comprehension-text');
+      if (container && (container.contains(anchorNode) || container.contains(focusNode))) {
+        this.selectedFragment = selectedText;
+        // Calcule la position du bouton (fin de la sélection)
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        this.translateButtonPosition = {
+          top: rect.bottom + window.scrollY,
+          left: rect.right + window.scrollX - 40
+        };
+        this.showTranslateButton = true;
+      } else {
+        this.selectedFragment = '';
+        this.showTranslateButton = false;
+      }
+    } else {
+      this.selectedFragment = '';
+      this.showTranslateButton = false;
+    }
+  };
+
+  translateSelection() {
+    if (!this.selectedFragment) return;
+    this.selectedWord = this.selectedFragment;
+    this.isTranslating = true;
+    this.translation = null;
+    const context = this.comprehensionText?.text || '';
+    this.textGeneratorService.getContextualTranslation(this.selectedFragment, context).subscribe({
+      next: (result) => {
+        this.translation = result;
+        this.isTranslating = false;
+        this.clearSelection();
+      },
+      error: () => {
+        this.isTranslating = false;
+        this.clearSelection();
+        this.showErrorToast('Erreur lors de la traduction');
+      }
+    });
+  }
+
+  clearSelection() {
+    const selection = window.getSelection();
+    if (selection) selection.removeAllRanges();
+    this.selectedFragment = '';
+    this.showTranslateButton = false;
   }
 
   /**
@@ -455,6 +536,64 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges {
       color: 'success'
     });
     await toast.present();
+  }
+
+  /**
+   * Sauvegarde le texte actuel
+   */
+  saveText() {
+    console.log('saveText() appelé');
+    console.log('comprehensionText:', this.comprehensionText);
+    console.log('sessionInfo:', this.sessionInfo);
+    
+    // Toast de test pour voir si le bouton est cliqué
+    this.showSuccessToast('Bouton de sauvegarde cliqué !');
+    
+    if (!this.comprehensionText || !this.sessionInfo) {
+      console.error('Données manquantes pour la sauvegarde');
+      this.showErrorToast('Impossible de sauvegarder le texte');
+      return;
+    }
+
+    // Vérifier si le texte existe déjà
+    if (this.savedTextsService.textExists(
+      this.comprehensionText.text, 
+      this.sessionInfo.category, 
+      this.sessionInfo.topic
+    )) {
+      console.log('Texte déjà sauvegardé');
+      this.showErrorToast('Ce texte est déjà sauvegardé');
+      return;
+    }
+
+    console.log('Tentative de sauvegarde...');
+    const success = this.savedTextsService.saveText(
+      this.comprehensionText,
+      this.sessionInfo.category,
+      this.sessionInfo.topic
+    );
+
+    console.log('Résultat de la sauvegarde:', success);
+    if (success) {
+      this.showSuccessToast('Texte sauvegardé avec succès !');
+    } else {
+      this.showErrorToast('Erreur lors de la sauvegarde');
+    }
+  }
+
+  /**
+   * Vérifie si le texte actuel est déjà sauvegardé
+   */
+  isTextAlreadySaved(): boolean {
+    if (!this.comprehensionText || !this.sessionInfo) {
+      return false;
+    }
+
+    return this.savedTextsService.textExists(
+      this.comprehensionText.text,
+      this.sessionInfo.category,
+      this.sessionInfo.topic
+    );
   }
 
   finishExercise() {

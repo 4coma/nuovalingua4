@@ -27,6 +27,7 @@
                  class="comprehension-text" 
                  appSafeHtml
                  (wordClick)="onWordClicked($event)"></div>
+            <button *ngIf="showTranslateButton" class="translate-popover" [ngStyle]="{'top.px': translateButtonPosition.top, 'left.px': translateButtonPosition.left}" (click)="translateSelection()">Traduire</button>
           </div>
         </div>
         
@@ -36,6 +37,7 @@
              class="comprehension-text" 
              appSafeHtml
              (wordClick)="onWordClicked($event)"></div>
+        <button *ngIf="showTranslateButton" class="translate-popover" [ngStyle]="{'top.px': translateButtonPosition.top, 'left.px': translateButtonPosition.left}" (click)="translateSelection()">Traduire</button>
       </ion-card-content>
     </ion-card>
 
@@ -219,6 +221,27 @@
     </div>
     
     <div class="ion-padding ion-text-center">
+      <!-- Bouton de sauvegarde -->
+      <ion-button 
+        *ngIf="!isTextAlreadySaved()"
+        (click)="saveText()" 
+        expand="block" 
+        color="success" 
+        class="ion-margin-vertical">
+        <ion-icon name="bookmark-outline" slot="start"></ion-icon>
+        Sauvegarder ce texte
+      </ion-button>
+      
+      <ion-button 
+        *ngIf="isTextAlreadySaved()"
+        expand="block" 
+        color="success" 
+        class="ion-margin-vertical"
+        disabled>
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Texte déjà sauvegardé
+      </ion-button>
+      
       <ion-button (click)="finishExercise()" expand="block" color="medium" class="ion-margin-vertical">
         <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
         Retour à l'exercice

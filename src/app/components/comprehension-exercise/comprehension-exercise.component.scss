@@ -218,3 +218,20 @@ ion-card-header {
     margin-top: 8px;
   }
 }
+
+.translate-popover {
+  position: absolute;
+  z-index: 10000;
+  background: var(--ion-color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.translate-popover:hover {
+  background: var(--ion-color-primary-shade);
+}
