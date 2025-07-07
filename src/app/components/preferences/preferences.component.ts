@@ -24,12 +24,14 @@ export class PreferencesComponent implements OnInit {
   wordAssociationsCount: number = 10;
   showApiKey: boolean = false;
   
-  // Options pour le nombre d'associations
+  // Options pour le nombre d'associations (pour les suggestions rapides)
   associationOptions = [
     { value: 5, label: '5 associations' },
     { value: 10, label: '10 associations' },
     { value: 15, label: '15 associations' },
-    { value: 20, label: '20 associations' }
+    { value: 20, label: '20 associations' },
+    { value: 25, label: '25 associations' },
+    { value: 30, label: '30 associations' }
   ];
 
   constructor(
@@ -62,6 +64,12 @@ export class PreferencesComponent implements OnInit {
    * Sauvegarde les préférences dans le localStorage
    */
   savePreferences() {
+    // Valider le nombre d'associations
+    if (this.wordAssociationsCount < 1 || this.wordAssociationsCount > 100) {
+      this.showToast('Le nombre d\'associations doit être entre 1 et 100.');
+      return;
+    }
+
     // Sauvegarder la clé API si fournie
     if (this.openaiApiKey.trim()) {
       this.storageService.set('userOpenaiApiKey', this.openaiApiKey.trim());
@@ -91,6 +99,13 @@ export class PreferencesComponent implements OnInit {
    */
   toggleApiKeyVisibility() {
     this.showApiKey = !this.showApiKey;
+  }
+
+  /**
+   * Sélectionne une option rapide pour le nombre d'associations
+   */
+  selectQuickOption(value: number) {
+    this.wordAssociationsCount = value;
   }
 
   /**

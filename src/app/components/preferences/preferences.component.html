@@ -57,10 +57,27 @@
       </ion-text>
       
       <ion-item>
-        <ion-label>Nombre d'associations</ion-label>
-        <ion-select 
+        <ion-label position="stacked">Nombre d'associations</ion-label>
+        <ion-input 
           [(ngModel)]="wordAssociationsCount" 
-          interface="popover">
+          type="number" 
+          min="1" 
+          max="100"
+          placeholder="Ex: 12"
+          class="associations-input">
+        </ion-input>
+      </ion-item>
+      
+      <ion-text color="medium" class="ion-padding-top">
+        <p><small>Saisissez le nombre exact d'associations souhaitées (1-100).</small></p>
+      </ion-text>
+      
+      <ion-item>
+        <ion-label>Suggestions rapides</ion-label>
+        <ion-select 
+          (ionChange)="selectQuickOption($event.detail.value)"
+          interface="popover"
+          placeholder="Choisir une option">
           <ion-select-option 
             *ngFor="let option of associationOptions" 
             [value]="option.value">
