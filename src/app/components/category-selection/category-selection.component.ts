@@ -66,6 +66,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
   selectedCategory: string | null = null;
   selectedTopic: string | null = null;
   
+  // Nouvelle propriété pour gérer l'affichage
+  showTopics: boolean = false;
+  
   // Direction de traduction
   translationDirection: TranslationDirection = 'fr2it';
   
@@ -95,7 +98,19 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     
     if (categoryId === 'custom') {
       this.openCustomPromptModal();
+    } else {
+      // Afficher les sous-catégories
+      this.showTopics = true;
     }
+  }
+
+  /**
+   * Retourne à l'affichage des catégories principales
+   */
+  backToCategories() {
+    this.showTopics = false;
+    this.selectedCategory = null;
+    this.selectedTopic = null;
   }
 
   confirmStartSession(topic: string) {

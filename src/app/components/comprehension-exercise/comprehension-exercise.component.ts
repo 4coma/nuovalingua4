@@ -58,6 +58,9 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
   showTranslateButton: boolean = false;
   translateButtonPosition = { top: 0, left: 0 };
 
+  // Référence au loader actuel
+  private currentLoader: HTMLIonLoadingElement | null = null;
+
   constructor(
     private textGeneratorService: TextGeneratorService,
     private popoverController: PopoverController,
@@ -457,30 +460,29 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
         this.isSubmitting = false;
         this.showErrorToast('Erreur lors de l\'évaluation des réponses');
         console.error('Erreur d\'évaluation:', error);
-      }
-    });
+        }
+      });
   }
 
   /**
    * Affiche un indicateur de chargement
    */
   private async showLoading(message: string): Promise<void> {
-    const loading = await this.loadingCtrl.create({
+    this.currentLoader = await this.loadingCtrl.create({
       message: message,
       spinner: 'crescent'
     });
-    await loading.present();
+    await this.currentLoader.present();
   }
   
   /**
    * Cache l'indicateur de chargement
    */
   private hideLoading(): void {
-    this.loadingCtrl.getTop().then(loader => {
-      if (loader) {
-        loader.dismiss();
-      }
-    });
+    if (this.currentLoader) {
+      this.currentLoader.dismiss();
+      this.currentLoader = null;
+    }
   }
   
   /**
