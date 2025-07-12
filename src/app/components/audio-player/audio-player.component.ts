@@ -42,7 +42,6 @@ export class AudioPlayerComponent implements OnInit, OnDestroy {
     this.setupAudioStateSubscription();
     this.speechService.audioUrl$.subscribe(audioUrl => {
       this.audioUrl = audioUrl;
-      console.log('audioUrl dans audio player', this.audioUrl);
     })
   }
   

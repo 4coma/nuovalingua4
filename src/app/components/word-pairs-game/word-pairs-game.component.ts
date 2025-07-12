@@ -10,6 +10,7 @@ import { TextGeneratorService } from '../../services/text-generator.service';
 import { ComprehensionText } from '../../models/vocabulary';
 import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-selection-modal.component';
 import { SpeechService } from 'src/app/services/speech.service';
+import { StorageService } from '../../services/storage.service';
 
 interface GamePair {
   id: number;
@@ -45,6 +46,7 @@ export class WordPairsGameComponent implements OnInit {
   selectedWordId: number | null = null;
   errorShown: boolean = false;
   isGenerating: boolean = false; // Pour la génération de textes de compréhension
+  audioEnabled: boolean = true; // Pour activer/désactiver la prononciation audio
 
   
   // Info de la session
@@ -67,13 +69,15 @@ export class WordPairsGameComponent implements OnInit {
     private llmService: LlmService,
     private textGeneratorService: TextGeneratorService,
     private modalController: ModalController,
-    private speechService: SpeechService
+    private speechService: SpeechService,
+    private storageService: StorageService
   ) { }
 
   ngOnInit() {
     this.loadSessionData();
+    this.loadAudioPreference();
   }
-  
+
   /**
    * Charge les données de la session depuis le localStorage
    */
@@ -100,7 +104,33 @@ export class WordPairsGameComponent implements OnInit {
       this.router.navigate(['/category']);
     }
   }
-  
+
+  /**
+   * Charge la préférence audio depuis le localStorage
+   */
+  loadAudioPreference() {
+    const savedAudioEnabled = localStorage.getItem('audioEnabled');
+    if (savedAudioEnabled !== null) {
+      this.audioEnabled = JSON.parse(savedAudioEnabled);
+    }
+  }
+
+  /**
+   * Sauvegarde la préférence audio dans le localStorage
+   */
+  saveAudioPreference() {
+    localStorage.setItem('audioEnabled', JSON.stringify(this.audioEnabled));
+  }
+
+  /**
+   * Bascule l'état audio (mute/unmute)
+   */
+  toggleAudio() {
+    this.audioEnabled = !this.audioEnabled;
+    this.saveAudioPreference();
+    this.showToast(this.audioEnabled ? 'Prononciation activée' : 'Prononciation désactivée');
+  }
+
   /**
    * Prépare un round du jeu avec 6 paires
    */
@@ -257,6 +287,11 @@ export class WordPairsGameComponent implements OnInit {
    * Joue la prononciation d'un mot italien
    */
   async playWordPronunciation(wordId: number, type: 'source' | 'target') {
+    if (!this.audioEnabled) {
+      console.log('Prononciation désactivée. Ne pas jouer le mot.');
+      return;
+    }
+
     try {
       console.log('=== DÉBUT playWordPronunciation ===');
       console.log('wordId:', wordId);
@@ -276,8 +311,8 @@ export class WordPairsGameComponent implements OnInit {
       console.log('direction:', direction);
       console.log('mot italien à prononcer:', italianWord);
       
-      // Récupérer la clé API Google TTS depuis le localStorage
-      const googleTtsApiKey = localStorage.getItem('userGoogleTtsApiKey');
+      // Récupérer la clé API Google TTS depuis le StorageService
+      const googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
       if (!googleTtsApiKey) {
         console.log('❌ Aucune clé API Google TTS trouvée. Veuillez configurer votre clé dans les préférences.');
         return;
