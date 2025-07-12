@@ -21,9 +21,11 @@ export class PreferencesComponent implements OnInit {
   
   // Préférences utilisateur
   openaiApiKey: string = '';
+  googleTtsApiKey: string = '';
   wordAssociationsCount: number = 10;
   oralComprehensionLength: number = 150; // Longueur par défaut en mots
   showApiKey: boolean = false;
+  showGoogleApiKey: boolean = false;
   
   constructor(
     private storageService: StorageService,
@@ -39,10 +41,16 @@ export class PreferencesComponent implements OnInit {
    * Charge les préférences depuis le localStorage
    */
   loadPreferences() {
-    // Charger la clé API (si définie par l'utilisateur)
+    // Charger la clé API OpenAI (si définie par l'utilisateur)
     const savedApiKey = this.storageService.get('userOpenaiApiKey');
     if (savedApiKey) {
       this.openaiApiKey = savedApiKey;
+    }
+
+    // Charger la clé API Google TTS (si définie par l'utilisateur)
+    const savedGoogleApiKey = this.storageService.get('userGoogleTtsApiKey');
+    if (savedGoogleApiKey) {
+      this.googleTtsApiKey = savedGoogleApiKey;
     }
 
     // Charger le nombre d'associations
@@ -74,11 +82,18 @@ export class PreferencesComponent implements OnInit {
       return;
     }
 
-    // Sauvegarder la clé API si fournie
+    // Sauvegarder la clé API OpenAI si fournie
     if (this.openaiApiKey.trim()) {
       this.storageService.set('userOpenaiApiKey', this.openaiApiKey.trim());
     } else {
       this.storageService.remove('userOpenaiApiKey');
+    }
+
+    // Sauvegarder la clé API Google TTS si fournie
+    if (this.googleTtsApiKey.trim()) {
+      this.storageService.set('userGoogleTtsApiKey', this.googleTtsApiKey.trim());
+    } else {
+      this.storageService.remove('userGoogleTtsApiKey');
     }
 
     // Sauvegarder le nombre d'associations
@@ -95,23 +110,32 @@ export class PreferencesComponent implements OnInit {
    */
   resetPreferences() {
     this.openaiApiKey = '';
+    this.googleTtsApiKey = '';
     this.wordAssociationsCount = 10;
     this.oralComprehensionLength = 150;
     this.storageService.remove('userOpenaiApiKey');
+    this.storageService.remove('userGoogleTtsApiKey');
     this.storageService.remove('wordAssociationsCount');
     this.storageService.remove('oralComprehensionLength');
     this.showToast('Préférences réinitialisées aux valeurs par défaut.');
   }
 
   /**
-   * Affiche/masque la clé API
+   * Affiche/masque la clé API OpenAI
    */
   toggleApiKeyVisibility() {
     this.showApiKey = !this.showApiKey;
   }
 
   /**
-   * Affiche des informations sur la configuration de la clé API
+   * Affiche/masque la clé API Google TTS
+   */
+  toggleGoogleApiKeyVisibility() {
+    this.showGoogleApiKey = !this.showGoogleApiKey;
+  }
+
+  /**
+   * Affiche des informations sur la configuration de la clé API OpenAI
    */
   async showApiKeyInfo() {
     const alert = await this.alertController.create({
@@ -124,6 +148,27 @@ export class PreferencesComponent implements OnInit {
           <li>La saisir ici pour utiliser vos propres crédits</li>
         </ul>
         <p><strong>Note :</strong> Sans clé API, les fonctionnalités de génération de contenu ne seront pas disponibles.</p>
+      `,
+      buttons: ['Compris']
+    });
+    await alert.present();
+  }
+
+  /**
+   * Affiche des informations sur la configuration de la clé API Google TTS
+   */
+  async showGoogleApiKeyInfo() {
+    const alert = await this.alertController.create({
+      header: 'Clé API Google Text-to-Speech requise',
+      message: `
+        <p>Cette application utilise l'API Google Text-to-Speech pour la prononciation des mots italiens. Pour utiliser cette fonctionnalité, vous devez :</p>
+        <ul>
+          <li>Aller sur <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a></li>
+          <li>Activer l'API Text-to-Speech</li>
+          <li>Créer une clé API dans les identifiants</li>
+          <li>La saisir ici pour activer la prononciation</li>
+        </ul>
+        <p><strong>Note :</strong> Sans clé API, la prononciation des mots ne fonctionnera pas dans le jeu d'association.</p>
       `,
       buttons: ['Compris']
     });

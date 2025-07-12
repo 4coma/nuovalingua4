@@ -19,7 +19,7 @@ w<ion-header>
     </ion-card-header>
     <ion-card-content>
       <ion-text color="medium">
-        <p>Entrez votre clé API OpenAI personnelle pour utiliser vos propres crédits. Si aucun clé n'est fournie, l'application utilisera la clé par défaut.</p>
+        <p>Une clé API open AI est nécessaire pour la génération des textes de compréhension écrite et orale.</p>
       </ion-text>
       
       <ion-item>
@@ -39,12 +39,51 @@ w<ion-header>
       </ion-item>
       
       <ion-text color="medium" class="ion-padding-top">
-        <p><small>Votre clé API est stockée localement sur votre appareil et n'est jamais transmise à nos serveurs.</small></p>
+        <p><small>Votre clé API est stockée localement sur votre appareil.</small></p>
       </ion-text>
       
       <ion-button fill="clear" color="primary" size="small" (click)="showApiKeyInfo()" class="ion-margin-top">
         <ion-icon name="information-circle-outline" slot="start"></ion-icon>
         Pourquoi configurer ma clé API ?
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="volume-high-outline" slot="start"></ion-icon>
+        Clé API Google Text-to-Speech
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>Entrez votre clé API Google Text-to-Speech pour activer la prononciation des mots italiens dans le jeu d'association.</p>
+      </ion-text>
+      
+      <ion-item>  
+        <ion-label position="stacked">Clé API Google TTS</ion-label>
+        <ion-input 
+          [(ngModel)]="googleTtsApiKey" 
+          [type]="showGoogleApiKey ? 'text' : 'password'"
+          placeholder="AIza..."
+          class="api-key-input">
+        </ion-input>
+        <ion-button 
+          fill="clear" 
+          slot="end" 
+          (click)="toggleGoogleApiKeyVisibility()">
+          <ion-icon [name]="showGoogleApiKey ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+        </ion-button>
+      </ion-item>
+      
+      <ion-text color="medium" class="ion-padding-top">
+        <p><small>Votre clé API est stockée localement sur votre appareil.</small></p>
+      </ion-text>
+      
+      <ion-button fill="clear" color="primary" size="small" (click)="showGoogleApiKeyInfo()" class="ion-margin-top">
+        <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+        Comment obtenir ma clé API Google TTS ?
       </ion-button>
     </ion-card-content>
   </ion-card>

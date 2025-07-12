@@ -210,6 +210,9 @@ export class WordPairsGameComponent implements OnInit {
       
       this.matchedPairs++;
       
+      // Prononcer le mot italien lors d'une association réussie
+      this.playWordPronunciation(pair.id, 'target');
+      
       // Réinitialiser la sélection
       this.selectedPair.isSelected = false;
       this.selectedPair = null;
@@ -247,6 +250,87 @@ export class WordPairsGameComponent implements OnInit {
         this.selectedPair = null;
         this.errorShown = false;
       }, 1000);
+    }
+  }
+  
+  /**
+   * Joue la prononciation d'un mot italien
+   */
+  async playWordPronunciation(wordId: number, type: 'source' | 'target') {
+    try {
+      console.log('=== DÉBUT playWordPronunciation ===');
+      console.log('wordId:', wordId);
+      console.log('type:', type);
+      
+      // Récupérer la paire de mots correspondante
+      const wordPair = this.wordPairs[wordId];
+      console.log('wordPair trouvée:', wordPair);
+      if (!wordPair) {
+        console.log('❌ Aucune wordPair trouvée pour wordId:', wordId);
+        return;
+      }
+      
+      // Déterminer le mot italien selon la direction de traduction
+      const direction = this.sessionInfo?.translationDirection || 'fr2it';
+      const italianWord = direction === 'fr2it' ? wordPair.it : wordPair.fr;
+      console.log('direction:', direction);
+      console.log('mot italien à prononcer:', italianWord);
+      
+      // Récupérer la clé API Google TTS depuis le localStorage
+      const googleTtsApiKey = localStorage.getItem('userGoogleTtsApiKey');
+      if (!googleTtsApiKey) {
+        console.log('❌ Aucune clé API Google TTS trouvée. Veuillez configurer votre clé dans les préférences.');
+        return;
+      }
+      
+      const request = {
+        input: { text: italianWord },
+        voice: { languageCode: 'it-IT', ssmlGender: "NEUTRAL" },
+        audioConfig: { audioEncoding: "MP3" },
+      };
+      console.log('request envoyé à l\'API:', request);
+      
+      console.log('🔄 Envoi de la requête à l\'API Google TTS...');
+      const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${googleTtsApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      });
+      
+      console.log('📡 Réponse reçue:', response);
+      console.log('Status:', response.status);
+      console.log('StatusText:', response.statusText);
+      
+      if (!response.ok) {
+        console.error('❌ Erreur lors de la génération de l\'audio:', response.statusText);
+        const errorText = await response.text();
+        console.error('Détails de l\'erreur:', errorText);
+        return;
+      }
+      
+      const data = await response.json();
+      console.log('📦 Données reçues:', data);
+      console.log('audioContent présent:', !!data.audioContent);
+      console.log('Taille audioContent:', data.audioContent ? data.audioContent.length : 'null');
+      
+      const audioContent = data.audioContent;
+      if (!audioContent) {
+        console.error('❌ Pas d\'audioContent dans la réponse');
+        return;
+      }
+      
+      console.log('🎵 Création de l\'élément audio...');
+      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+      
+      console.log('🔊 Tentative de lecture...');
+      await audio.play();
+      console.log('✅ Lecture démarrée avec succès');
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la prononciation:', error);
+      if (error instanceof Error) {
+        console.error('Stack trace:', error.stack);
+      }
     }
   }
   
