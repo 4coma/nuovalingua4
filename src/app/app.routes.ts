@@ -32,7 +32,7 @@ export const routes: Routes = [
   },
   {
     path: 'saved-texts',
-    loadComponent: () => import('./components/test-component').then(m => m.TestComponent)
+    loadComponent: () => import('./components/saved-texts-list/saved-texts-list.component').then(m => m.SavedTextsListComponent)
   },
   {
     path: 'test',

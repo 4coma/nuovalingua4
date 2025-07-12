@@ -50,6 +50,7 @@ export class AppComponent {
     '/comprehension': 'Compréhension',
     '/questions': 'Questions',
     '/personal-dictionary': 'Mon dictionnaire personnel',
+    '/saved-texts': 'Textes sauvegardés',
     '/preferences': 'Préférences'
   };
 
