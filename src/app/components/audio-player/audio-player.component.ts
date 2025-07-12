@@ -40,10 +40,15 @@ export class AudioPlayerComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.setupAudioStateSubscription();
+    this.speechService.audioUrl$.subscribe(audioUrl => {
+      this.audioUrl = audioUrl;
+      console.log('audioUrl dans audio player', this.audioUrl);
+    })
   }
   
   ngOnDestroy() {
     this.subscription.unsubscribe();
+
   }
   
   /**
@@ -65,17 +70,7 @@ export class AudioPlayerComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Génère l'audio à partir du texte fourni
-   */
-  generateAndPlayAudio() {
-    this.speechService.generateSpeech(this.text, 'nova').subscribe(url => {
-      this.audioUrl = url;
-      if (url) {
-        this.playAudio();
-      }
-    });
-  }
+
   
   /**
    * Lecture de l'audio
@@ -86,9 +81,7 @@ export class AudioPlayerComponent implements OnInit, OnDestroy {
     } else if (!this.isPlaying) {
       if (this.audioUrl) {
         this.speechService.play();
-      } else {
-        this.generateAndPlayAudio();
-      }
+      } 
     }
   }
   

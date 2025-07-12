@@ -67,3 +67,75 @@ ion-modal ion-content {
 ion-footer {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
+
+/**
+ * Menu Styles for Mobile
+ * -----------------------------------------------------
+ * Styles spécifiques pour améliorer l'affichage du menu sur mobile
+ */
+
+/* Assure que le menu est bien visible sur mobile */
+ion-menu {
+  --background: var(--ion-color-light);
+  --border: none;
+  
+  /* Styles spécifiques pour Android */
+  @media (max-width: 768px) {
+    --width: 85vw;
+    max-width: 320px;
+  }
+}
+
+/* Style pour les éléments du menu */
+ion-menu ion-list {
+  padding: 0;
+}
+
+ion-menu ion-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 56px;
+  margin: 0;
+  border-radius: 0;
+  
+  &:hover {
+    --background: rgba(var(--ion-color-primary-rgb), 0.1);
+  }
+}
+
+ion-menu ion-item ion-icon {
+  margin-right: 12px;
+  font-size: 20px;
+  color: var(--ion-color-primary);
+}
+
+ion-menu ion-item ion-label {
+  font-weight: 500;
+  color: var(--ion-color-dark);
+}
+
+/* Assure que le bouton menu est bien visible */
+ion-menu-button {
+  --color: var(--ion-color-light);
+  --background: transparent;
+  
+  @media (max-width: 768px) {
+    --padding-start: 8px;
+    --padding-end: 8px;
+  }
+}
+
+/* Style pour le header du menu */
+ion-menu ion-header {
+  background: var(--ion-color-primary);
+}
+
+ion-menu ion-header ion-toolbar {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-light);
+}
+
+ion-menu ion-header ion-title {
+  color: var(--ion-color-light);
+  font-weight: 600;
+}

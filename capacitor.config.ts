@@ -12,7 +12,14 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: 'LIGHT',
       backgroundColor: '#3880ff'
+    },
+    SplashScreen: {
+      backgroundColor: '#3880ff',
+      showSpinner: false
     }
+  },
+  android: {
+    backgroundColor: '#3880ff'
   }
 };
 

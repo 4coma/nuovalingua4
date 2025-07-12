@@ -79,6 +79,36 @@ w<ion-header>
     </ion-card-content>
   </ion-card>
 
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="mic-outline" slot="start"></ion-icon>
+        Longueur des compréhensions orales
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>Définissez la longueur des textes générés pour les exercices de compréhension orale.</p>
+      </ion-text>
+      
+      <ion-item>
+        <ion-label position="stacked">Nombre de mots</ion-label>
+        <ion-input 
+          [(ngModel)]="oralComprehensionLength" 
+          type="number" 
+          min="50" 
+          max="500"
+          placeholder="Ex: 150"
+          class="length-input">
+        </ion-input>
+      </ion-item>
+      
+      <ion-text color="medium" class="ion-padding-top">
+        <p><small>Choisissez entre 50 et 500 mots pour adapter la durée d'écoute à votre niveau (50-500 mots).</small></p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
   <div class="ion-padding-top">
     <ion-button 
       expand="block" 

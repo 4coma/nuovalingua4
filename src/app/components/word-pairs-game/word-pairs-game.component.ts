@@ -9,6 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { TextGeneratorService } from '../../services/text-generator.service';
 import { ComprehensionText } from '../../models/vocabulary';
 import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-selection-modal.component';
+import { SpeechService } from 'src/app/services/speech.service';
 
 interface GamePair {
   id: number;
@@ -44,6 +45,7 @@ export class WordPairsGameComponent implements OnInit {
   selectedWordId: number | null = null;
   errorShown: boolean = false;
   isGenerating: boolean = false; // Pour la génération de textes de compréhension
+
   
   // Info de la session
   sessionInfo: { 
@@ -64,7 +66,8 @@ export class WordPairsGameComponent implements OnInit {
     private toastController: ToastController,
     private llmService: LlmService,
     private textGeneratorService: TextGeneratorService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private speechService: SpeechService
   ) { }
 
   ngOnInit() {
@@ -387,8 +390,14 @@ export class WordPairsGameComponent implements OnInit {
           };
           localStorage.setItem('sessionInfo', JSON.stringify(sessionInfoWithThemes));
         }
-        
-        this.isGenerating = false;
+        console.log('generating speech now');
+        this.speechService.generateSpeech(result.text, 'nova').subscribe(() => {
+          console.log('speech generated');
+          this.isGenerating = false;
+
+        });
+
+
         
         // Naviguer vers la page de compréhension
         this.router.navigate(['/comprehension']);
@@ -400,6 +409,9 @@ export class WordPairsGameComponent implements OnInit {
       }
     });
   }
+
+
+
   
   /**
    * Affiche un toast d'information

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
@@ -29,6 +29,10 @@ export class SpeechService {
     duration: number;
     playbackRate: number;
   }>();
+
+  private audioUrlSubject = new BehaviorSubject<string>('');
+  public audioUrl$ = this.audioUrlSubject.asObservable();
+
 
   constructor(
     private http: HttpClient,
@@ -64,6 +68,9 @@ export class SpeechService {
         // Convertir la réponse en blob et créer une URL
         const blob = new Blob([response], { type: 'audio/mpeg' });
         const audioUrl = URL.createObjectURL(blob);
+        console.log('audioUrl', audioUrl);
+        this.audioUrlSubject.next(audioUrl);
+        console.log('audioUrlSubject', this.audioUrlSubject.value);
         
         // Initialiser l'audio
         this.initAudio(audioUrl);

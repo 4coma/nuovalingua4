@@ -4,38 +4,38 @@
     
     <!-- Sélection de la direction de traduction -->
     <div class="ion-padding">
-      <ion-segment [(ngModel)]="translationDirection" (ionChange)="changeTranslationDirection($event.detail.value)">
-        <ion-segment-button value="fr2it">
-          <ion-label>Français → Italien</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="it2fr">
-          <ion-label>Italien → Français</ion-label>
-        </ion-segment-button>
-      </ion-segment>
-      <p class="ion-text-center ion-padding-top">
-        <ion-text color="medium">
-          Choisissez dans quelle direction vous souhaitez traduire les mots
-        </ion-text>
-      </p>
+        <ion-segment [(ngModel)]="translationDirection" (ionChange)="changeTranslationDirection($event.detail.value)">
+          <ion-segment-button value="fr2it">
+            <ion-label>Français → Italien</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="it2fr">
+            <ion-label>Italien → Français</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+        <p class="ion-text-center ion-padding-top">
+          <ion-text color="medium">
+            Choisissez dans quelle direction vous souhaitez traduire les mots
+          </ion-text>
+        </p>
     </div>
     
     <!-- Étape 1: Affichage des catégories principales -->
     <div *ngIf="!showTopics">
-      <ion-grid>
-        <ion-row>
-          <ion-col size="12" sizeMd="6" sizeXl="4" *ngFor="let category of categories">
-            <ion-card [class.selected]="selectedCategory === category.id" (click)="selectCategory(category.id)">
-              <ion-card-header>
-                <ion-icon [name]="category.icon" size="large"></ion-icon>
-                <ion-card-title>{{ category.name }}</ion-card-title>
-              </ion-card-header>
-              <ion-card-content>
-                {{ category.description }}
-              </ion-card-content>
-            </ion-card>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" sizeMd="6" sizeXl="4" *ngFor="let category of categories">
+          <ion-card [class.selected]="selectedCategory === category.id" (click)="selectCategory(category.id)">
+            <ion-card-header>
+              <ion-icon [name]="category.icon" size="large"></ion-icon>
+              <ion-card-title>{{ category.name }}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              {{ category.description }}
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
     </div>
     
     <!-- Étape 2: Affichage des sous-catégories -->

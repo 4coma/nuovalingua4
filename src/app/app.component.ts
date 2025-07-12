@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicModule, ModalController, Platform } from '@ionic/angular';
+import { IonicModule, ModalController, Platform, MenuController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
 import { LlmService } from './services/llm.service';
@@ -65,7 +65,8 @@ export class AppComponent {
     private llmService: LlmService,
     private router: Router,
     private modalController: ModalController,
-    private platform: Platform
+    private platform: Platform,
+    private menuController: MenuController
   ) {
     this.setupRouteListener();
     this.initializeApp();
@@ -87,9 +88,89 @@ export class AppComponent {
             App.exitApp();
           }
         });
+        
+        // S'assurer que le menu est bien initialisé sur mobile
+        this.initializeMenu();
       } catch (error) {
         console.error('Error initializing status bar', error);
       }
+    }
+  }
+
+  /**
+   * Initialise le menu pour les appareils mobiles
+   */
+  private async initializeMenu() {
+    try {
+      // S'assurer que le menu est fermé au démarrage
+      await this.menuController.close();
+      
+      // Activer le menu pour qu'il soit utilisable
+      await this.menuController.enable(true);
+      
+      // Forcer la réinitialisation du menu
+      setTimeout(async () => {
+        await this.menuController.enable(true);
+        console.log('Menu re-enabled after timeout');
+        
+        // Ajouter un écouteur pour les gestes de balayage
+        this.setupSwipeGesture();
+      }, 1000);
+      
+      console.log('Menu initialized successfully');
+    } catch (error) {
+      console.error('Error initializing menu:', error);
+    }
+  }
+
+  /**
+   * Configure le geste de balayage pour ouvrir le menu
+   */
+  private setupSwipeGesture() {
+    if (this.platform.is('android') || this.platform.is('ios')) {
+      let startX = 0;
+      let startY = 0;
+      
+      document.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      });
+      
+      document.addEventListener('touchend', (e) => {
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const diffX = endX - startX;
+        const diffY = endY - startY;
+        
+        // Si le balayage est horizontal et vers la droite depuis le bord gauche
+        if (Math.abs(diffX) > Math.abs(diffY) && diffX > 50 && startX < 50) {
+          this.testMenuOpen();
+        }
+      });
+    }
+  }
+
+  /**
+   * Méthode pour tester l'ouverture du menu
+   */
+  async testMenuOpen() {
+    try {
+      await this.menuController.open();
+      console.log('Menu opened successfully');
+    } catch (error) {
+      console.error('Error opening menu:', error);
+    }
+  }
+
+  /**
+   * Méthode pour fermer le menu
+   */
+  async closeMenu() {
+    try {
+      await this.menuController.close();
+      console.log('Menu closed successfully');
+    } catch (error) {
+      console.error('Error closing menu:', error);
     }
   }
 

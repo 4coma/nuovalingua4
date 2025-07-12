@@ -82,6 +82,10 @@ export class TextGeneratorService {
       `"${pair.it}" (it) - "${pair.fr}" (fr)${pair.context ? ` - Contexte: ${pair.context}` : ''}`
     );
     
+    // Récupérer la longueur configurée par l'utilisateur
+    const userLength = this.storageService.get('oralComprehensionLength') || 150;
+    const targetLength = type === 'oral' ? userLength : 200; // Pour les textes écrits, on garde 200 mots
+    
     // Construire la partie thèmes si fournie
     const themesSection = themes && themes.length > 0 
       ? `\nTHÈMES SPÉCIFIÉS: ${themes.join(', ')}\nLe texte doit être centré sur ces thèmes.`
@@ -96,7 +100,7 @@ export class TextGeneratorService {
       Pour information, ces mots proviennent des paires de traduction suivantes:
       ${formattedPairs.join('\n')}${themesSection}
       
-      Peux-tu créer un ${type === 'written' ? 'texte narratif' : 'dialogue'} original UNIQUEMENT EN ITALIEN d'environ 150-200 mots qui utilise tous ces mots italiens de manière naturelle?
+      Peux-tu créer un ${type === 'written' ? 'texte narratif' : 'dialogue'} original UNIQUEMENT EN ITALIEN d'environ ${targetLength} mots qui utilise tous ces mots italiens de manière naturelle?
       Le texte doit être de niveau intermédiaire, facile à comprendre mais avec une structure correcte.
       
       De plus, génère 3 à 5 questions de compréhension en FRANÇAIS sur ce texte, qui permettent de vérifier si l'apprenant a bien compris le contenu.
