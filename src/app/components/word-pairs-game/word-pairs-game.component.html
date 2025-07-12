@@ -89,6 +89,22 @@
     <div class="actions-section" *ngIf="gameComplete">
       <h3 class="ion-text-center">Exercices disponibles</h3>
       
+      <!-- Boutons de recommencement -->
+      <ion-button (click)="restartExercise()" expand="block" color="warning" class="ion-margin-vertical">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Recommencer l'exercice
+      </ion-button>
+      
+      <ion-button 
+        (click)="restartFailedWords()" 
+        expand="block" 
+        color="danger" 
+        class="ion-margin-vertical"
+        [disabled]="!hasFailedWords">
+        <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+        Recommencer les mots ratés ({{ failedWords.length }})
+      </ion-button>
+      
       <ion-button (click)="generateWrittenComprehension()" expand="block" color="success" class="ion-margin-vertical" [disabled]="isGenerating">
         <ion-icon name="book-outline" slot="start"></ion-icon>
         Compréhension écrite

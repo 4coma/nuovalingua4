@@ -48,6 +48,10 @@ export class WordPairsGameComponent implements OnInit {
   isGenerating: boolean = false; // Pour la génération de textes de compréhension
   audioEnabled: boolean = true; // Pour activer/désactiver la prononciation audio
 
+  // Pour gérer les mots ratés
+  failedWords: number[] = []; // IDs des mots ratés
+  hasFailedWords: boolean = false; // Si il y a des mots ratés
+
   
   // Info de la session
   sessionInfo: { 
@@ -386,7 +390,64 @@ export class WordPairsGameComponent implements OnInit {
         isCorrect,
         pair.context
       );
+      
+      // Ajouter aux mots ratés si incorrect
+      if (!isCorrect && !this.failedWords.includes(wordId)) {
+        this.failedWords.push(wordId);
+        this.hasFailedWords = true;
+      }
     }
+  }
+
+  /**
+   * Recommence l'exercice complet
+   */
+  restartExercise() {
+    // Réinitialiser les statistiques
+    this.matchedPairs = 0;
+    this.attempts = 0;
+    this.currentPairsSet = 1;
+    this.gameComplete = false;
+    this.failedWords = [];
+    this.hasFailedWords = false;
+    
+    // Préparer le jeu
+    this.setupCurrentGameRound();
+    
+    this.showToast('Exercice recommencé');
+  }
+
+  /**
+   * Recommence uniquement avec les mots ratés
+   */
+  restartFailedWords() {
+    if (this.failedWords.length === 0) {
+      this.showToast('Aucun mot raté à recommencer');
+      return;
+    }
+    
+    // Créer un nouveau jeu avec seulement les mots ratés
+    const failedWordPairs = this.failedWords.map(id => this.wordPairs[id]);
+    
+    // Stocker temporairement les mots ratés pour le nouveau jeu
+    localStorage.setItem('wordPairs', JSON.stringify(failedWordPairs));
+    
+    // Réinitialiser les statistiques
+    this.matchedPairs = 0;
+    this.attempts = 0;
+    this.currentPairsSet = 1;
+    this.gameComplete = false;
+    this.failedWords = [];
+    this.hasFailedWords = false;
+    
+    // Mettre à jour les données de session
+    this.wordPairs = failedWordPairs;
+    this.totalPairs = this.wordPairs.length;
+    
+    // Préparer le nouveau jeu
+    this.setupCurrentGameRound();
+    
+    this.showToast(`Recommencement avec ${failedWordPairs.length} mots ratés`);
   }
   
   /**
