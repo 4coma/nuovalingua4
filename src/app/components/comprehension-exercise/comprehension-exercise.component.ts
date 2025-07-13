@@ -42,6 +42,9 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
   
   // Pour la transcription
   showTranscription: boolean = false;
+  
+  // Pour l'audio
+  audioUrl: string | null = null;
 
   // Pour la génération de questions
   isGeneratingQuestions: boolean = false;

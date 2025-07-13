@@ -47,6 +47,14 @@ export const routes: Routes = [
     loadComponent: () => import('./components/preferences/preferences.component').then(m => m.PreferencesComponent)
   },
   {
+    path: 'discussion-context-selection',
+    loadComponent: () => import('./components/discussion-context-selection/discussion-context-selection.component').then(m => m.DiscussionContextSelectionComponent)
+  },
+  {
+    path: 'discussion/:contextId',
+    loadComponent: () => import('./components/discussion-active/discussion-active.component').then(m => m.DiscussionActiveComponent)
+  },
+  {
     path: '**',
     redirectTo: '/home'
   }

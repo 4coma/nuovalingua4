@@ -113,6 +113,22 @@
 
       <h3 class="ion-padding-top">Exercices disponibles</h3>
       
+      <!-- Boutons de recommencement -->
+      <ion-button (click)="restartExercise()" color="warning" expand="block" class="ion-margin-vertical">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Recommencer l'exercice
+      </ion-button>
+      
+      <ion-button 
+        (click)="restartFailedWords()" 
+        color="danger" 
+        expand="block" 
+        class="ion-margin-vertical"
+        [disabled]="!hasErrors()">
+        <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+        Recommencer les mots ratés ({{ errorList.length }})
+      </ion-button>
+      
       <ion-button (click)="requestComprehension('written')" color="primary" expand="block" class="ion-margin-vertical" [disabled]="generatingComprehension">
         <ion-icon name="book-outline" slot="start"></ion-icon>
         Compréhension écrite

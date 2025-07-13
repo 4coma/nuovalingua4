@@ -371,6 +371,13 @@ export class LlmService {
     );
   }
 
+  /**
+   * Génère une réponse pour une discussion conversationnelle
+   */
+  generateDiscussionResponse(prompt: string): Observable<string> {
+    return this.callOpenAI<string>(prompt);
+  }
+
   private callOpenAI<T>(prompt: string): Observable<T> {
     // Vérifier si l'utilisateur a défini sa propre clé API
     const userApiKey = this.storageService.get('userOpenaiApiKey');

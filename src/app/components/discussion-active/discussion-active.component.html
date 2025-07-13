@@ -1,0 +1,85 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/discussion-context-selection"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ currentContext?.title || 'Discussion' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div style="padding: 20px;">
+    
+    <!-- Contexte de la discussion -->
+    <ion-card *ngIf="currentContext">
+      <ion-card-header>
+        <ion-card-title>{{ currentContext.title }}</ion-card-title>
+        <ion-card-subtitle>{{ currentContext.category }} - {{ currentContext.difficulty }}</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Situation:</strong> {{ currentContext.situation }}</p>
+        <p><strong>Votre rôle:</strong> {{ currentContext.userRole }}</p>
+        <p><strong>Rôle de l'IA:</strong> {{ currentContext.aiRole }}</p>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Chargement initial -->
+    <ion-card *ngIf="isStarting">
+      <ion-card-content>
+        <div style="text-align: center; padding: 20px;">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Préparation de la discussion...</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Messages de la discussion -->
+    <div *ngIf="currentSession && currentSession.turns.length > 0">
+      <ion-card *ngFor="let turn of currentSession.turns" 
+                [class]="turn.speaker === 'ai' ? 'ai-message' : 'user-message'">
+        <ion-card-content>
+          <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <ion-avatar style="margin-right: 10px;">
+              <ion-icon [name]="turn.speaker === 'ai' ? 'person' : 'mic'" 
+                       [color]="turn.speaker === 'ai' ? 'primary' : 'success'">
+              </ion-icon>
+            </ion-avatar>
+            <strong>{{ turn.speaker === 'ai' ? currentContext?.aiRole : 'Vous' }}</strong>
+            <small style="margin-left: auto; color: #666;">
+              {{ turn.timestamp | date:'HH:mm' }}
+            </small>
+          </div>
+          <p>{{ turn.message }}</p>
+          <app-audio-player *ngIf="turn.speaker === 'ai'" [audioUrl]="turn.audioUrl || null" [showControls]="true" style="margin-top: 8px; background: transparent; box-shadow: none;"></app-audio-player>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Boutons d'action -->
+    <div style="margin-top: 20px; text-align: center;">
+      <ion-button *ngIf="!isStarting && currentSession && !isRecording" 
+                  (click)="startRecording()" 
+                  color="success" 
+                  expand="block">
+        <ion-icon name="mic" slot="start"></ion-icon>
+        Commencer à parler
+      </ion-button>
+      <ion-button *ngIf="!isStarting && currentSession && isRecording" 
+                  (click)="stopRecording()" 
+                  color="danger" 
+                  expand="block">
+        <ion-icon name="stop" slot="start"></ion-icon>
+        Arrêter l'enregistrement
+      </ion-button>
+      
+      <ion-button routerLink="/discussion-context-selection" 
+                  color="medium" 
+                  fill="outline" 
+                  expand="block">
+        <ion-icon name="arrow-back" slot="start"></ion-icon>
+        Retour à la sélection
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content> 

@@ -4,178 +4,15 @@ import { IonicModule, AlertController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { SavedTextsService } from '../../services/saved-texts.service';
 import { SavedText } from '../../models/vocabulary';
-import { TextGeneratorService, TranslationResult } from '../../services/text-generator.service';
+import { TextGeneratorService, TranslationResult, AssociationSession } from '../../services/text-generator.service';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 import { SafeHtmlDirective } from '../../directives/click-outside.directive';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-saved-texts-list',
-  template: `
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Mes textes sauvegardés</ion-title>
-        <ion-buttons slot="start">
-          <ion-button (click)="goHome()">Retour</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content>
-      <div class="ion-padding">
-        <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterTexts()" placeholder="Rechercher..."></ion-searchbar>
-        <ion-segment [(ngModel)]="filterType" (ionChange)="filterTexts()">
-          <ion-segment-button value="all">Tous</ion-segment-button>
-          <ion-segment-button value="favorite">Favoris</ion-segment-button>
-        </ion-segment>
-        <div *ngIf="filteredTexts.length === 0" class="empty-list">Aucun texte sauvegardé.</div>
-        <ion-list *ngIf="filteredTexts.length > 0">
-          <ion-item *ngFor="let text of filteredTexts" (click)="selectText(text)">
-            <ion-label>
-              <h2>{{ text.title || 'Texte sans titre' }}</h2>
-              <p>{{ text.dateCreated | date:'short' }}</p>
-            </ion-label>
-            <ion-button fill="clear" color="primary" (click)="toggleFavorite(text); $event.stopPropagation()">
-              <ion-icon [name]="text.isFavorite ? 'star' : 'star-outline'"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" color="danger" (click)="deleteText(text); $event.stopPropagation()">
-              <ion-icon name="trash"></ion-icon>
-            </ion-button>
-          </ion-item>
-        </ion-list>
-        <div class="stats" *ngIf="filteredTexts.length > 0">
-          <p>Total : {{ filteredTexts.length }} | Favoris : {{ favoriteCount }}</p>
-        </div>
-      </div>
-
-      <!-- Affichage du texte sélectionné avec mots cliquables -->
-      <ion-modal [isOpen]="!!selectedText" [backdropDismiss]="true" (didDismiss)="closeTextModal()">
-        <ng-template>
-          <ion-header>
-            <ion-toolbar color="primary">
-              <ion-title>{{ selectedText?.title || 'Texte sauvegardé' }}</ion-title>
-              <ion-buttons slot="end">
-                <ion-button (click)="closeTextModal()">
-                  <ion-icon name="close-outline"></ion-icon>
-                </ion-button>
-              </ion-buttons>
-            </ion-toolbar>
-          </ion-header>
-          <ion-content class="ion-padding">
-            <div [innerHTML]="getHighlightedText(selectedText) | safeHtml"
-                 class="comprehension-text"
-                 appSafeHtml
-                 (wordClick)="onWordClicked($event, selectedText)"></div>
-            <div *ngIf="selectedText && selectedFragment">
-              <button class="translate-fixed-btn" (click)="translateSelection()">
-                Traduire la sélection
-              </button>
-            </div>
-          </ion-content>
-        </ng-template>
-      </ion-modal>
-
-      <!-- Modal de traduction contextuelle -->
-      <ion-modal [isOpen]="!!translation" [backdropDismiss]="true" (didDismiss)="closeTranslation()">
-        <ng-template>
-          <ion-header>
-            <ion-toolbar color="primary">
-              <ion-title>Traduction</ion-title>
-              <ion-buttons slot="end">
-                <ion-button (click)="closeTranslation()">
-                  <ion-icon name="close-outline"></ion-icon>
-                </ion-button>
-              </ion-buttons>
-            </ion-toolbar>
-          </ion-header>
-          <ion-content class="ion-padding">
-            <div *ngIf="isTranslating" class="ion-text-center">
-              <ion-spinner></ion-spinner>
-              <p>Traduction en cours...</p>
-            </div>
-            <div *ngIf="translation && !isTranslating">
-              <h2 class="ion-text-center">{{ translation.originalWord }}</h2>
-              <ion-item lines="none">
-                <ion-label>
-                  <h3>Traduction</h3>
-                  <p class="translation">{{ translation.translation }}</p>
-                </ion-label>
-              </ion-item>
-              <ion-item lines="none">
-                <ion-label>
-                  <h3>Sens dans ce contexte</h3>
-                  <p>{{ translation.contextualMeaning }}</p>
-                </ion-label>
-              </ion-item>
-              <ion-item *ngIf="translation.partOfSpeech" lines="none">
-                <ion-label>
-                  <h3>Catégorie grammaticale</h3>
-                  <p>{{ translation.partOfSpeech }}</p>
-                </ion-label>
-              </ion-item>
-              <div *ngIf="translation.examples && translation.examples.length > 0" class="examples-section ion-padding-top">
-                <h3>Exemples</h3>
-                <ion-list>
-                  <ion-item *ngFor="let example of translation.examples">
-                    <ion-label text-wrap>{{ example }}</ion-label>
-                  </ion-item>
-                </ion-list>
-              </div>
-              <div class="ion-padding-top ion-text-center">
-                <ion-button (click)="addWordToDictionary()" color="success" class="ion-margin-end">
-                  <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-                  Ajouter au dictionnaire
-                </ion-button>
-                <ion-button (click)="closeTranslation()" color="medium">
-                  Fermer
-                </ion-button>
-              </div>
-            </div>
-          </ion-content>
-        </ng-template>
-      </ion-modal>
-    </ion-content>
-  `,
-  styles: [`
-    .empty-list { color: #888; text-align: center; margin-top: 2em; }
-    .stats { color: #666; font-size: 0.9em; margin-top: 1em; text-align: right; }
-    .comprehension-text { line-height: 1.7; font-size: 16px; margin-top: 1em; }
-    .highlighted-word.vocabulary-word { color: var(--ion-color-primary); font-weight: bold; background-color: rgba(var(--ion-color-primary-rgb), 0.1); padding: 2px 4px; border-radius: 3px; transition: all 0.2s ease; cursor: pointer; }
-    .highlighted-word.vocabulary-word:hover { background-color: rgba(var(--ion-color-primary-rgb), 0.2); text-decoration: underline; }
-    .clickable-word { cursor: pointer; transition: all 0.15s ease; }
-    .clickable-word:hover { color: var(--ion-color-primary); background-color: rgba(var(--ion-color-primary-rgb), 0.05); border-radius: 3px; }
-    .translation { font-size: 18px; font-weight: 500; color: var(--ion-color-primary); }
-    .examples-section { margin-top: 16px; }
-    .examples-section h3 { font-size: 18px; margin-bottom: 10px; }
-    .translate-fixed-btn {
-      position: fixed;
-      left: 50%;
-      bottom: 32px;
-      transform: translateX(-50%);
-      z-index: 99999;
-      background: var(--ion-color-primary);
-      color: #fff;
-      border: none;
-      border-radius: 20px;
-      padding: 12px 32px;
-      font-size: 18px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      cursor: pointer;
-      opacity: 1;
-      transition: background 0.2s, opacity 0.2s;
-    }
-    .translate-fixed-btn:disabled {
-      background: #ccc;
-      color: #888;
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-    .comprehension-text, .translate-fixed-btn {
-      user-select: text !important;
-      -webkit-user-select: text !important;
-      -ms-user-select: text !important;
-    }
-  `],
+  templateUrl: './saved-texts-list.component.html',
+  styleUrls: ['./saved-texts-list.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -201,6 +38,12 @@ export class SavedTextsListComponent implements OnInit {
   // Pour la sélection d'extrait
   selectedFragment = '';
 
+  // Pour la génération de session d'association
+  isGeneratingSession = false;
+
+  // Ajoute une propriété pour stocker les sessions générées
+  public generatedSessions: any[] = [];
+
   constructor(
     private savedTextsService: SavedTextsService,
     private alertCtrl: AlertController,
@@ -210,6 +53,7 @@ export class SavedTextsListComponent implements OnInit {
 
   ngOnInit() {
     this.loadTexts();
+    this.loadGeneratedSessions();
   }
 
   loadTexts() {
@@ -415,6 +259,68 @@ export class SavedTextsListComponent implements OnInit {
       cssClass: color
     });
     await toast.present();
+  }
+
+  /**
+   * Génère une session d'association à partir du texte sélectionné
+   */
+  async generateAssociationSession() {
+    if (!this.selectedText) return;
+
+    this.isGeneratingSession = true;
+
+    // LOG: Texte utilisé
+    console.log('[ASSO] Texte utilisé pour la génération:', this.selectedText.text);
+
+    // LOG: Prompt généré
+    const prompt = (this.textGeneratorService as any).createAssociationSessionPrompt(this.selectedText.text, this.selectedText.title || 'Session d\'association');
+    console.log('[ASSO] Prompt envoyé à l\'API:', prompt);
+
+    try {
+      const session = await this.textGeneratorService.generateAssociationSessionFromText(
+        this.selectedText.text,
+        this.selectedText.title || 'Session d\'association'
+      ).toPromise();
+
+      // LOG: Session générée
+      console.log('[ASSO] Session générée:', session);
+      if (session && session.wordPairs.length > 0) {
+        // Sauvegarder la session dans le localStorage
+        const sessions = JSON.parse(localStorage.getItem('associationSessions') || '[]');
+        const newSession = {
+          ...session,
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString(),
+          sourceTextId: this.selectedText.id
+        };
+        sessions.push(newSession);
+        localStorage.setItem('associationSessions', JSON.stringify(sessions));
+
+        // Stocker l'ID de la dernière session générée
+        localStorage.setItem('lastAssociationSessionId', newSession.id);
+
+        // Rediriger directement vers l'exercice d'association
+        window.location.href = '/word-pairs-game';
+        return;
+      } else {
+        await this.showToast('Erreur lors de la génération de la session', 'danger');
+      }
+    } catch (error) {
+      // LOG: Erreur brute
+      console.error('[ASSO] Erreur lors de la génération de la session:', error);
+      await this.showToast('Erreur lors de la génération de la session', 'danger');
+    } finally {
+      this.isGeneratingSession = false;
+    }
+  }
+
+  loadGeneratedSessions() {
+    this.generatedSessions = JSON.parse(localStorage.getItem('associationSessions') || '[]');
+  }
+
+  restartGeneratedSession(sessionId: string) {
+    localStorage.setItem('lastAssociationSessionId', sessionId);
+    window.location.href = '/word-pairs-game';
   }
 
   goHome() {

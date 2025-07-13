@@ -14,7 +14,7 @@
         <ion-card-subtitle>Besoin de réécouter ?</ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
-        <app-audio-player [text]="comprehensionText.text"></app-audio-player>
+        <app-audio-player [audioUrl]="audioUrl"></app-audio-player>
         
         <div class="transcription-control ion-margin-top">
           <ion-button (click)="toggleTranscription()" fill="outline" size="small">

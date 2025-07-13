@@ -44,6 +44,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/saved-texts-list/saved-texts-list.component').then(m => m.SavedTextsListComponent)
   },
   {
+    path: 'discussion-context-selection',
+    loadComponent: () => import('./components/discussion-context-selection/discussion-context-selection.component').then(m => m.DiscussionContextSelectionComponent)
+  },
+  {
     path: 'test',
     loadComponent: () => import('./components/test-component').then(m => m.TestComponent)
   },
@@ -54,6 +58,10 @@ export const routes: Routes = [
   {
     path: 'preferences',
     loadComponent: () => import('./components/preferences/preferences.component').then(m => m.PreferencesComponent)
+  },
+  {
+    path: 'audio-record-test',
+    loadComponent: () => import('./components/audio-record-test/audio-record-test.component').then(m => m.AudioRecordTestComponent)
   }
 ];
 

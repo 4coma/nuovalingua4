@@ -44,6 +44,15 @@ export class SpeechService {
    * Convertit le texte en fichier audio et initialise la lecture
    */
   generateSpeech(text: string, voice: string = 'nova', speed: number = 1.0): Observable<string> {
+    console.log('🔍 SpeechService - Début de la génération audio pour:', text.substring(0, 50) + '...');
+    
+    // Vérifier que la clé API est configurée
+    if (!this.apiKey) {
+      console.error('🔍 SpeechService - Clé API OpenAI non configurée');
+      this.showErrorToast('Clé API OpenAI non configurée');
+      return of('');
+    }
+    
     this.showLoading('Génération de l\'audio...');
     
     const headers = new HttpHeaders()
@@ -68,9 +77,8 @@ export class SpeechService {
         // Convertir la réponse en blob et créer une URL
         const blob = new Blob([response], { type: 'audio/mpeg' });
         const audioUrl = URL.createObjectURL(blob);
-        console.log('audioUrl', audioUrl);
+        console.log('🔍 SpeechService - Audio généré avec succès, URL:', audioUrl);
         this.audioUrlSubject.next(audioUrl);
-        console.log('audioUrlSubject', this.audioUrlSubject.value);
         
         // Initialiser l'audio
         this.initAudio(audioUrl);
@@ -79,12 +87,16 @@ export class SpeechService {
       }),
       catchError(error => {
         this.hideLoading();
+        console.error('🔍 SpeechService - Erreur lors de la génération audio:', error);
         this.showErrorToast('Erreur lors de la génération de l\'audio');
-        console.error('Text-to-Speech API error:', error);
         
         // En cas d'erreur, utiliser l'API Web Speech comme fallback
+        console.log('🔍 SpeechService - Utilisation du fallback Web Speech API');
         this.initWebSpeechAudio(text);
-        return of('');
+        
+        // Retourner une URL factice pour éviter les erreurs dans le composant
+        const fallbackUrl = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
+        return of(fallbackUrl);
       })
     );
   }

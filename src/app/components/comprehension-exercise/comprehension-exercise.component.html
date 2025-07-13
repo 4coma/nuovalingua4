@@ -12,7 +12,7 @@
       <ion-card-content>
         <!-- Nouvelle interface audio pour la compréhension orale -->
         <div *ngIf="comprehensionText.type === 'oral'" class="audio-section">
-          <app-audio-player [text]="comprehensionText.text"></app-audio-player>
+          <app-audio-player [audioUrl]="audioUrl"></app-audio-player>
           
           <div class="transcription-control">
             <ion-button (click)="toggleTranscription()" fill="outline" size="small">

@@ -15,12 +15,13 @@
 ~~révision de l'écran de choix de révision ~~
 ~~lors de la soumission de mes réponses aux uqestions relatives à une compréhesnion écrite, la modal de chargement ne disparait pas ... alors que pourtant les feedbacks sont bien arrivés -> pareil lors de la génération du feedback d'une écomprhension orale; pourtant les feedbacks arrivent bien dans les deux cas donc c'est juste un bête probleme de masquage du truc de chargement je suppose~~
 ~~permettre à l'utilisateur de définir la longueur des compréhensions orales générées, dans les paramètres~~
-- dans compréhension audio, faire en sorte que la génération de l'audio se fasse avant que l'utilisateur n'appuie sur play
-- remettre en oeuvre la lecture automatique lors du clic sur une traduction en mode encodage (avec possibilité d'activer ou non)
-- régler problème si je clique sur "annuler" à la question d'ajout d'une consigne supp
+~~dans compréhension audio, faire en sorte que la génération de l'audio se fasse avant que l'utilisateur n'appuie sur play~~
+~~remettre en oeuvre la lecture automatique lors du clic sur une traduction en mode encodage (avec possibilité d'activer ou non)~~
+~~rendre l'accès aux textes enregistrés possible via la sidebar~~
+~~pour l'exercice d'encodage, il devrait y avoir une option pour recommencer les mots ratés~~
+- permettre à l'utilisateur de générer une session d'associatio net tout ce qui s'en suit à partir des mots présents dans un texte enregistré...
+~~régler problème si je clique sur "annuler" à la question d'ajout d'une consigne supp~~
 - vérification du stockage local
-- rendre l'accès aux textes enregistrés possible via la sidebar
-- pour l'exercice d'encodage, il devrait y avoir une option pour recommencer les mots ratés
 - ajouter une option "discussion" dans les types de révision après assocation -> commencer par ajouter un composant te test accessible dans l'écran principal puis y aller petit à petit
 - procédure d'import et d'export
 - UX UI 

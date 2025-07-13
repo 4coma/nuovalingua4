@@ -52,6 +52,9 @@ export class WordPairsGameComponent implements OnInit {
   failedWords: number[] = []; // IDs des mots ratés
   hasFailedWords: boolean = false; // Si il y a des mots ratés
 
+  // Pour les sessions générées
+  generatedSessions: any[] = [];
+
   
   // Info de la session
   sessionInfo: { 
@@ -78,8 +81,17 @@ export class WordPairsGameComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.loadSessionData();
     this.loadAudioPreference();
+    this.loadGeneratedSessions();
+
+    // Nouvelle logique : charger la dernière session générée si elle existe
+    const lastSessionId = localStorage.getItem('lastAssociationSessionId');
+    if (lastSessionId) {
+      this.loadGeneratedSession(lastSessionId);
+      localStorage.removeItem('lastAssociationSessionId');
+    } else {
+      this.loadSessionData();
+    }
   }
 
   /**
@@ -116,6 +128,47 @@ export class WordPairsGameComponent implements OnInit {
     const savedAudioEnabled = localStorage.getItem('audioEnabled');
     if (savedAudioEnabled !== null) {
       this.audioEnabled = JSON.parse(savedAudioEnabled);
+    }
+  }
+
+  /**
+   * Charge les sessions générées depuis les textes sauvegardés
+   */
+  loadGeneratedSessions() {
+    const sessions = JSON.parse(localStorage.getItem('associationSessions') || '[]');
+    this.generatedSessions = sessions;
+    if (sessions.length > 0) {
+      console.log('Sessions générées disponibles:', sessions.length);
+    }
+  }
+
+  /**
+   * Charge une session générée spécifique
+   */
+  loadGeneratedSession(sessionId: string) {
+    const sessions = JSON.parse(localStorage.getItem('associationSessions') || '[]');
+    const session = sessions.find((s: any) => s.id === sessionId);
+    
+    if (session && session.wordPairs) {
+      this.wordPairs = session.wordPairs;
+      this.sessionInfo = {
+        category: session.category || 'vocabulaire',
+        topic: session.title,
+        date: session.createdAt,
+        translationDirection: 'fr2it' // Par défaut
+      };
+      
+      // Sauvegarder les données pour le jeu
+      localStorage.setItem('wordPairs', JSON.stringify(this.wordPairs));
+      localStorage.setItem('sessionInfo', JSON.stringify(this.sessionInfo));
+      
+      // Préparer le jeu
+      this.totalPairs = this.wordPairs.length;
+      this.setupCurrentGameRound();
+      
+      this.showToast(`Session "${session.title}" chargée`);
+    } else {
+      this.showToast('Session non trouvée');
     }
   }
 

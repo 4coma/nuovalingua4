@@ -19,4 +19,7 @@ export class HomePage {
 
   constructor() {}
 
+  onDiscussionClick() {
+    console.log('🔍 HomePage - Bouton Discussion cliqué');
+  }
 }

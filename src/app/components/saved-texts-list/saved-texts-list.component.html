@@ -1,167 +1,152 @@
-<ion-content [fullscreen]="true">
-  <div class="container">
-    <!-- Header -->
-    <ion-header class="ion-no-border">
+
+    <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-button (click)="goHome()">
-            <ion-icon name="arrow-back-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
         <ion-title>Mes textes sauvegardés</ion-title>
+        <ion-buttons slot="start">
+          <ion-button (click)="goHome()">Retour</ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
-    <!-- Barre de recherche -->
-    <ion-searchbar 
-      [(ngModel)]="searchTerm" 
-      (ionInput)="onSearchChange()"
-      placeholder="Rechercher un texte..."
-      class="ion-margin">
-    </ion-searchbar>
-
-    <!-- Filtres et tri -->
-    <ion-segment 
-      [(ngModel)]="selectedFilter" 
-      (ionChange)="onFilterChange()"
-      class="ion-margin-horizontal">
-      <ion-segment-button value="all">
-        <ion-label>Tous</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="favorites">
-        <ion-label>Favoris</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="written">
-        <ion-label>Écrits</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="oral">
-        <ion-label>Oraux</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-
-    <!-- Options de tri -->
-    <ion-item class="ion-margin-horizontal">
-      <ion-label>Trier par :</ion-label>
-      <ion-select 
-        [(ngModel)]="sortBy" 
-        (ionChange)="onSortChange()"
-        interface="popover">
-        <ion-select-option value="date">Date d'accès</ion-select-option>
-        <ion-select-option value="access">Nombre d'accès</ion-select-option>
-        <ion-select-option value="title">Titre</ion-select-option>
-      </ion-select>
-      <ion-button 
-        fill="clear" 
-        (click)="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'; onSortChange()">
-        <ion-icon [name]="sortOrder === 'asc' ? 'arrow-up' : 'arrow-down'"></ion-icon>
-      </ion-button>
-    </ion-item>
-
-    <!-- Liste des textes -->
-    <div class="ion-padding">
-      <div *ngIf="filteredTexts.length === 0" class="ion-text-center ion-padding">
-        <ion-icon name="bookmark-outline" size="large" color="medium"></ion-icon>
-        <h3>Aucun texte sauvegardé</h3>
-        <p *ngIf="searchTerm || selectedFilter !== 'all'">
-          Aucun texte ne correspond à vos critères de recherche.
-        </p>
-        <p *ngIf="!searchTerm && selectedFilter === 'all'">
-          Vous n'avez pas encore sauvegardé de textes. 
-          Commencez par faire des exercices de compréhension !
-        </p>
-        <ion-button routerLink="/category" color="primary" class="ion-margin-top">
-          <ion-icon name="school-outline" slot="start"></ion-icon>
-          Commencer l'apprentissage
-        </ion-button>
+    <ion-content>
+      <div class="ion-padding">
+        <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterTexts()" placeholder="Rechercher..."></ion-searchbar>
+        <ion-segment [(ngModel)]="filterType" (ionChange)="filterTexts()">
+          <ion-segment-button value="all">Tous</ion-segment-button>
+          <ion-segment-button value="favorite">Favoris</ion-segment-button>
+        </ion-segment>
+        <div *ngIf="filteredTexts.length === 0" class="empty-list">Aucun texte sauvegardé.</div>
+        <ion-list *ngIf="filteredTexts.length > 0">
+          <ion-item *ngFor="let text of filteredTexts" (click)="selectText(text)">
+            <ion-label>
+              <h2>{{ text.title || 'Texte sans titre' }}</h2>
+              <p>{{ text.dateCreated | date:'short' }}</p>
+            </ion-label>
+            <ion-button fill="clear" color="primary" (click)="toggleFavorite(text); $event.stopPropagation()">
+              <ion-icon [name]="text.isFavorite ? 'star' : 'star-outline'"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" color="danger" (click)="deleteText(text); $event.stopPropagation()">
+              <ion-icon name="trash"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </ion-list>
+        <div class="stats" *ngIf="filteredTexts.length > 0">
+          <p>Total : {{ filteredTexts.length }} | Favoris : {{ favoriteCount }}</p>
+        </div>
       </div>
 
-      <ion-list *ngIf="filteredTexts.length > 0">
-        <ion-item-sliding *ngFor="let text of filteredTexts">
-          <ion-item button (click)="openText(text)">
-            <ion-icon 
-              [name]="text.type === 'written' ? 'book-outline' : 'mic-outline'" 
-              slot="start" 
-              [color]="text.type === 'written' ? 'primary' : 'secondary'">
-            </ion-icon>
-            
+      <!-- Affichage du texte sélectionné avec mots cliquables -->
+      <ion-modal [isOpen]="!!selectedText" [backdropDismiss]="true" (didDismiss)="closeTextModal()">
+        <ng-template>
+          <ion-header>
+            <ion-toolbar color="primary">
+              <ion-title>{{ selectedText?.title || 'Texte sauvegardé' }}</ion-title>
+              <ion-buttons slot="end">
+                <ion-button (click)="closeTextModal()">
+                  <ion-icon name="close-outline"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+          <ion-content class="ion-padding">
+            <div [innerHTML]="getHighlightedText(selectedText) | safeHtml"
+                 class="comprehension-text"
+                 appSafeHtml
+                 (wordClick)="onWordClicked($event, selectedText)"></div>
+            <div *ngIf="selectedText && selectedFragment">
+              <button class="translate-fixed-btn" (click)="translateSelection()">
+                Traduire la sélection
+              </button>
+            </div>
+            <div class="ion-padding-top ion-text-center">
+              <ion-button (click)="generateAssociationSession()" color="secondary" [disabled]="isGeneratingSession">
+                <!-- <ion-icon name="game-controller-outline" slot="start"></ion-icon> -->
+                {{ isGeneratingSession ? 'Génération...' : 'Créer un exercice d\'association' }}
+              </ion-button>
+            </div>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
+
+      <!-- Modal de traduction contextuelle -->
+      <ion-modal [isOpen]="!!translation" [backdropDismiss]="true" (didDismiss)="closeTranslation()">
+        <ng-template>
+          <ion-header>
+            <ion-toolbar color="primary">
+              <ion-title>Traduction</ion-title>
+              <ion-buttons slot="end">
+                <ion-button (click)="closeTranslation()">
+                  <ion-icon name="close-outline"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+          <ion-content class="ion-padding">
+            <div *ngIf="isTranslating" class="ion-text-center">
+              <ion-spinner></ion-spinner>
+              <p>Traduction en cours...</p>
+            </div>
+            <div *ngIf="translation && !isTranslating">
+              <h2 class="ion-text-center">{{ translation.originalWord }}</h2>
+              <ion-item lines="none">
+                <ion-label>
+                  <h3>Traduction</h3>
+                  <p class="translation">{{ translation.translation }}</p>
+                </ion-label>
+              </ion-item>
+              <ion-item lines="none">
+                <ion-label>
+                  <h3>Sens dans ce contexte</h3>
+                  <p>{{ translation.contextualMeaning }}</p>
+                </ion-label>
+              </ion-item>
+              <ion-item *ngIf="translation.partOfSpeech" lines="none">
+                <ion-label>
+                  <h3>Catégorie grammaticale</h3>
+                  <p>{{ translation.partOfSpeech }}</p>
+                </ion-label>
+              </ion-item>
+              <div *ngIf="translation.examples && translation.examples.length > 0" class="examples-section ion-padding-top">
+                <h3>Exemples</h3>
+                <ion-list>
+                  <ion-item *ngFor="let example of translation.examples">
+                    <ion-label text-wrap>{{ example }}</ion-label>
+                  </ion-item>
+                </ion-list>
+              </div>
+              <div class="ion-padding-top ion-text-center">
+                <ion-button (click)="addWordToDictionary()" color="success" class="ion-margin-end">
+                  <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                  Ajouter au dictionnaire
+                </ion-button>
+                <ion-button (click)="closeTranslation()" color="medium">
+                  Fermer
+                </ion-button>
+              </div>
+            </div>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
+
+      <div class="generated-sessions-section" *ngIf="generatedSessions.length > 0">
+        <h3 class="ion-text-center">Sessions d'association générées</h3>
+        <ion-list>
+          <ion-item *ngFor="let session of generatedSessions">
             <ion-label>
-              <h2>{{ text.title }}</h2>
-              <p>
-                <ion-chip size="small" color="tertiary">
-                  <ion-label>{{ text.category }}</ion-label>
-                </ion-chip>
-                <ion-chip size="small" color="medium">
-                  <ion-label>{{ text.topic }}</ion-label>
-                </ion-chip>
-              </p>
-              <p>
-                <ion-icon name="time-outline" size="small"></ion-icon>
-                {{ formatDate(text.dateLastAccessed || text.dateCreated) }}
-                <span class="ion-margin-start">
-                  <ion-icon name="eye-outline" size="small"></ion-icon>
-                  {{ text.accessCount }} accès
-                </span>
-              </p>
-              <p *ngIf="text.vocabularyItems?.length">
-                <ion-icon name="language-outline" size="small"></ion-icon>
-                {{ text.vocabularyItems.length }} mots de vocabulaire
+              <h3>{{ session.title }}</h3>
+              <p>{{ session.description || 'Session générée à partir d\'un texte sauvegardé' }}</p>
+              <p class="session-meta">
+                <ion-badge color="primary">{{ session.wordPairs.length }} mots</ion-badge>
+                <ion-badge color="secondary">{{ session.difficulty }}</ion-badge>
+                <span class="session-date">{{ session.createdAt | date:'short' }}</span>
               </p>
             </ion-label>
-
-            <ion-icon 
-              [name]="text.isFavorite ? 'heart' : 'heart-outline'" 
-              slot="end" 
-              [color]="text.isFavorite ? 'danger' : 'medium'"
-              (click)="toggleFavorite(text); $event.stopPropagation()">
-            </ion-icon>
+            <ion-button color="success" (click)="restartGeneratedSession(session.id)">
+              <ion-icon name="play-outline" slot="start"></ion-icon>
+              Rejouer
+            </ion-button>
           </ion-item>
-
-          <ion-item-options side="end">
-            <ion-item-option color="danger" (click)="deleteText(text)">
-              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-            </ion-item-option>
-          </ion-item-options>
-        </ion-item-sliding>
-      </ion-list>
-    </div>
-
-    <!-- Statistiques -->
-    <ion-card *ngIf="savedTexts.length > 0" class="ion-margin">
-      <ion-card-header>
-        <ion-card-title>Statistiques</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-grid>
-          <ion-row>
-            <ion-col size="6">
-              <div class="stat-item">
-                <h3>{{ savedTexts.length }}</h3>
-                <p>Textes sauvegardés</p>
-              </div>
-            </ion-col>
-            <ion-col size="6">
-              <div class="stat-item">
-                <h3>{{ savedTexts.filter(t => t.isFavorite).length }}</h3>
-                <p>Favoris</p>
-              </div>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col size="6">
-              <div class="stat-item">
-                <h3>{{ savedTexts.filter(t => t.type === 'written').length }}</h3>
-                <p>Compréhension écrite</p>
-              </div>
-            </ion-col>
-            <ion-col size="6">
-              <div class="stat-item">
-                <h3>{{ savedTexts.filter(t => t.type === 'oral').length }}</h3>
-                <p>Compréhension orale</p>
-              </div>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </ion-card-content>
-    </ion-card>
-  </div>
-</ion-content> 
+        </ion-list>
+      </div>
+    </ion-content>
+  

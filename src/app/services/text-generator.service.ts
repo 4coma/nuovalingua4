@@ -16,6 +16,14 @@ export interface TranslationResult {
   examples?: string[];
 }
 
+export interface AssociationSession {
+  wordPairs: WordPair[];
+  title: string;
+  description?: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  category?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -68,6 +76,13 @@ export class TextGeneratorService {
    */
   evaluateComprehensionAnswers(text: string, questions: ComprehensionQuestion[]): Observable<EvaluationResult> {
     return this.evaluateUserAnswers(text, questions);
+  }
+
+  /**
+   * Génère une session d'association de mots à partir d'un texte sauvegardé
+   */
+  generateAssociationSessionFromText(text: string, title: string): Observable<AssociationSession> {
+    return this.callOpenAI<AssociationSession>(this.createAssociationSessionPrompt(text, title));
   }
 
   /**
@@ -234,6 +249,45 @@ export class TextGeneratorService {
         ]
       }
       - Le format JSON doit être valide pour pouvoir être traité par une application
+    `;
+  }
+
+  /**
+   * Crée le prompt pour générer une session d'association à partir d'un texte
+   */
+  private createAssociationSessionPrompt(text: string, title: string): string {
+    console.log('text passé au modèle : ', text);
+    
+    return `
+      Tu es un assistant pédagogique spécialisé dans l'apprentissage de l'italien.
+      
+      Voici un texte en italien:
+      "${text}"
+      
+      À partir de ce texte, je veux que tu extraies 8-12 paires de mots français-italien qui sont importantes pour la compréhension du texte.
+      Ces mots doivent être de niveau intermédiaire et utiles pour l'apprentissage.
+      
+      Important:
+      - Choisis des mots qui apparaissent dans le texte
+      - Inclus des mots de vocabulaire variés (noms, verbes, adjectifs)
+      - Assure-toi que les traductions sont précises
+      
+      TRES IMPORTANT:
+      - RETOURNE TA RÉPONSE SOUS FORME D'OBJET JSON AVEC LA STRUCTURE SUIVANTE:
+      {
+        "wordPairs": [
+          {"it": "mot italien", "fr": "traduction française", "context": "contexte d'utilisation optionnel"},
+          {"it": "mot italien", "fr": "traduction française", "context": "contexte d'utilisation optionnel"},
+          ...
+        ],
+        "title": "${title}",
+        "description": "Description brève de la session basée sur le contenu du texte",
+        "category": "vocabulaire"
+      }
+      - Le format JSON doit être valide pour pouvoir être traité par une application
+      - Assure-toi que chaque paire a les champs "it" et "fr"
+      - Le champ "context" est optionnel
+      - La difficulté doit être "easy", "medium" ou "hard"
     `;
   }
 

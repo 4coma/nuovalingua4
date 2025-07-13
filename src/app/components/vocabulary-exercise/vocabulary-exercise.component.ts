@@ -337,4 +337,105 @@ export class VocabularyExerciseComponent implements OnInit {
   clearErrors() {
     this.errorList = [];
   }
+
+  /**
+   * Recommence l'exercice complet
+   */
+  restartExercise() {
+    // Réinitialiser les statistiques
+    this.currentIndex = 0;
+    this.quizCompleted = false;
+    this.errorList = [];
+    this.currentAnswer = '';
+    
+    // Réinitialiser tous les quiz items
+    this.quizItems.forEach(item => {
+      item.userAnswer = '';
+      item.isCorrect = null;
+      item.revealed = false;
+    });
+    
+    // Sauvegarder l'état de recommencement dans le localStorage
+    localStorage.setItem('vocabularyExerciseRestart', 'true');
+    
+    this.showToast('Exercice recommencé');
+  }
+
+  /**
+   * Recommence uniquement avec les mots ratés
+   */
+  restartFailedWords() {
+    if (this.errorList.length === 0) {
+      this.showToast('Aucun mot raté à recommencer');
+      return;
+    }
+    
+    // Déterminer la direction de traduction originale
+    const direction = this.sessionInfo?.translationDirection || 'fr2it';
+    
+    // Créer un nouvel exercice avec seulement les mots ratés
+    // en respectant la direction de traduction originale
+    const failedItems = this.errorList.map(error => {
+      // Trouver le WordPair original correspondant à cette erreur
+      const originalPair = this.wordPairs.find(pair => {
+        // Vérifier si cette paire correspond à l'erreur selon la direction
+        if (direction === 'fr2it') {
+          return pair.fr === error.sourceWord && pair.it === error.targetWord;
+        } else {
+          return pair.it === error.sourceWord && pair.fr === error.targetWord;
+        }
+      });
+      
+      if (originalPair) {
+        // Utiliser la paire originale pour respecter la direction
+        if (direction === 'fr2it') {
+          return {
+            word: originalPair.fr, // Le mot français
+            translation: originalPair.it, // La traduction italienne
+            context: originalPair.context
+          };
+        } else {
+          return {
+            word: originalPair.it, // Le mot italien
+            translation: originalPair.fr, // La traduction française
+            context: originalPair.context
+          };
+        }
+      } else {
+        // Fallback si la paire n'est pas trouvée
+        return {
+          word: error.sourceWord,
+          translation: error.targetWord,
+          context: error.context
+        };
+      }
+    });
+    
+    const failedExercise = {
+      items: failedItems,
+      type: 'vocabulary',
+      topic: this.sessionInfo?.topic || 'Vocabulaire - Mots ratés'
+    };
+    
+    // Stocker l'exercice des mots ratés
+    localStorage.setItem('vocabularyExercise', JSON.stringify(failedExercise));
+    localStorage.setItem('vocabularyExerciseRestart', 'true');
+    
+    // Recharger la page pour démarrer le nouvel exercice
+    window.location.reload();
+  }
+
+  /**
+   * Affiche un toast
+   */
+  private async showToast(message: string) {
+    const { ToastController } = await import('@ionic/angular');
+    const toastController = new ToastController();
+    const toast = await toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom'
+    });
+    await toast.present();
+  }
 }

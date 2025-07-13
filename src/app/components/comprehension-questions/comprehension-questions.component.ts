@@ -46,6 +46,9 @@ export class ComprehensionQuestionsComponent implements OnInit {
   translation: TranslationResult | null = null;
   isTranslating: boolean = false;
   highlightedWords: string[] = [];
+  
+  // Pour l'audio
+  audioUrl: string | null = null;
 
   constructor(
     private router: Router,

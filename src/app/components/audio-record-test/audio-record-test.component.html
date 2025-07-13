@@ -1,0 +1,228 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Test d'enregistrement audio</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="container">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title class="ion-text-center">
+          <ion-icon name="mic-outline" class="title-icon"></ion-icon>
+          Test d'enregistrement audio
+        </ion-card-title>
+        <ion-card-subtitle class="ion-text-center">
+          Testez l'enregistrement de votre voix
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="status-section">
+          <div class="status-indicator" [class.recording]="isRecording" [class.playing]="isPlaying">
+            <ion-icon 
+              [name]="isRecording ? 'radio-button-on' : 'radio-button-off'"
+              [color]="isRecording ? 'danger' : 'medium'">
+            </ion-icon>
+            <span class="status-text">
+              {{ isRecording ? 'Enregistrement en cours...' : 
+                 isPlaying ? 'Lecture en cours...' : 'Prêt' }}
+            </span>
+          </div>
+          
+          <!-- Affichage de la durée si un enregistrement existe -->
+          <div class="duration-info" *ngIf="hasRecording">
+            <ion-note>
+              Durée: {{ formatTime(duration) }}
+              <span *ngIf="isPlaying"> - {{ formatTime(currentTime) }}</span>
+            </ion-note>
+          </div>
+          
+          <!-- Debug info -->
+          <div class="debug-info">
+            <ion-note>
+              État: hasRecording={{ hasRecording }}, isRecording={{ isRecording }}, isPlaying={{ isPlaying }}
+            </ion-note>
+          </div>
+        </div>
+
+        <div class="controls-section">
+          <!-- Boutons d'enregistrement -->
+          <div class="button-group">
+            <ion-button 
+              expand="block" 
+              color="danger" 
+              (click)="startRecording()"
+              [disabled]="isRecording">
+              <ion-icon slot="start" name="mic"></ion-icon>
+              Démarrer l'enregistrement
+            </ion-button>
+            
+            <ion-button 
+              expand="block" 
+              color="warning" 
+              (click)="stopRecording()"
+              [disabled]="!isRecording">
+              <ion-icon slot="start" name="stop"></ion-icon>
+              Arrêter l'enregistrement
+            </ion-button>
+            
+            <ion-button 
+              expand="block" 
+              color="tertiary" 
+              (click)="testRecording()"
+              [disabled]="isRecording">
+              <ion-icon slot="start" name="bug"></ion-icon>
+              Test (Simuler un enregistrement)
+            </ion-button>
+          </div>
+
+          <!-- Boutons de lecture -->
+          <div class="button-group" *ngIf="hasRecording">
+            <ion-button 
+              expand="block" 
+              color="primary" 
+              (click)="playRecording()"
+              [disabled]="isPlaying">
+              <ion-icon slot="start" name="play"></ion-icon>
+              Écouter l'enregistrement
+            </ion-button>
+            
+            <ion-button 
+              expand="block" 
+              color="secondary" 
+              (click)="pausePlaying()"
+              [disabled]="!isPlaying">
+              <ion-icon slot="start" name="pause"></ion-icon>
+              Pause
+            </ion-button>
+            
+            <ion-button 
+              expand="block" 
+              color="warning" 
+              (click)="stopPlaying()"
+              [disabled]="!isPlaying">
+              <ion-icon slot="start" name="stop"></ion-icon>
+              Arrêter
+            </ion-button>
+          </div>
+
+          <!-- Boutons d'actions -->
+          <div class="button-group" *ngIf="hasRecording">
+            <ion-button 
+              expand="block" 
+              color="success" 
+              (click)="downloadRecording()">
+              <ion-icon slot="start" name="download"></ion-icon>
+              Télécharger
+            </ion-button>
+            
+            <ion-button 
+              expand="block" 
+              color="primary" 
+              (click)="transcribeRecording()"
+              [disabled]="isTranscribing">
+              <ion-icon slot="start" name="text"></ion-icon>
+              {{ isTranscribing ? 'Transcription en cours...' : 'Transcrire' }}
+            </ion-button>
+            
+            <ion-button 
+              expand="block" 
+              color="medium" 
+              (click)="clearRecording()">
+              <ion-icon slot="start" name="trash"></ion-icon>
+              Effacer
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Section de transcription -->
+        <div class="transcription-section" *ngIf="transcription || isTranscribing">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="text-outline" slot="start"></ion-icon>
+                Transcription
+              </ion-card-title>
+            </ion-card-header>
+            
+            <ion-card-content>
+              <div *ngIf="isTranscribing" class="transcribing">
+                <ion-spinner name="crescent"></ion-spinner>
+                <p>Transcription en cours...</p>
+              </div>
+              
+              <div *ngIf="transcription && !isTranscribing" class="transcription-result">
+                <div class="transcription-text">
+                  <p><strong>Texte transcrit :</strong></p>
+                  <p>{{ transcription.text }}</p>
+                </div>
+                
+                <div class="transcription-details" *ngIf="transcription.language || transcription.confidence">
+                  <ion-note>
+                    <p *ngIf="transcription.language">Langue détectée : {{ transcription.language }}</p>
+                    <p *ngIf="transcription.confidence">Confiance : {{ (transcription.confidence * 100).toFixed(1) }}%</p>
+                  </ion-note>
+                </div>
+                
+                <div class="transcription-actions">
+                  <ion-button 
+                    fill="clear" 
+                    color="primary" 
+                    (click)="toggleTranscription()">
+                    <ion-icon slot="start" name="eye"></ion-icon>
+                    {{ showTranscription ? 'Masquer' : 'Afficher' }}
+                  </ion-button>
+                  
+                  <ion-button 
+                    fill="clear" 
+                    color="medium" 
+                    (click)="clearTranscription()">
+                    <ion-icon slot="start" name="trash"></ion-icon>
+                    Effacer
+                  </ion-button>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <!-- Informations -->
+        <div class="info-section">
+          <ion-note>
+            <p><strong>Instructions :</strong></p>
+            <ul>
+              <li>Cliquez sur "Démarrer l'enregistrement" pour commencer</li>
+              <li>Parlez dans votre microphone</li>
+              <li>Cliquez sur "Arrêter l'enregistrement" pour terminer</li>
+              <li>Utilisez "Écouter l'enregistrement" pour tester</li>
+              <li>Cliquez sur "Transcrire" pour convertir l'audio en texte</li>
+              <li>Téléchargez le fichier audio si nécessaire</li>
+            </ul>
+            
+            <div class="platform-info" *ngIf="permissionsService.isMobile()">
+              <p><strong>Informations {{ permissionsService.isAndroid() ? 'Android' : 'iOS' }} :</strong></p>
+              <ul>
+                <li *ngIf="permissionsService.isAndroid()">
+                  Assurez-vous d'autoriser l'accès au microphone quand demandé
+                </li>
+                <li *ngIf="permissionsService.isAndroid()">
+                  Si la permission est refusée : Paramètres > Applications > NuovaLingua > Permissions > Microphone
+                </li>
+                <li *ngIf="permissionsService.isIOS()">
+                  Assurez-vous d'autoriser l'accès au microphone quand demandé
+                </li>
+                <li *ngIf="permissionsService.isIOS()">
+                  Si la permission est refusée : Réglages > Confidentialité > Microphone > NuovaLingua
+                </li>
+              </ul>
+            </div>
+          </ion-note>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content> 

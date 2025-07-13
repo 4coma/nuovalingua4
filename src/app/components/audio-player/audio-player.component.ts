@@ -1,160 +1,220 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { AudioRecordingService, AudioRecordingState } from '../../services/audio-recording.service';
+import { Subscription } from 'rxjs';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { SpeechService } from '../../services/speech.service';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-audio-player',
   templateUrl: './audio-player.component.html',
   styleUrls: ['./audio-player.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    IonicModule,
-    FormsModule
-  ]
+  imports: [IonicModule, CommonModule]
 })
-export class AudioPlayerComponent implements OnInit, OnDestroy {
-  @Input() text: string = '';
+export class AudioPlayerComponent implements OnInit, OnDestroy, OnChanges {
+  @Input() audioUrl: string | null = null;
+  @Input() showControls: boolean = true;
+  @Input() autoPlay: boolean = false;
+  @Input() loop: boolean = false;
+  @Input() preload: 'none' | 'metadata' | 'auto' = 'metadata';
   
-  audioUrl: string = '';
-  isPlaying: boolean = false;
-  isPaused: boolean = false;
-  currentTime: number = 0;
-  duration: number = 0;
-  playbackRate: number = 1.0;
-  
-  // Options de vitesse
-  speedOptions: number[] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
-  
-  // Pour la barre de progression
-  sliderValue: number = 0;
-  isSliderChanging: boolean = false;
-  
-  // Pour nettoyer les abonnements
-  private subscription: Subscription = new Subscription();
+  @Output() playEvent = new EventEmitter<void>();
+  @Output() pauseEvent = new EventEmitter<void>();
+  @Output() endedEvent = new EventEmitter<void>();
+  @Output() timeUpdateEvent = new EventEmitter<number>();
+  @Output() durationChangeEvent = new EventEmitter<number>();
 
-  constructor(private speechService: SpeechService) { }
+  isPlaying = false;
+  isPaused = false;
+  currentTime = 0;
+  duration = 0;
+  volume = 1;
+  playbackRate = 1;
+  
+  private audio: HTMLAudioElement | null = null;
+  private stateSubscription: Subscription | null = null;
+  private previousAudioUrl: string | null = null;
+
+  constructor(private audioRecordingService: AudioRecordingService) {}
 
   ngOnInit() {
-    this.setupAudioStateSubscription();
-    this.speechService.audioUrl$.subscribe(audioUrl => {
-      this.audioUrl = audioUrl;
-    })
-  }
-  
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
-
-  }
-  
-  /**
-   * S'abonne aux changements d'état de l'audio
-   */
-  setupAudioStateSubscription() {
-    this.subscription.add(
-      this.speechService.getAudioState().subscribe(state => {
+    if (this.audioUrl) {
+      this.initAudio();
+    }
+    
+    // S'abonner aux changements d'état du service d'enregistrement
+    this.stateSubscription = this.audioRecordingService.state$.subscribe(state => {
+      if (state.hasRecording) {
         this.isPlaying = state.isPlaying;
-        this.isPaused = state.isPaused;
         this.currentTime = state.currentTime;
         this.duration = state.duration;
-        this.playbackRate = state.playbackRate;
-        
-        if (!this.isSliderChanging) {
-          this.sliderValue = this.currentTime;
-        }
-      })
-    );
+      }
+    });
   }
 
-
-  
-  /**
-   * Lecture de l'audio
-   */
-  playAudio() {
-    if (this.isPaused) {
-      this.speechService.resume();
-    } else if (!this.isPlaying) {
-      if (this.audioUrl) {
-        this.speechService.play();
-      } 
-    }
-  }
-  
-  /**
-   * Pause de l'audio
-   */
-  pauseAudio() {
-    this.speechService.pause();
-  }
-  
-  /**
-   * Arrêt de l'audio
-   */
-  stopAudio() {
-    this.speechService.stop();
-  }
-  
-  /**
-   * Avance de 10 secondes
-   */
-  forwardAudio() {
-    this.speechService.forward(10);
-  }
-  
-  /**
-   * Recule de 10 secondes
-   */
-  backwardAudio() {
-    this.speechService.backward(10);
-  }
-  
-  /**
-   * Change la vitesse de lecture
-   */
-  changeSpeed(event: any) {
-    if (event && event.detail && event.detail.value) {
-      const speed = parseFloat(event.detail.value);
-      if (!isNaN(speed)) {
-        this.speechService.setPlaybackRate(speed);
+  ngOnChanges(changes: SimpleChanges) {
+    // Détecter les changements de l'audioUrl
+    if (changes['audioUrl'] && !changes['audioUrl'].firstChange) {
+      const newAudioUrl = changes['audioUrl'].currentValue;
+      const previousAudioUrl = changes['audioUrl'].previousValue;
+      
+      console.log('🔍 AudioPlayer - audioUrl changé:', { previous: previousAudioUrl, current: newAudioUrl });
+      
+      // Si l'URL a changé et qu'elle n'est pas null, réinitialiser l'audio
+      if (newAudioUrl && newAudioUrl !== previousAudioUrl) {
+        console.log('🔍 AudioPlayer - Réinitialisation de l\'audio avec nouvelle URL');
+        this.initAudio();
       }
     }
   }
-  
-  /**
-   * Appelé quand l'utilisateur commence à déplacer le curseur de progression
-   */
-  onSliderTouchStart() {
-    this.isSliderChanging = true;
+
+  ngOnDestroy() {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio = null;
+    }
+    if (this.stateSubscription) {
+      this.stateSubscription.unsubscribe();
+    }
   }
-  
-  /**
-   * Appelé quand l'utilisateur relâche le curseur de progression
-   */
-  onSliderTouchEnd() {
-    this.isSliderChanging = false;
-    this.speechService.currentTime = this.sliderValue;
+
+  private initAudio() {
+    console.log('🔍 AudioPlayer - initAudio appelé avec URL:', this.audioUrl);
+    
+    if (!this.audioUrl) {
+      console.log('🔍 AudioPlayer - Pas d\'URL audio fournie');
+      return;
+    }
+
+    // Si un audio existe déjà, le libérer
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.src = '';
+      this.audio.load();
+    }
+    
+    // Créer un nouvel élément audio
+    this.audio = new Audio(this.audioUrl);
+    this.audio.volume = this.volume;
+    this.audio.playbackRate = this.playbackRate;
+    this.audio.loop = this.loop;
+    this.audio.preload = this.preload;
+
+    // Ajouter les écouteurs d'événements
+    this.audio.addEventListener('loadedmetadata', () => {
+      if (this.audio) {
+        this.duration = this.audio.duration;
+        this.durationChangeEvent.emit(this.duration);
+        console.log('🔍 AudioPlayer - Métadonnées chargées, durée:', this.duration);
+      }
+    });
+
+    this.audio.addEventListener('timeupdate', () => {
+      if (this.audio) {
+        this.currentTime = this.audio.currentTime;
+        this.timeUpdateEvent.emit(this.currentTime);
+      }
+    });
+
+    this.audio.addEventListener('play', () => {
+      this.isPlaying = true;
+      this.isPaused = false;
+      this.playEvent.emit();
+      console.log('🔍 AudioPlayer - Lecture démarrée');
+    });
+
+    this.audio.addEventListener('pause', () => {
+      this.isPlaying = false;
+      this.isPaused = true;
+      this.pauseEvent.emit();
+      console.log('🔍 AudioPlayer - Lecture en pause');
+    });
+
+    this.audio.addEventListener('ended', () => {
+      this.isPlaying = false;
+      this.isPaused = false;
+      this.endedEvent.emit();
+      console.log('🔍 AudioPlayer - Lecture terminée');
+    });
+
+    this.audio.addEventListener('error', (error) => {
+      console.error('🔍 AudioPlayer - Erreur lors du chargement de l\'audio:', error);
+    });
+
+    if (this.autoPlay) {
+      this.play();
+    }
   }
-  
-  /**
-   * Appelé quand la valeur du curseur change
-   */
+
+  play() {
+    console.log('🔍 AudioPlayer - play() appelé');
+    if (this.audio && this.audioUrl) {
+      console.log('🔍 AudioPlayer - Tentative de lecture avec URL:', this.audioUrl);
+      this.audio.play().catch(error => {
+        console.error('🔍 AudioPlayer - Erreur lors de la lecture:', error);
+      });
+    } else if (this.audioRecordingService.getAudioUrl()) {
+      this.audioRecordingService.playRecording();
+    } else {
+      console.log('🔍 AudioPlayer - Pas d\'audio disponible pour la lecture');
+    }
+  }
+
+  pause() {
+    if (this.audio) {
+      this.audio.pause();
+    } else {
+      this.audioRecordingService.pausePlaying();
+    }
+  }
+
+  stop() {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.currentTime = 0;
+    } else {
+      this.audioRecordingService.stopPlaying();
+    }
+  }
+
+  seek(time: number) {
+    if (this.audio) {
+      this.audio.currentTime = time;
+    }
+  }
+
+  setVolume(volume: number) {
+    this.volume = volume;
+    if (this.audio) {
+      this.audio.volume = volume;
+    }
+  }
+
+  setPlaybackRate(rate: number) {
+    this.playbackRate = rate;
+    if (this.audio) {
+      this.audio.playbackRate = rate;
+    }
+  }
+
+  formatTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
   onSliderChange(event: any) {
-    this.sliderValue = event.detail.value;
+    const time = event.detail.value;
+    this.seek(time);
   }
-  
-  /**
-   * Formatage du temps (secondes vers MM:SS)
-   */
-  formatTime(time: number): string {
-    if (isNaN(time) || time === Infinity) return '00:00';
-    
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+  onVolumeChange(event: any) {
+    const volume = event.detail.value / 100;
+    this.setVolume(volume);
+  }
+
+  onPlaybackRateChange(event: any) {
+    const rate = parseFloat(event.detail.value);
+    this.setPlaybackRate(rate);
   }
 } 
