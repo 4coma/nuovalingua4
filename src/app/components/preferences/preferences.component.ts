@@ -559,30 +559,32 @@ export class PreferencesComponent implements OnInit {
    * Affiche les résultats du test SM-2
    */
   private async showSM2Results(sortedWords: WordMastery[], dueWords: WordMastery[]) {
+    // Formater le message en texte simple
+    let message = `📊 STATISTIQUES\n\n`;
+    message += `Total de mots : ${sortedWords.length}\n`;
+    message += `Mots dûs pour révision : ${dueWords.length}\n\n`;
+    
+    message += `🏆 TOP 10 DES MOTS PRIORITAIRES (SM-2)\n\n`;
+    
+    sortedWords.slice(0, 10).forEach((word, index) => {
+      message += `${index + 1}. ${word.word} → ${word.translation}\n`;
+      message += `   EF: ${word.eFactor?.toFixed(1) || '2.5'}\n`;
+      message += `   Intervalle: ${word.interval || 0} jours\n`;
+      message += `   Répétitions: ${word.repetitions || 0}\n`;
+      message += `   Maîtrise: ${word.masteryLevel}%\n`;
+      message += `   Dû: ${this.sm2Service.isDueForReview(word) ? 'OUI' : 'NON'}\n\n`;
+    });
+    
+    if (dueWords.length > 0) {
+      message += `📅 MOTS DÛS POUR RÉVISION\n\n`;
+      dueWords.forEach(word => {
+        message += `• ${word.word} → ${word.translation} (EF: ${word.eFactor?.toFixed(1) || '2.5'})\n`;
+      });
+    }
+    
     const alert = await this.alertController.create({
       header: 'Résultats du test SM-2',
-      message: `
-        <h3>📊 Statistiques</h3>
-        <p><strong>Total de mots :</strong> ${sortedWords.length}</p>
-        <p><strong>Mots dûs pour révision :</strong> ${dueWords.length}</p>
-        
-        <h3>🏆 Top 10 des mots prioritaires (SM-2)</h3>
-        ${sortedWords.slice(0, 10).map((word, index) => `
-          <p><strong>${index + 1}.</strong> <strong>${word.word}</strong> → ${word.translation}</p>
-          <ul>
-            <li>EF: ${word.eFactor?.toFixed(1) || '2.5'}</li>
-            <li>Intervalle: ${word.interval || 0} jours</li>
-            <li>Répétitions: ${word.repetitions || 0}</li>
-            <li>Maîtrise: ${word.masteryLevel}%</li>
-            <li>Dû: ${this.sm2Service.isDueForReview(word) ? '✅ OUI' : '❌ NON'}</li>
-          </ul>
-        `).join('')}
-        
-        <h3>📅 Mots dûs pour révision</h3>
-        ${dueWords.map(word => `
-          <p>• <strong>${word.word}</strong> → ${word.translation} (EF: ${word.eFactor?.toFixed(1) || '2.5'})</p>
-        `).join('')}
-      `,
+      message: message,
       buttons: ['Compris']
     });
     await alert.present();
