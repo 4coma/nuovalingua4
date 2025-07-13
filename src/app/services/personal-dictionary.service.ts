@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
+import { VocabularyTrackingService, WordMastery } from './vocabulary-tracking.service';
 
 export interface DictionaryWord {
   id: string;
@@ -40,7 +41,8 @@ export class PersonalDictionaryService {
   constructor(
     private http: HttpClient,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private vocabularyTrackingService: VocabularyTrackingService
   ) {}
 
   /**
@@ -83,6 +85,10 @@ export class PersonalDictionaryService {
     // Ajouter le mot et sauvegarder
     words.push(word);
     localStorage.setItem(this.storageKey, JSON.stringify(words));
+    
+    // Ajouter automatiquement le mot au système de tracking SM-2
+    this.addWordToSM2Tracking(word);
+    
     return true;
   }
 
@@ -249,5 +255,62 @@ export class PersonalDictionaryService {
     // Sinon, sélectionner aléatoirement
     const shuffled = [...allWords].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
+  }
+
+  /**
+   * Ajoute automatiquement un mot du dictionnaire personnel au système de tracking SM-2
+   */
+  private addWordToSM2Tracking(dictionaryWord: DictionaryWord): void {
+    try {
+      // Déterminer quelle est la langue source et cible pour le tracking
+      const isItalianToFrench = dictionaryWord.sourceLang === 'it' && dictionaryWord.targetLang === 'fr';
+      const isFrenchToItalian = dictionaryWord.sourceLang === 'fr' && dictionaryWord.targetLang === 'it';
+      
+      if (!isItalianToFrench && !isFrenchToItalian) {
+        console.warn('Langues non supportées pour le tracking SM-2:', dictionaryWord.sourceLang, dictionaryWord.targetLang);
+        return;
+      }
+      
+      // Créer un WordMastery avec les propriétés SM-2 par défaut
+      const wordMastery: WordMastery = {
+        id: this.vocabularyTrackingService.generateWordId(
+          isItalianToFrench ? dictionaryWord.sourceWord : dictionaryWord.targetWord,
+          isItalianToFrench ? dictionaryWord.targetWord : dictionaryWord.sourceWord
+        ),
+        word: isItalianToFrench ? dictionaryWord.sourceWord : dictionaryWord.targetWord,
+        translation: isItalianToFrench ? dictionaryWord.targetWord : dictionaryWord.sourceWord,
+        category: 'vocabulary',
+        topic: 'Personnel',
+        lastReviewed: Date.now(),
+        masteryLevel: 0, // Nouveau mot, pas encore maîtrisé
+        timesReviewed: 0,
+        timesCorrect: 0,
+        context: dictionaryWord.contextualMeaning,
+        
+        // Propriétés SM-2 par défaut pour un nouveau mot
+        eFactor: 2.5,        // Facteur d'efficacité par défaut
+        interval: 0,          // Premier intervalle (révision immédiate)
+        repetitions: 0,       // Pas encore de répétitions
+        nextReview: Date.now() // Dû immédiatement
+      };
+      
+      // Ajouter au système de tracking
+      const allWords = this.vocabularyTrackingService.getAllTrackedWords();
+      const existingIndex = allWords.findIndex(w => w.id === wordMastery.id);
+      
+      if (existingIndex >= 0) {
+        // Le mot existe déjà, ne pas le remplacer
+        console.log('Mot déjà présent dans le tracking SM-2:', wordMastery.word);
+        return;
+      }
+      
+      // Ajouter le nouveau mot
+      allWords.push(wordMastery);
+      this.vocabularyTrackingService.saveAllWords(allWords);
+      
+      console.log('Mot ajouté au tracking SM-2:', wordMastery.word);
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout au tracking SM-2:', error);
+    }
   }
 } 
