@@ -151,6 +151,36 @@ w<ion-header>
   <ion-card>
     <ion-card-header>
       <ion-card-title>
+        <ion-icon name="repeat-outline" slot="start"></ion-icon>
+        Mémorisation espacée
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>Définissez le nombre de mots à réviser lors d'une session de mémorisation espacée.</p>
+      </ion-text>
+      
+      <ion-item>
+        <ion-label position="stacked">Nombre de mots par session</ion-label>
+        <ion-input 
+          [(ngModel)]="spacedRepetitionWordsCount" 
+          type="number" 
+          min="5" 
+          max="50"
+          placeholder="Ex: 10"
+          class="spaced-repetition-input">
+        </ion-input>
+      </ion-item>
+      
+      <ion-text color="medium" class="ion-padding-top">
+        <p><small>Choisissez entre 5 et 50 mots pour adapter la durée de la session à votre disponibilité (5-50 mots).</small></p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
         <ion-icon name="flask-outline" slot="start"></ion-icon>
         Test de l'algorithme SM-2
       </ion-card-title>
@@ -196,6 +226,15 @@ w<ion-header>
       (click)="resetPreferences()">
       <ion-icon name="refresh-outline" slot="start"></ion-icon>
       Réinitialiser aux valeurs par défaut
+    </ion-button>
+
+    <ion-button 
+      expand="block" 
+      color="danger" 
+      fill="outline"
+      (click)="clearVocabulary()">
+      <ion-icon name="trash-outline" slot="start"></ion-icon>
+      Effacer tout le vocabulaire
     </ion-button>
   </div>
 </ion-content> 

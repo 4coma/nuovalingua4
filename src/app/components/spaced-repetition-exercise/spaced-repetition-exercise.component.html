@@ -82,6 +82,10 @@
             </div>
           </ion-card-content>
         </ion-card>
+        <ion-button *ngIf="!isCorrect" expand="block" color="primary" (click)="nextQuestion()" class="next-question-btn" style="margin-top: 12px;">
+          <ion-icon name="arrow-forward-outline" slot="start"></ion-icon>
+          Suivant
+        </ion-button>
       </div>
     </div>
 
@@ -115,6 +119,24 @@
         <ion-icon name="save-outline" slot="start"></ion-icon>
         Valider la session
       </ion-button>
+      <div *ngIf="exerciseCompleted && reviewedWords.length > 0" class="spaced-repetition-actions" style="margin-top: 16px;">
+        <ion-button expand="block" color="primary" (click)="launchComprehension('written')">
+          <ion-icon name="book-outline" slot="start"></ion-icon>
+          Compréhension écrite
+        </ion-button>
+        <ion-button expand="block" color="secondary" (click)="launchComprehension('oral')">
+          <ion-icon name="volume-high-outline" slot="start"></ion-icon>
+          Compréhension orale
+        </ion-button>
+        <ion-button *ngIf="hasRemainingWords" expand="block" color="tertiary" (click)="continueRevision()">
+          <ion-icon name="repeat-outline" slot="start"></ion-icon>
+          Continuer la révision
+        </ion-button>
+        <ion-button expand="block" color="medium" (click)="finishExercise()">
+          <ion-icon name="home-outline" slot="start"></ion-icon>
+          Retour au menu
+        </ion-button>
+      </div>
     </div>
 
     <!-- Ancienne section de fin de session masquée -->

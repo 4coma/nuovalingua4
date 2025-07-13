@@ -7,6 +7,8 @@ import { WordPair } from '../../services/llm.service';
 import { SpacedRepetitionService } from '../../services/spaced-repetition.service';
 import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
 import { WordListModalComponent } from '../word-list-modal/word-list-modal.component';
+import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-selection-modal.component';
+import { TextGeneratorService } from '../../services/text-generator.service';
 
 interface QualityOption {
   value: number;
@@ -87,7 +89,8 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
     private vocabularyTrackingService: VocabularyTrackingService,
     private toastController: ToastController,
     private alertController: AlertController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private textGeneratorService: TextGeneratorService
   ) { }
   
   ngOnInit() {
@@ -169,19 +172,28 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
     
     this.answerSubmitted = true;
     
-    // Passer automatiquement au mot suivant après un court délai
-    setTimeout(() => {
-      this.currentAnswer = '';
-      this.answerSubmitted = false;
-      this.isCorrect = false;
-      this.currentIndex++;
-      
-      // Vérifier si on a terminé tous les items
-      if (this.currentIndex >= this.exerciseItems.length) {
-        this.prepareReviewSummary();
-        this.exerciseCompleted = true;
-      }
-    }, 800);
+    if (this.isCorrect) {
+      // Passage automatique si la réponse est correcte
+      setTimeout(() => {
+        this.nextQuestion();
+      }, 800);
+    }
+    // Sinon, attendre le clic sur "Suivant"
+  }
+
+  /**
+   * Passe au mot suivant après clic sur "Suivant"
+   */
+  nextQuestion() {
+    this.currentAnswer = '';
+    this.answerSubmitted = false;
+    this.isCorrect = false;
+    this.currentIndex++;
+    // Vérifier si on a terminé tous les items
+    if (this.currentIndex >= this.exerciseItems.length) {
+      this.prepareReviewSummary();
+      this.exerciseCompleted = true;
+    }
   }
   
   /**
@@ -397,5 +409,74 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
       }
     });
     await modal.present();
+  }
+
+  get hasRemainingWords(): boolean {
+    const allWords = this.vocabularyTrackingService.getAllTrackedWords();
+    const dueWords = allWords.filter(w => w.nextReview && w.nextReview <= Date.now());
+    const alreadyDone = new Set(this.reviewedWords.map(w => this.vocabularyTrackingService.generateWordId(w.it, w.fr)));
+    const remaining = dueWords.filter(w => !alreadyDone.has(w.id));
+    return remaining.length > 0;
+  }
+
+  async launchComprehension(type: 'written' | 'oral') {
+    // Ouvre le modal pour le choix des thèmes
+    const modal = await this.modalController.create({
+      component: ThemeSelectionModalComponent,
+      cssClass: 'theme-selection-modal'
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    const selectedThemes = data?.themes || [];
+
+    // Prépare la liste des mots révisés
+    const wordPairs = this.reviewedWords.map(w => ({
+      it: w.it,
+      fr: w.fr,
+      context: w.context
+    }));
+
+    // Récupère ou construit sessionInfo
+    let sessionInfo = null;
+    const sessionInfoJson = localStorage.getItem('sessionInfo');
+    if (sessionInfoJson) {
+      sessionInfo = JSON.parse(sessionInfoJson);
+    } else {
+      sessionInfo = {
+        category: 'Mémorisation espacée',
+        topic: 'Révision',
+        date: new Date().toISOString()
+      };
+    }
+    if (selectedThemes && selectedThemes.length > 0) {
+      sessionInfo.themes = selectedThemes;
+    }
+    localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
+
+    this.textGeneratorService.generateComprehensionText(wordPairs, type, selectedThemes).subscribe({
+      next: (result) => {
+        // PATCH : garantir la présence de vocabularyItems
+        if (!result.vocabularyItems || !Array.isArray(result.vocabularyItems) || result.vocabularyItems.length === 0) {
+          result.vocabularyItems = wordPairs.map(pair => ({ word: pair.it, translation: pair.fr, context: pair.context }));
+        }
+        localStorage.setItem('comprehensionText', JSON.stringify(result));
+        this.router.navigate(['/comprehension']);
+      },
+      error: (error) => {
+        console.error('Erreur lors de la génération du texte de compréhension:', error);
+        this.showToast('Erreur lors de la génération du texte. Veuillez réessayer.');
+      }
+    });
+  }
+
+  continueRevision() {
+    // Relance la révision avec les mots restants
+    const allWords = this.vocabularyTrackingService.getAllTrackedWords();
+    const dueWords = allWords.filter(w => w.nextReview && w.nextReview <= Date.now());
+    const alreadyDone = new Set(this.reviewedWords.map(w => this.vocabularyTrackingService.generateWordId(w.it, w.fr)));
+    const remaining = dueWords.filter(w => !alreadyDone.has(w.id));
+    if (remaining.length > 0) {
+      this.startNewSessionWithWords(remaining);
+    }
   }
 } 

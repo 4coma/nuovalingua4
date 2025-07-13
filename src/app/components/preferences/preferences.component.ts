@@ -27,6 +27,7 @@ export class PreferencesComponent implements OnInit {
   googleTtsApiKey: string = '';
   wordAssociationsCount: number = 10;
   oralComprehensionLength: number = 150; // Longueur par défaut en mots
+  spacedRepetitionWordsCount: number = 10; // Nombre de mots par session de mémorisation espacée
   showApiKey: boolean = false;
   showGoogleApiKey: boolean = false;
   
@@ -61,14 +62,22 @@ export class PreferencesComponent implements OnInit {
 
     // Charger le nombre d'associations
     const savedCount = this.storageService.get('wordAssociationsCount');
-    if (savedCount) {
-      this.wordAssociationsCount = savedCount;
+    if (savedCount !== null && savedCount !== undefined) {
+      this.wordAssociationsCount = parseInt(savedCount);
     }
 
     // Charger la longueur des compréhensions orales
     const savedLength = this.storageService.get('oralComprehensionLength');
-    if (savedLength) {
-      this.oralComprehensionLength = savedLength;
+    if (savedLength !== null && savedLength !== undefined) {
+      this.oralComprehensionLength = parseInt(savedLength);
+    }
+
+    // Charger le nombre de mots pour la répétition espacée
+    const savedSpacedRepetitionCount = this.storageService.get('spacedRepetitionWordsCount');
+    console.log('🔍 [Preferences] Chargement spacedRepetitionWordsCount:', savedSpacedRepetitionCount);
+    if (savedSpacedRepetitionCount !== null && savedSpacedRepetitionCount !== undefined) {
+      this.spacedRepetitionWordsCount = parseInt(savedSpacedRepetitionCount);
+      console.log('🔍 [Preferences] Valeur convertie:', this.spacedRepetitionWordsCount);
     }
   }
 
@@ -76,6 +85,9 @@ export class PreferencesComponent implements OnInit {
    * Sauvegarde les préférences dans le localStorage
    */
   savePreferences() {
+    console.log('🔍 [Preferences] savePreferences() appelée');
+    console.log('🔍 [Preferences] spacedRepetitionWordsCount actuel:', this.spacedRepetitionWordsCount);
+    
     // Valider le nombre d'associations
     if (this.wordAssociationsCount < 1 || this.wordAssociationsCount > 100) {
       this.showToast('Le nombre d\'associations doit être entre 1 et 100.');
@@ -85,6 +97,12 @@ export class PreferencesComponent implements OnInit {
     // Valider la longueur des compréhensions orales
     if (this.oralComprehensionLength < 50 || this.oralComprehensionLength > 500) {
       this.showToast('La longueur des compréhensions orales doit être entre 50 et 500 mots.');
+      return;
+    }
+
+    // Valider le nombre de mots pour la répétition espacée
+    if (this.spacedRepetitionWordsCount < 1 || this.spacedRepetitionWordsCount > 50) {
+      this.showToast('Le nombre de mots par session de mémorisation espacée doit être entre 5 et 50.');
       return;
     }
 
@@ -108,6 +126,10 @@ export class PreferencesComponent implements OnInit {
     // Sauvegarder la longueur des compréhensions orales
     this.storageService.set('oralComprehensionLength', this.oralComprehensionLength);
 
+    // Sauvegarder le nombre de mots pour la répétition espacée
+    this.storageService.set('spacedRepetitionWordsCount', this.spacedRepetitionWordsCount);
+    console.log('🔍 [Preferences] Sauvegarde spacedRepetitionWordsCount:', this.spacedRepetitionWordsCount);
+
     this.showToast('Préférences sauvegardées avec succès !');
   }
 
@@ -119,10 +141,12 @@ export class PreferencesComponent implements OnInit {
     this.googleTtsApiKey = '';
     this.wordAssociationsCount = 10;
     this.oralComprehensionLength = 150;
+    this.spacedRepetitionWordsCount = 10; // Réinitialiser le nombre de mots pour la répétition espacée
     this.storageService.remove('userOpenaiApiKey');
     this.storageService.remove('userGoogleTtsApiKey');
     this.storageService.remove('wordAssociationsCount');
     this.storageService.remove('oralComprehensionLength');
+    this.storageService.remove('spacedRepetitionWordsCount');
     this.showToast('Préférences réinitialisées aux valeurs par défaut.');
   }
 
@@ -588,5 +612,13 @@ export class PreferencesComponent implements OnInit {
       buttons: ['Compris']
     });
     await alert.present();
+  }
+
+  /**
+   * Efface tous les mots du vocabulaire (localStorage)
+   */
+  clearVocabulary() {
+    this.vocabularyTrackingService.saveAllWords([]);
+    this.showToast('Tous les mots du vocabulaire ont été effacés.');
   }
 } 
