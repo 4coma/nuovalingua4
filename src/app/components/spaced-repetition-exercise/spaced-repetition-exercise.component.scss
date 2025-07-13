@@ -1,0 +1,206 @@
+.container {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.stats-card {
+  margin-bottom: 16px;
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: var(--ion-color-light);
+    border-radius: 8px;
+    
+    ion-icon {
+      font-size: 20px;
+      color: var(--ion-color-primary);
+    }
+    
+    span {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+}
+
+.progress-card {
+  margin-bottom: 16px;
+  
+  .progress-text {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.exercise-container {
+  .word-card {
+    margin-bottom: 24px;
+    
+    .word-display {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin: 0;
+      color: var(--ion-color-dark);
+    }
+    
+    .context {
+      text-align: center;
+      margin-top: 16px;
+      font-style: italic;
+      color: var(--ion-color-medium);
+    }
+  }
+  
+  .evaluate-button {
+    margin-top: 16px;
+    height: 56px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
+
+.quality-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  
+  .quality-card {
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    
+    .quality-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .quality-button {
+      height: auto;
+      padding: 16px;
+      
+      .quality-content {
+        text-align: left;
+        width: 100%;
+      }
+      
+      .quality-label {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      
+      .quality-description {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+.completion-container {
+  text-align: center;
+  
+  .completion-card {
+    margin-bottom: 24px;
+    
+    .completion-content {
+      padding: 24px 0;
+      
+      ion-icon {
+        margin-bottom: 16px;
+      }
+      
+      h2 {
+        margin: 16px 0 8px 0;
+        color: var(--ion-color-success);
+      }
+      
+      p {
+        margin: 8px 0;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+  
+  .finish-button {
+    margin-top: 16px;
+  }
+}
+
+.empty-container {
+  text-align: center;
+  
+  .empty-card {
+    margin-bottom: 24px;
+    
+    .empty-content {
+      padding: 32px 0;
+      
+      ion-icon {
+        margin-bottom: 16px;
+      }
+      
+      h2 {
+        margin: 16px 0 8px 0;
+        color: var(--ion-color-medium);
+      }
+      
+      p {
+        margin: 8px 0;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+  
+  .finish-button {
+    margin-top: 16px;
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .container {
+    padding: 8px;
+  }
+  
+  .stats-card .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .word-card .word-display {
+    font-size: 2rem;
+  }
+  
+  .quality-overlay {
+    padding: 8px;
+    
+    .quality-card {
+      max-height: 90vh;
+    }
+  }
+} 

@@ -12,6 +12,12 @@ export interface WordMastery {
   timesReviewed: number;
   timesCorrect: number;
   context?: string;
+  
+  // Propriétés SM-2 (optionnelles pour compatibilité avec les données existantes)
+  eFactor?: number;        // Facteur d'efficacité (défaut: 2.5)
+  interval?: number;       // Intervalle en jours (défaut: 0)
+  repetitions?: number;    // Nombre de révisions consécutives réussies
+  nextReview?: number;     // Timestamp de la prochaine révision
 }
 
 @Injectable({
@@ -119,12 +125,30 @@ export class VocabularyTrackingService {
   /**
    * Génère un ID unique pour un mot basé sur le mot et sa traduction
    */
-  private generateWordId(word: string, translation: string): string {
+  generateWordId(word: string, translation: string): string {
     try {
       return `${word.toLowerCase()}_${translation.toLowerCase()}`;
     } catch (error) {
       console.error('Erreur lors de la génération de l\'ID:', error);
       return `${Date.now()}`;
+    }
+  }
+  
+  /**
+   * Sauvegarde tous les mots (utilisé pour les mises à jour SM-2)
+   */
+  saveAllWords(words: WordMastery[]): void {
+    try {
+      // Trier par date de révision (du plus récent au plus ancien)
+      words.sort((a, b) => b.lastReviewed - a.lastReviewed);
+      
+      // Limiter à MAX_TRACKED_WORDS
+      const limitedWords = words.slice(0, this.MAX_TRACKED_WORDS);
+      
+      // Sauvegarder dans le stockage
+      this.storageService.set(this.STORAGE_KEY, limitedWords);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des mots:', error);
     }
   }
 } 

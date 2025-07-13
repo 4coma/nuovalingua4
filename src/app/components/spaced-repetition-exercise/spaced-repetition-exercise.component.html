@@ -1,0 +1,125 @@
+<ion-content>
+  <div class="container">
+    <!-- En-tête avec statistiques -->
+    <ion-card *ngIf="!exerciseCompleted" class="stats-card">
+      <ion-card-header>
+        <ion-card-title>Mémorisation espacée</ion-card-title>
+        <ion-card-subtitle>Algorithme SM-2</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <ion-icon name="book-outline"></ion-icon>
+            <span>{{ stats.totalWords }} mots suivis</span>
+          </div>
+          <div class="stat-item">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ stats.dueForReview }} à réviser</span>
+          </div>
+          <div class="stat-item">
+            <ion-icon name="trending-up-outline"></ion-icon>
+            <span>EF moyen: {{ stats.averageEF.toFixed(1) }}</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Progression -->
+    <ion-card *ngIf="!exerciseCompleted && wordPairs.length > 0" class="progress-card">
+      <ion-card-content>
+        <ion-progress-bar [value]="(currentIndex + 1) / wordPairs.length"></ion-progress-bar>
+        <p class="progress-text">Mot {{ currentIndex + 1 }} / {{ wordPairs.length }}</p>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Exercice en cours -->
+    <div *ngIf="!exerciseCompleted && currentIndex < wordPairs.length && wordPairs.length > 0" class="exercise-container">
+      <ion-card class="word-card">
+        <ion-card-content>
+          <h1 class="word-display">{{ wordPairs[currentIndex].it }}</h1>
+          <p *ngIf="wordPairs[currentIndex].context" class="context">
+            {{ wordPairs[currentIndex].context }}
+          </p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button 
+        expand="block" 
+        color="primary" 
+        (click)="showQualityEvaluation()"
+        class="evaluate-button">
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        J'ai révisé ce mot
+      </ion-button>
+    </div>
+
+    <!-- Options de qualité -->
+    <div *ngIf="showQualityOptions" class="quality-overlay">
+      <ion-card class="quality-card">
+        <ion-card-header>
+          <ion-card-title>Comment était cette révision ?</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="quality-options">
+            <ion-button 
+              *ngFor="let option of qualityOptions"
+              [color]="option.color"
+              expand="block"
+              (click)="evaluateQuality(option.value)"
+              class="quality-button">
+              <div class="quality-content">
+                <div class="quality-label">{{ option.label }}</div>
+                <div class="quality-description">{{ option.description }}</div>
+              </div>
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Exercice terminé -->
+    <div *ngIf="exerciseCompleted" class="completion-container">
+      <ion-card class="completion-card">
+        <ion-card-content>
+          <div class="completion-content">
+            <ion-icon name="checkmark-circle" size="large" color="success"></ion-icon>
+            <h2>Session terminée !</h2>
+            <p>Vous avez révisé {{ wordPairs.length }} mots selon l'algorithme de mémorisation espacée.</p>
+            <p>Vos mots ont été mis à jour avec de nouveaux intervalles de révision.</p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button 
+        expand="block" 
+        color="primary" 
+        (click)="finishExercise()"
+        class="finish-button">
+        <ion-icon name="home-outline" slot="start"></ion-icon>
+        Retour à l'accueil
+      </ion-button>
+    </div>
+
+    <!-- Aucun mot à réviser -->
+    <div *ngIf="wordPairs.length === 0 && !exerciseCompleted" class="empty-container">
+      <ion-card class="empty-card">
+        <ion-card-content>
+          <div class="empty-content">
+            <ion-icon name="book-outline" size="large" color="medium"></ion-icon>
+            <h2>Aucun mot à réviser</h2>
+            <p>Continuez à utiliser l'application pour accumuler du vocabulaire !</p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button 
+        expand="block" 
+        color="primary" 
+        (click)="finishExercise()"
+        class="finish-button">
+        <ion-icon name="home-outline" slot="start"></ion-icon>
+        Retour à l'accueil
+      </ion-button>
+    </div>
+  </div>
+</ion-content> 

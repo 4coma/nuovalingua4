@@ -55,6 +55,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/discussion-active/discussion-active.component').then(m => m.DiscussionActiveComponent)
   },
   {
+    path: 'spaced-repetition',
+    loadComponent: () => import('./components/spaced-repetition-exercise/spaced-repetition-exercise.component').then(m => m.SpacedRepetitionExerciseComponent)
+  },
+  {
     path: '**',
     redirectTo: '/home'
   }
