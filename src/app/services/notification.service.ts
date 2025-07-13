@@ -42,6 +42,14 @@ export class NotificationService {
     try {
       const result = await LocalNotifications.requestPermissions();
       console.log('Permissions notifications:', result);
+      
+      // Vérifier si les permissions sont accordées
+      const checkResult = await LocalNotifications.checkPermissions();
+      console.log('Vérification des permissions:', checkResult);
+      
+      if (checkResult.display !== 'granted') {
+        console.warn('Permissions de notifications non accordées');
+      }
     } catch (error) {
       console.error('Erreur lors de la demande de permissions:', error);
     }
@@ -188,6 +196,33 @@ export class NotificationService {
     } catch (error) {
       console.error('Erreur lors de la vérification des permissions:', error);
       return false;
+    }
+  }
+
+  /**
+   * Vérifie les permissions et retourne un message d'information
+   */
+  async checkPermissionsStatus(): Promise<{ granted: boolean; message: string }> {
+    try {
+      const result = await LocalNotifications.checkPermissions();
+      
+      if (result.display === 'granted') {
+        return {
+          granted: true,
+          message: 'Permissions accordées'
+        };
+      } else {
+        return {
+          granted: false,
+          message: 'Permissions non accordées. Allez dans Paramètres > Applications > NuovaLingua > Notifications'
+        };
+      }
+    } catch (error) {
+      console.error('Erreur lors de la vérification des permissions:', error);
+      return {
+        granted: false,
+        message: 'Erreur lors de la vérification des permissions'
+      };
     }
   }
 

@@ -699,4 +699,43 @@ export class PreferencesComponent implements OnInit {
       this.showToast('Erreur lors de l\'envoi de la notification de test.');
     }
   }
+
+  /**
+   * Vérifie et affiche le statut des permissions de notifications
+   */
+  async checkNotificationPermissions() {
+    try {
+      const status = await this.notificationService.checkPermissionsStatus();
+      
+      const alert = await this.alertController.create({
+        header: 'Statut des permissions',
+        message: status.message,
+        buttons: [
+          {
+            text: 'Paramètres',
+            handler: () => {
+              // Ouvrir les paramètres de l'application
+              this.openAppSettings();
+            }
+          },
+          'Fermer'
+        ]
+      });
+      await alert.present();
+    } catch (error) {
+      console.error('Erreur lors de la vérification des permissions:', error);
+      this.showToast('Erreur lors de la vérification des permissions.');
+    }
+  }
+
+  /**
+   * Ouvre les paramètres de l'application
+   */
+  private openAppSettings() {
+    // Cette fonction pourrait être implémentée avec Capacitor App
+    // pour ouvrir les paramètres système de l'application
+    console.log('Ouverture des paramètres de l\'application...');
+    // Pour l'instant, on affiche juste un message
+    this.showToast('Allez dans Paramètres > Applications > NuovaLingua > Notifications');
+  }
 } 

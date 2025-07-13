@@ -181,6 +181,20 @@ export class AppComponent {
   }
 
   /**
+   * Méthode pour forcer l'ouverture du menu
+   */
+  async forceOpenMenu() {
+    try {
+      console.log('Forcing menu to open...');
+      await this.menuController.enable(true);
+      await this.menuController.open();
+      console.log('Menu forced open successfully');
+    } catch (error) {
+      console.error('Error forcing menu open:', error);
+    }
+  }
+
+  /**
    * Configure l'écoute des changements de route pour mettre à jour le titre
    */
   private setupRouteListener() {

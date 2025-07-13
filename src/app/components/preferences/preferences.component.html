@@ -227,8 +227,19 @@ w<ion-header>
         Envoyer une notification de test
       </ion-button>
       
+      <ion-button 
+        expand="block" 
+        color="warning" 
+        fill="outline"
+        (click)="checkNotificationPermissions()"
+        class="ion-margin-top">
+        <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+        Vérifier les permissions
+      </ion-button>
+      
       <ion-text color="medium" class="ion-padding-top">
         <p><small>La notification sera envoyée quotidiennement à l'heure choisie pour vous rappeler de pratiquer.</small></p>
+        <p><small><strong>Note :</strong> Sur Android 12+, vous devez autoriser les "Alarmes et rappels" dans les paramètres système pour que les notifications exactes fonctionnent.</small></p>
       </ion-text>
     </ion-card-content>
   </ion-card>
