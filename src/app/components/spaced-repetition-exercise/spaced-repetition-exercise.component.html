@@ -36,21 +36,60 @@
     <div *ngIf="!exerciseCompleted && currentIndex < wordPairs.length && wordPairs.length > 0" class="exercise-container">
       <ion-card class="word-card">
         <ion-card-content>
-          <h1 class="word-display">{{ wordPairs[currentIndex].it }}</h1>
+          <h1 class="word-display">{{ wordPairs[currentIndex].fr }}</h1>
           <p *ngIf="wordPairs[currentIndex].context" class="context">
             {{ wordPairs[currentIndex].context }}
           </p>
         </ion-card-content>
       </ion-card>
 
+      <ion-item class="answer-input">
+        <ion-label position="stacked">Écrivez le mot en italien</ion-label>
+        <ion-input 
+          [(ngModel)]="currentAnswer" 
+          (keyup.enter)="submitAnswer()"
+          [disabled]="answerSubmitted"
+          placeholder="Traduisez en italien..."
+          type="text">
+        </ion-input>
+      </ion-item>
+
       <ion-button 
         expand="block" 
         color="primary" 
-        (click)="showQualityEvaluation()"
-        class="evaluate-button">
-        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-        J'ai révisé ce mot
+        (click)="submitAnswer()"
+        [disabled]="!currentAnswer || answerSubmitted"
+        class="submit-button">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Valider ma réponse
       </ion-button>
+
+      <!-- Affichage de la réponse correcte -->
+      <div *ngIf="answerSubmitted" class="answer-feedback">
+        <ion-card [class]="isCorrect ? 'correct-answer' : 'incorrect-answer'">
+          <ion-card-content>
+            <div class="feedback-content">
+              <ion-icon 
+                [name]="isCorrect ? 'checkmark-circle' : 'close-circle'" 
+                [color]="isCorrect ? 'success' : 'danger'"
+                size="large">
+              </ion-icon>
+              <h3>{{ isCorrect ? 'Correct !' : 'Incorrect' }}</h3>
+              <p><strong>Votre réponse :</strong> {{ currentAnswer }}</p>
+              <p><strong>Réponse correcte :</strong> {{ wordPairs[currentIndex].it }}</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button 
+          expand="block" 
+          color="secondary" 
+          (click)="showQualityEvaluation()"
+          class="evaluate-button">
+          <ion-icon name="star-outline" slot="start"></ion-icon>
+          Évaluer ma révision
+        </ion-button>
+      </div>
     </div>
 
     <!-- Options de qualité -->

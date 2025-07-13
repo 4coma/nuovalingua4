@@ -32,6 +32,11 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
   currentIndex = 0;
   exerciseCompleted = false;
   
+  // Pour l'encodage
+  currentAnswer: string = '';
+  answerSubmitted: boolean = false;
+  isCorrect: boolean = false;
+  
   // Pour l'évaluation de qualité
   showQualityOptions = false;
   currentWordId: string = '';
@@ -93,6 +98,30 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
   }
   
   /**
+   * Soumet la réponse de l'utilisateur
+   */
+  submitAnswer() {
+    if (!this.currentAnswer.trim() || this.answerSubmitted) return;
+    
+    const currentPair = this.wordPairs[this.currentIndex];
+    
+    // Vérifier si la réponse est correcte (comparaison insensible à la casse)
+    this.isCorrect = this.currentAnswer.trim().toLowerCase() === currentPair.it.toLowerCase();
+    
+    this.answerSubmitted = true;
+    
+    // Suivre l'interaction avec ce mot
+    this.vocabularyTrackingService.trackWord(
+      currentPair.it,
+      currentPair.fr,
+      'vocabulary',
+      'Spaced Repetition',
+      this.isCorrect,
+      currentPair.context
+    );
+  }
+  
+  /**
    * Évalue la qualité de la réponse pour le mot actuel
    */
   evaluateQuality(quality: number) {
@@ -103,6 +132,11 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
     
     // Mettre à jour le mot avec l'algorithme SM-2
     this.spacedRepetitionService.updateWordAfterReview(wordId, quality);
+    
+    // Réinitialiser pour le mot suivant
+    this.currentAnswer = '';
+    this.answerSubmitted = false;
+    this.isCorrect = false;
     
     // Passer au mot suivant
     this.currentIndex++;

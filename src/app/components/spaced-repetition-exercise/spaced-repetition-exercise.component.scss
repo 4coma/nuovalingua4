@@ -65,6 +65,55 @@
     }
   }
   
+  .answer-input {
+    margin: 16px 0;
+    --border-radius: 12px;
+    
+    ion-input {
+      font-size: 18px;
+      font-weight: 500;
+    }
+  }
+
+  .submit-button {
+    margin-top: 16px;
+    height: 56px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .answer-feedback {
+    margin-top: 16px;
+    
+    .correct-answer {
+      --background: var(--ion-color-success-tint);
+      --color: var(--ion-color-success-contrast);
+    }
+    
+    .incorrect-answer {
+      --background: var(--ion-color-danger-tint);
+      --color: var(--ion-color-danger-contrast);
+    }
+    
+    .feedback-content {
+      text-align: center;
+      
+      ion-icon {
+        margin-bottom: 8px;
+      }
+      
+      h3 {
+        margin: 8px 0;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 4px 0;
+        font-size: 14px;
+      }
+    }
+  }
+
   .evaluate-button {
     margin-top: 16px;
     height: 56px;
