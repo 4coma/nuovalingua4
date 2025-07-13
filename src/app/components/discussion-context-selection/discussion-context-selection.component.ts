@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { DiscussionService, DiscussionContext } from '../../services/discussion.service';
 import { Router } from '@angular/router';
+import { ModalController } from '@ionic/angular';
+import { CreateCustomContextModalComponent } from './create-custom-context-modal.component';
+import { SavedConversationsListComponent } from '../saved-conversations-list/saved-conversations-list.component';
 
 @Component({
   selector: 'app-discussion-context-selection',
@@ -29,7 +32,8 @@ export class DiscussionContextSelectionComponent implements OnInit {
 
   constructor(
     private discussionService: DiscussionService,
-    private router: Router
+    private router: Router,
+    private modalCtrl: ModalController
   ) {
     console.log('🔍 DiscussionContextSelectionComponent - Constructor appelé');
   }
@@ -72,8 +76,13 @@ export class DiscussionContextSelectionComponent implements OnInit {
     return categories;
   }
 
-  selectContext(context: DiscussionContext) {
-    console.log('🔍 DiscussionContextSelectionComponent - Sélection du contexte:', context.id);
+  selectContext(context: DiscussionContext, idx?: number) {
+    console.log('🔍 [CTX] Sélection du contexte:', {
+      id: context.id,
+      titre: context.title,
+      index: idx,
+      contexte: context
+    });
     this.router.navigate(['/discussion', context.id]);
   }
 
@@ -123,5 +132,35 @@ export class DiscussionContextSelectionComponent implements OnInit {
   isEmptyContexts(): boolean {
     const filteredContexts = this.getFilteredContexts();
     return Object.keys(filteredContexts).length === 0;
+  }
+
+  async openCreateContextModal() {
+    console.log('🔍 [CTX] Ouverture du modal de création de contexte');
+    const modal = await this.modalCtrl.create({
+      component: CreateCustomContextModalComponent,
+      cssClass: 'custom-context-modal'
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data) {
+      // Ajoute le contexte custom à la liste (en mémoire)
+      this.discussionService.getDiscussionContexts().push(data);
+      // Navigue directement vers la discussion
+      this.router.navigate(['/discussion', data.id]);
+    }
+  }
+
+  async openSavedConversations() {
+    console.log('🔍 [CTX] Ouverture de la liste des conversations sauvegardées');
+    const modal = await this.modalCtrl.create({
+      component: SavedConversationsListComponent,
+      cssClass: 'saved-conversations-modal'
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data && data.id) {
+      // Naviguer vers la discussion avec l'id de la session sauvegardée
+      this.router.navigate(['/discussion', data.context.id], { queryParams: { sessionId: data.id } });
+    }
   }
 } 

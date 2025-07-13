@@ -269,12 +269,7 @@ export class SavedTextsListComponent implements OnInit {
 
     this.isGeneratingSession = true;
 
-    // LOG: Texte utilisé
-    console.log('[ASSO] Texte utilisé pour la génération:', this.selectedText.text);
-
-    // LOG: Prompt généré
     const prompt = (this.textGeneratorService as any).createAssociationSessionPrompt(this.selectedText.text, this.selectedText.title || 'Session d\'association');
-    console.log('[ASSO] Prompt envoyé à l\'API:', prompt);
 
     try {
       const session = await this.textGeneratorService.generateAssociationSessionFromText(

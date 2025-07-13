@@ -24,6 +24,43 @@
       </ion-card-content>
     </ion-card>
 
+    <!-- Bouton "Nouveau contexte" comme un item de la liste -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Créer un nouveau contexte</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item button (click)="openCreateContextModal()" class="context-item context-item-add">
+            <ion-avatar slot="start">
+              <ion-icon name="add-circle-outline" size="large" color="primary"></ion-icon>
+            </ion-avatar>
+            <ion-label>
+              <h2>Créer un nouveau contexte</h2>
+              <p>Définissez votre propre situation, votre rôle et celui de l'IA</p>
+            </ion-label>
+            <ion-icon slot="end" name="chevron-forward"></ion-icon>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Accès aux conversations sauvegardées -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Conversations sauvegardées</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item button (click)="openSavedConversations()">
+            <ion-icon name="chatbubbles-outline" slot="start" color="secondary"></ion-icon>
+            <ion-label>Reprendre une conversation précédente</ion-label>
+            <ion-icon slot="end" name="chevron-forward"></ion-icon>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
     <!-- Filtres -->
     <ion-card>
       <ion-card-header>
@@ -71,9 +108,9 @@
         <ion-card-content>
           <ion-list>
             <ion-item 
-              *ngFor="let context of category.value" 
+              *ngFor="let context of category.value; let i = index" 
               button
-              (click)="selectContext(context)"
+              (click)="selectContext(context, i)"
               class="context-item">
               <ion-avatar slot="start">
                 <ion-icon 
@@ -83,7 +120,7 @@
                 </ion-icon>
               </ion-avatar>
               <ion-label>
-                <h2>{{ context.title }}</h2>
+                <h2>{{ context.title }} <span style="font-size:0.8em;color:#888;">[id:{{context.id}}, idx:{{i}}]</span></h2>
                 <p>{{ context.description }}</p>
                 <ion-chip [color]="getDifficultyColor(context.difficulty)" size="small">
                   <ion-label>{{ getDifficultyLabel(context.difficulty) }}</ion-label>
@@ -105,4 +142,9 @@
       </ion-card-content>
     </ion-card>
   </div>
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="openCreateContextModal()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content> 

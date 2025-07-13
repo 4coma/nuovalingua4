@@ -6,6 +6,7 @@ import { DiscussionService, DiscussionContext, DiscussionSession } from '../../s
 import { Subscription } from 'rxjs';
 import { SpeechService } from '../../services/speech.service';
 import { AudioPlayerComponent } from '../audio-player/audio-player.component';
+import { SavedConversationsService } from '../../services/saved-conversations.service';
 
 @Component({
   selector: 'app-discussion-active',
@@ -33,7 +34,8 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private discussionService: DiscussionService,
     private speechService: SpeechService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private savedConversations: SavedConversationsService
   ) {
     console.log('🔍 DiscussionActiveComponent - Constructor appelé');
   }
@@ -44,17 +46,31 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     // Récupérer l'ID du contexte depuis l'URL
     this.route.params.subscribe(params => {
       this.contextId = params['contextId'] || 'aucun';
-      console.log('🔍 DiscussionActiveComponent - Context ID:', this.contextId);
-      
+      const sessionId = this.route.snapshot.queryParamMap.get('sessionId');
+      console.log('🔍 [CTX] Param contextId reçu dans URL:', this.contextId);
+      if (sessionId) {
+        // Charger la session sauvegardée
+        const savedSession = this.savedConversations.getConversationById(sessionId);
+        if (savedSession) {
+          this.currentContext = savedSession.context;
+          this.currentSession = savedSession;
+          console.log('🔍 [CTX] Session sauvegardée chargée:', savedSession);
+          // Pas de startDiscussion, on reprend l'existant
+          return;
+        } else {
+          alert('Erreur : la conversation sauvegardée est introuvable.');
+        }
+      }
       // Trouver le contexte correspondant
       this.currentContext = this.discussionService.getDiscussionContexts()
         .find(context => context.id === this.contextId);
-      
+      console.log('🔍 [CTX] currentContext trouvé:', this.currentContext);
       if (this.currentContext) {
         console.log('🔍 DiscussionActiveComponent - Contexte trouvé:', this.currentContext);
         this.startDiscussion();
       } else {
-        console.error('🔍 DiscussionActiveComponent - Contexte non trouvé pour ID:', this.contextId);
+        console.error('❌ DiscussionActiveComponent - Contexte non trouvé pour ID:', this.contextId);
+        alert('Erreur : le contexte demandé n\'existe pas ou n\'est pas disponible.');
       }
     });
 

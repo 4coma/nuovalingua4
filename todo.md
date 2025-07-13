@@ -19,14 +19,18 @@
 ~~remettre en oeuvre la lecture automatique lors du clic sur une traduction en mode encodage (avec possibilité d'activer ou non)~~
 ~~rendre l'accès aux textes enregistrés possible via la sidebar~~
 ~~pour l'exercice d'encodage, il devrait y avoir une option pour recommencer les mots ratés~~
-- permettre à l'utilisateur de générer une session d'associatio net tout ce qui s'en suit à partir des mots présents dans un texte enregistré...
+~~permettre à l'utilisateur de générer une session d'associatio net tout ce qui s'en suit à partir des mots présents dans un texte enregistré...~~
 ~~régler problème si je clique sur "annuler" à la question d'ajout d'une consigne supp~~
-- vérification du stockage local
+~~vérification du stockage local~~
 - ajouter une option "discussion" dans les types de révision après assocation -> commencer par ajouter un composant te test accessible dans l'écran principal puis y aller petit à petit
 - procédure d'import et d'export
 - UX UI 
 
 permettre dialogue interactif
+-- permettre la génération d'un nouveau contexte interactionnel
+-- améliorer le contexte interactionnel en les rendant plus riches et en précisant le sexe de l'IA pour le passer en param à l'API de génération de voix
+-- pouvoir soit continuer des discussions passées et enregistrées soit commencer des nouvelles
+-- avoir les mêmes fonctionnalités d'obtention de traduction et d'ajout au dictionnaire personnel qu'ailleurs
 
 révision du système de POM
 

@@ -39,12 +39,10 @@
                 [class]="turn.speaker === 'ai' ? 'ai-message' : 'user-message'">
         <ion-card-content>
           <div style="display: flex; align-items: center; margin-bottom: 10px;">
-            <ion-avatar style="margin-right: 10px;">
-              <ion-icon [name]="turn.speaker === 'ai' ? 'person' : 'mic'" 
-                       [color]="turn.speaker === 'ai' ? 'primary' : 'success'">
-              </ion-icon>
-            </ion-avatar>
-            <strong>{{ turn.speaker === 'ai' ? currentContext?.aiRole : 'Vous' }}</strong>
+            <ion-icon [name]="turn.speaker === 'ai' ? 'person' : 'mic'" 
+                      [color]="turn.speaker === 'ai' ? 'primary' : 'success'" 
+                      style="font-size: 2em; margin-right: 10px;"></ion-icon>
+            <span style="font-weight: bold;">{{ turn.speaker === 'ai' ? currentContext?.aiRole : 'Vous' }}</span>
             <small style="margin-left: auto; color: #666;">
               {{ turn.timestamp | date:'HH:mm' }}
             </small>

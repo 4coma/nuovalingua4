@@ -4,6 +4,7 @@ import { LlmService } from './llm.service';
 import { AudioRecordingService } from './audio-recording.service';
 import { SpeechRecognitionService, TranscriptionResult } from './speech-recognition.service';
 import { ToastController } from '@ionic/angular';
+import { SavedConversationsService } from './saved-conversations.service';
 
 export interface DiscussionContext {
   id: string;
@@ -52,6 +53,8 @@ export class DiscussionService {
   });
 
   public state$ = this.stateSubject.asObservable();
+
+  private readonly MAX_TURNS_HISTORY = 8;
 
   // Contextes de discussion prédéfinis
   private discussionContexts: DiscussionContext[] = [
@@ -111,7 +114,8 @@ export class DiscussionService {
     private llmService: LlmService,
     private audioRecordingService: AudioRecordingService,
     private speechRecognitionService: SpeechRecognitionService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private savedConversations: SavedConversationsService
   ) {}
 
   /**
@@ -172,6 +176,7 @@ export class DiscussionService {
         currentSession: session,
         currentTurn: aiTurn
       });
+      this.savedConversations.saveConversation(session);
 
       return true;
     } catch (error) {
@@ -278,6 +283,7 @@ export class DiscussionService {
         currentSession: currentState.currentSession,
         currentTurn: aiTurn
       });
+      this.savedConversations.saveConversation(currentState.currentSession);
       console.log('🔍 DiscussionService - State mis à jour');
 
     } catch (error) {
@@ -387,9 +393,18 @@ export class DiscussionService {
     prompt += `- Si tu réponds dans une autre langue que l'italien, recommence en italien.\n`;
     prompt += `\n`;
 
-    if (previousTurns.length > 0) {
-      prompt += `Historique de la conversation (dans l'ordre chronologique) :\n`;
-      previousTurns.forEach(turn => {
+    // Limiter l'historique à MAX_TURNS_HISTORY (garder le premier + les N derniers)
+    let turnsToInclude: DiscussionTurn[] = previousTurns;
+    if (previousTurns.length > this.MAX_TURNS_HISTORY) {
+      turnsToInclude = [
+        previousTurns[0],
+        ...previousTurns.slice(- (this.MAX_TURNS_HISTORY - 1))
+      ];
+    }
+
+    if (turnsToInclude.length > 0) {
+      prompt += `Historique de la conversation (dans l'ordre chronologique, tronqué si trop long) :\n`;
+      turnsToInclude.forEach(turn => {
         prompt += `${turn.speaker === 'user' ? 'Utilisateur' : 'IA'} : ${turn.message}\n`;
       });
     } else {
