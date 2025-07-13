@@ -11,6 +11,7 @@ import { ComprehensionText } from '../../models/vocabulary';
 import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-selection-modal.component';
 import { SpeechService } from 'src/app/services/speech.service';
 import { StorageService } from '../../services/storage.service';
+import { DictionaryModalComponent } from './dictionary-modal.component';
 
 interface GamePair {
   id: number;
@@ -656,6 +657,21 @@ export class WordPairsGameComponent implements OnInit {
       position: 'bottom'
     });
     await toast.present();
+  }
+
+  /**
+   * Ouvre la modal pour ajouter/retirer les mots du dictionnaire personnel
+   */
+  async openDictionaryModal() {
+    const modal = await this.modalController.create({
+      component: DictionaryModalComponent,
+      componentProps: {
+        sessionWords: this.wordPairs
+      },
+      cssClass: 'dictionary-modal'
+    });
+
+    await modal.present();
   }
   
   /**

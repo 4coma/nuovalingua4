@@ -89,6 +89,12 @@
     <div class="actions-section" *ngIf="gameComplete">
       <h3 class="ion-text-center">Exercices disponibles</h3>
       
+      <!-- Bouton pour ajouter au dictionnaire personnel -->
+      <ion-button (click)="openDictionaryModal()" expand="block" color="medium" class="ion-margin-vertical">
+        <ion-icon name="bookmark-outline" slot="start"></ion-icon>
+        Ajouter au dictionnaire personnel
+      </ion-button>
+      
       <!-- Boutons de recommencement -->
       <ion-button (click)="restartExercise()" expand="block" color="warning" class="ion-margin-vertical">
         <ion-icon name="refresh-outline" slot="start"></ion-icon>
