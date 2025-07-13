@@ -1,18 +1,14 @@
 <ion-content>
   <div class="container">
-    <!-- En-tête avec statistiques -->
-    <ion-card *ngIf="!exerciseCompleted" class="stats-card">
-      <ion-card-header>
-        <ion-card-title>Mémorisation espacée</ion-card-title>
-        <ion-card-subtitle>Algorithme SM-2</ion-card-subtitle>
-      </ion-card-header>
+    <!-- En-tête avec statistiques (plus compact, sans titre principal) -->
+    <ion-card *ngIf="!exerciseCompleted" class="stats-card compact">
       <ion-card-content>
         <div class="stats-grid">
-          <div class="stat-item">
+          <div class="stat-item clickable" (click)="showAllTrackedWords()">
             <ion-icon name="book-outline"></ion-icon>
             <span>{{ stats.totalWords }} mots suivis</span>
           </div>
-          <div class="stat-item">
+          <div class="stat-item clickable" (click)="showDueWords()">
             <ion-icon name="time-outline"></ion-icon>
             <span>{{ stats.dueForReview }} à réviser</span>
           </div>
@@ -25,31 +21,37 @@
     </ion-card>
 
     <!-- Progression -->
-    <ion-card *ngIf="!exerciseCompleted && wordPairs.length > 0" class="progress-card">
+    <ion-card *ngIf="!exerciseCompleted && exerciseItems.length > 0" class="progress-card compact">
       <ion-card-content>
-        <ion-progress-bar [value]="(currentIndex + 1) / wordPairs.length"></ion-progress-bar>
-        <p class="progress-text">Mot {{ currentIndex + 1 }} / {{ wordPairs.length }}</p>
+        <ion-progress-bar [value]="(currentIndex + 1) / exerciseItems.length"></ion-progress-bar>
+        <p class="progress-text">Question {{ currentIndex + 1 }} / {{ exerciseItems.length }}</p>
+        <p class="direction-text" *ngIf="currentIndex < exerciseItems.length">
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+          {{ exerciseItems[currentIndex].direction === 'fr2it' ? 'Français → Italien' : 'Italien → Français' }}
+        </p>
       </ion-card-content>
     </ion-card>
 
     <!-- Exercice en cours -->
-    <div *ngIf="!exerciseCompleted && currentIndex < wordPairs.length && wordPairs.length > 0" class="exercise-container">
-      <ion-card class="word-card">
+    <div *ngIf="!exerciseCompleted && currentIndex < exerciseItems.length && exerciseItems.length > 0" class="exercise-container compact">
+      <ion-card class="word-card compact">
         <ion-card-content>
-          <h1 class="word-display">{{ wordPairs[currentIndex].fr }}</h1>
-          <p *ngIf="wordPairs[currentIndex].context" class="context">
-            {{ wordPairs[currentIndex].context }}
+          <h2 class="word-display compact">{{ exerciseItems[currentIndex].question }}</h2>
+          <p *ngIf="exerciseItems[currentIndex].wordPair.context" class="context compact">
+            {{ exerciseItems[currentIndex].wordPair.context }}
           </p>
         </ion-card-content>
       </ion-card>
 
-      <ion-item class="answer-input">
-        <ion-label position="stacked">Écrivez le mot en italien</ion-label>
+      <ion-item class="answer-input compact">
+        <ion-label position="stacked">
+          {{ exerciseItems[currentIndex].direction === 'fr2it' ? 'Écrivez le mot en italien' : 'Écrivez le mot en français' }}
+        </ion-label>
         <ion-input 
           [(ngModel)]="currentAnswer" 
           (keyup.enter)="submitAnswer()"
           [disabled]="answerSubmitted"
-          placeholder="Traduisez en italien..."
+          [placeholder]="exerciseItems[currentIndex].direction === 'fr2it' ? 'Traduisez en italien...' : 'Traduisez en français...'"
           type="text">
         </ion-input>
       </ion-item>
@@ -59,13 +61,13 @@
         color="primary" 
         (click)="submitAnswer()"
         [disabled]="!currentAnswer || answerSubmitted"
-        class="submit-button">
+        class="submit-button compact">
         <ion-icon name="checkmark-outline" slot="start"></ion-icon>
         Valider ma réponse
       </ion-button>
 
       <!-- Affichage de la réponse correcte -->
-      <div *ngIf="answerSubmitted" class="answer-feedback">
+      <div *ngIf="answerSubmitted" class="answer-feedback compact">
         <ion-card [class]="isCorrect ? 'correct-answer' : 'incorrect-answer'">
           <ion-card-content>
             <div class="feedback-content">
@@ -76,48 +78,47 @@
               </ion-icon>
               <h3>{{ isCorrect ? 'Correct !' : 'Incorrect' }}</h3>
               <p><strong>Votre réponse :</strong> {{ currentAnswer }}</p>
-              <p><strong>Réponse correcte :</strong> {{ wordPairs[currentIndex].it }}</p>
+              <p><strong>Réponse correcte :</strong> {{ exerciseItems[currentIndex].expectedAnswer }}</p>
             </div>
           </ion-card-content>
         </ion-card>
-
-        <ion-button 
-          expand="block" 
-          color="secondary" 
-          (click)="showQualityEvaluation()"
-          class="evaluate-button">
-          <ion-icon name="star-outline" slot="start"></ion-icon>
-          Évaluer ma révision
-        </ion-button>
       </div>
     </div>
 
-    <!-- Options de qualité -->
-    <div *ngIf="showQualityOptions" class="quality-overlay">
-      <ion-card class="quality-card">
+    <!-- Nouvelle section : Récapitulatif de session et évaluation de facilité -->
+    <div *ngIf="exerciseCompleted && reviewedWords.length > 0" class="recap-container">
+      <ion-card class="recap-card">
         <ion-card-header>
-          <ion-card-title>Comment était cette révision ?</ion-card-title>
+          <ion-card-title>Évaluez la difficulté pour chaque mot</ion-card-title>
+          <div class="recap-help">0 = très difficile, 1 = difficile, 2 = moyen, 3 = assez facile, 4 = facile, 5 = très facile</div>
         </ion-card-header>
         <ion-card-content>
-          <div class="quality-options">
-            <ion-button 
-              *ngFor="let option of qualityOptions"
-              [color]="option.color"
-              expand="block"
-              (click)="evaluateQuality(option.value)"
-              class="quality-button">
-              <div class="quality-content">
-                <div class="quality-label">{{ option.label }}</div>
-                <div class="quality-description">{{ option.description }}</div>
+          <div class="recap-list">
+            <div *ngFor="let word of reviewedWords; let i = index" class="recap-item compact">
+              <div class="recap-word compact">
+                <span class="fr">{{ word.fr }}</span>
+                <ion-icon name="arrow-forward-outline"></ion-icon>
+                <span class="it">{{ word.it }}</span>
               </div>
-            </ion-button>
+              <div class="recap-quality compact">
+                <ion-segment [(ngModel)]="word.quality" class="quality-segment full-width compact" mode="md">
+                  <ion-segment-button *ngFor="let q of [0,1,2,3,4,5]" [value]="q">
+                    <span>{{ q }}</span>
+                  </ion-segment-button>
+                </ion-segment>
+              </div>
+            </div>
           </div>
         </ion-card-content>
       </ion-card>
+      <ion-button expand="block" color="primary" (click)="validateSession()" class="validate-session-btn">
+        <ion-icon name="save-outline" slot="start"></ion-icon>
+        Valider la session
+      </ion-button>
     </div>
 
-    <!-- Exercice terminé -->
-    <div *ngIf="exerciseCompleted" class="completion-container">
+    <!-- Ancienne section de fin de session masquée -->
+    <div *ngIf="exerciseCompleted && reviewedWords.length === 0" class="completion-container">
       <ion-card class="completion-card">
         <ion-card-content>
           <div class="completion-content">
@@ -140,7 +141,7 @@
     </div>
 
     <!-- Aucun mot à réviser -->
-    <div *ngIf="wordPairs.length === 0 && !exerciseCompleted" class="empty-container">
+    <div *ngIf="exerciseItems.length === 0 && !exerciseCompleted" class="empty-container">
       <ion-card class="empty-card">
         <ion-card-content>
           <div class="empty-content">

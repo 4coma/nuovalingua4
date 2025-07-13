@@ -1,17 +1,28 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController, ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { WordPair } from '../../services/llm.service';
 import { SpacedRepetitionService } from '../../services/spaced-repetition.service';
 import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
+import { WordListModalComponent } from '../word-list-modal/word-list-modal.component';
 
 interface QualityOption {
   value: number;
   label: string;
   description: string;
   color: string;
+}
+
+interface ExerciseItem {
+  wordPair: WordPair;
+  direction: 'fr2it' | 'it2fr';
+  question: string;
+  expectedAnswer: string;
+  userAnswer: string;
+  isCorrect: boolean;
+  completed: boolean;
 }
 
 @Component({
@@ -29,6 +40,7 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
   pageTitle: string = 'Mémorisation espacée';
   
   wordPairs: WordPair[] = [];
+  exerciseItems: ExerciseItem[] = [];
   currentIndex = 0;
   exerciseCompleted = false;
   
@@ -58,11 +70,24 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
     nextReviewDate: null as Date | null
   };
   
+  // Pour la nouvelle évaluation en fin de session
+  reviewedWords: Array<{
+    fr: string;
+    it: string;
+    userAnswers: { fr2it: string; it2fr: string };
+    isCorrectFr2It: boolean;
+    isCorrectIt2Fr: boolean;
+    context?: string;
+    quality: number;
+  }> = [];
+
   constructor(
     private router: Router,
     private spacedRepetitionService: SpacedRepetitionService,
     private vocabularyTrackingService: VocabularyTrackingService,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private alertController: AlertController,
+    private modalController: ModalController
   ) { }
   
   ngOnInit() {
@@ -74,13 +99,42 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
    * Charge la session de mémorisation espacée
    */
   loadSession() {
-    this.spacedRepetitionService.generateSpacedRepetitionSession(10).subscribe({
+    this.spacedRepetitionService.generateSpacedRepetitionSession().subscribe({
       next: (wordPairs) => {
         this.wordPairs = wordPairs;
         if (wordPairs.length === 0) {
           this.showToast('Aucun mot à réviser pour le moment. Continuez à utiliser l\'application pour accumuler du vocabulaire !');
           this.router.navigate(['/home']);
+          return;
         }
+        
+        // Créer les items d'exercice avec les deux directions pour chaque mot
+        this.exerciseItems = [];
+        wordPairs.forEach(pair => {
+          // Item fr → it
+          this.exerciseItems.push({
+            wordPair: pair,
+            direction: 'fr2it',
+            question: pair.fr,
+            expectedAnswer: pair.it,
+            userAnswer: '',
+            isCorrect: false,
+            completed: false
+          });
+          
+          // Item it → fr
+          this.exerciseItems.push({
+            wordPair: pair,
+            direction: 'it2fr',
+            question: pair.it,
+            expectedAnswer: pair.fr,
+            userAnswer: '',
+            isCorrect: false,
+            completed: false
+          });
+        });
+        
+        console.log('🔍 [SpacedRepetition] Items d\'exercice créés:', this.exerciseItems.length);
       },
       error: (error) => {
         console.error('Erreur lors du chargement de la session:', error);
@@ -103,61 +157,99 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
   submitAnswer() {
     if (!this.currentAnswer.trim() || this.answerSubmitted) return;
     
-    const currentPair = this.wordPairs[this.currentIndex];
+    const currentItem = this.exerciseItems[this.currentIndex];
     
     // Vérifier si la réponse est correcte (comparaison insensible à la casse)
-    this.isCorrect = this.currentAnswer.trim().toLowerCase() === currentPair.it.toLowerCase();
+    this.isCorrect = this.currentAnswer.trim().toLowerCase() === currentItem.expectedAnswer.toLowerCase();
+    
+    // Mettre à jour l'item actuel
+    currentItem.userAnswer = this.currentAnswer.trim();
+    currentItem.isCorrect = this.isCorrect;
+    currentItem.completed = true;
     
     this.answerSubmitted = true;
     
-    // Suivre l'interaction avec ce mot
-    this.vocabularyTrackingService.trackWord(
-      currentPair.it,
-      currentPair.fr,
-      'vocabulary',
-      'Spaced Repetition',
-      this.isCorrect,
-      currentPair.context
-    );
+    // Passer automatiquement au mot suivant après un court délai
+    setTimeout(() => {
+      this.currentAnswer = '';
+      this.answerSubmitted = false;
+      this.isCorrect = false;
+      this.currentIndex++;
+      
+      // Vérifier si on a terminé tous les items
+      if (this.currentIndex >= this.exerciseItems.length) {
+        this.prepareReviewSummary();
+        this.exerciseCompleted = true;
+      }
+    }, 800);
+  }
+  
+  /**
+   * Prépare le récapitulatif de session en regroupant les réponses par mot
+   */
+  prepareReviewSummary() {
+    this.reviewedWords = [];
+    
+    // Grouper les items par mot (chaque mot a 2 items : fr2it et it2fr)
+    const wordGroups = new Map<string, ExerciseItem[]>();
+    
+    this.exerciseItems.forEach(item => {
+      const wordKey = `${item.wordPair.fr}-${item.wordPair.it}`;
+      if (!wordGroups.has(wordKey)) {
+        wordGroups.set(wordKey, []);
+      }
+      wordGroups.get(wordKey)!.push(item);
+    });
+    
+    // Créer le récapitulatif pour chaque mot
+    wordGroups.forEach((items, wordKey) => {
+      const fr2itItem = items.find(item => item.direction === 'fr2it');
+      const it2frItem = items.find(item => item.direction === 'it2fr');
+      
+      if (fr2itItem && it2frItem) {
+        // Calculer une qualité basée sur les deux réponses
+        let quality = 0;
+        if (fr2itItem.isCorrect && it2frItem.isCorrect) {
+          quality = 5; // Excellent - correct dans les deux sens
+        } else if (fr2itItem.isCorrect || it2frItem.isCorrect) {
+          quality = 3; // Correct - correct dans un sens
+        } else {
+          quality = 1; // Difficile - incorrect dans les deux sens
+        }
+        
+        this.reviewedWords.push({
+          fr: fr2itItem.wordPair.fr,
+          it: fr2itItem.wordPair.it,
+          userAnswers: {
+            fr2it: fr2itItem.userAnswer,
+            it2fr: it2frItem.userAnswer
+          },
+          isCorrectFr2It: fr2itItem.isCorrect,
+          isCorrectIt2Fr: it2frItem.isCorrect,
+          context: fr2itItem.wordPair.context,
+          quality: quality
+        });
+      }
+    });
+    
+    console.log('🔍 [SpacedRepetition] Récapitulatif préparé:', this.reviewedWords);
   }
   
   /**
    * Évalue la qualité de la réponse pour le mot actuel
    */
   evaluateQuality(quality: number) {
-    if (this.currentIndex >= this.wordPairs.length) return;
-    
-    const currentPair = this.wordPairs[this.currentIndex];
-    const wordId = this.vocabularyTrackingService.generateWordId(currentPair.it, currentPair.fr);
-    
-    // Mettre à jour le mot avec l'algorithme SM-2
-    this.spacedRepetitionService.updateWordAfterReview(wordId, quality);
-    
-    // Réinitialiser pour le mot suivant
-    this.currentAnswer = '';
-    this.answerSubmitted = false;
-    this.isCorrect = false;
-    
-    // Passer au mot suivant
-    this.currentIndex++;
-    
-    // Vérifier si l'exercice est terminé
-    if (this.currentIndex >= this.wordPairs.length) {
-      this.exerciseCompleted = true;
-      this.showToast('Session terminée ! Vos mots ont été mis à jour selon l\'algorithme de mémorisation espacée.');
-    }
-    
-    this.showQualityOptions = false;
+    // Cette méthode n'est plus utilisée dans le nouveau flux
   }
   
   /**
    * Affiche les options de qualité pour le mot actuel
    */
   showQualityEvaluation() {
-    if (this.currentIndex >= this.wordPairs.length) return;
+    if (this.currentIndex >= this.exerciseItems.length) return;
     
-    const currentPair = this.wordPairs[this.currentIndex];
-    this.currentWordId = this.vocabularyTrackingService.generateWordId(currentPair.it, currentPair.fr);
+    const currentItem = this.exerciseItems[this.currentIndex];
+    this.currentWordId = this.vocabularyTrackingService.generateWordId(currentItem.wordPair.it, currentItem.wordPair.fr);
     this.showQualityOptions = true;
   }
   
@@ -167,10 +259,112 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
   finishExercise() {
     this.router.navigate(['/home']);
   }
-  
+
+  // Quand l'utilisateur valide la session, on applique SM-2 à tous les mots
+  async validateSession() {
+    console.log('🔍 [SpacedRepetition] validateSession() appelée');
+    console.log('🔍 [SpacedRepetition] Mots à traiter:', this.reviewedWords);
+    
+    for (const word of this.reviewedWords) {
+      const wordId = this.vocabularyTrackingService.generateWordId(word.it, word.fr);
+      console.log('🔍 [SpacedRepetition] Traitement du mot:', word.it, 'qualité:', word.quality, 'ID:', wordId);
+      this.spacedRepetitionService.updateWordAfterReview(wordId, word.quality);
+    }
+    
+    // Vérifier s'il reste des mots à revoir
+    const allWords = this.vocabularyTrackingService.getAllTrackedWords();
+    const dueWords = allWords.filter(w => w.nextReview && w.nextReview <= Date.now());
+    const alreadyDone = new Set(this.reviewedWords.map(w => this.vocabularyTrackingService.generateWordId(w.it, w.fr)));
+    const remaining = dueWords.filter(w => !alreadyDone.has(w.id));
+    
+    if (remaining.length > 0) {
+      const alert = await this.alertController.create({
+        header: 'Mots à réviser restants',
+        message: `Il vous reste ${remaining.length} mot(s) à réviser. Voulez-vous continuer la session avec les mots restants ?`,
+        buttons: [
+          {
+            text: 'Continuer',
+            handler: () => {
+              this.startNewSessionWithWords(remaining);
+            }
+          },
+          {
+            text: 'Retour au menu',
+            role: 'cancel',
+            handler: () => {
+              this.resetComponent();
+              this.router.navigate(['/home']);
+            }
+          }
+        ]
+      });
+      await alert.present();
+    } else {
+      this.showToast('Session enregistrée ! Les mots ont été mis à jour.');
+      this.resetComponent();
+      this.router.navigate(['/home']);
+    }
+  }
+
   /**
-   * Affiche un toast
+   * Démarre une nouvelle session avec les mots restants
    */
+  startNewSessionWithWords(words: any[]) {
+    // Réinitialiser complètement le composant
+    this.resetComponent();
+    
+    // Créer des WordPairs à partir des mots restants
+    const wordPairs: WordPair[] = words.map(word => ({
+      it: word.word,
+      fr: word.translation,
+      context: word.context
+    }));
+    
+    // Créer les items d'exercice avec les deux directions pour chaque mot
+    this.exerciseItems = [];
+    wordPairs.forEach(pair => {
+      // Item fr → it
+      this.exerciseItems.push({
+        wordPair: pair,
+        direction: 'fr2it',
+        question: pair.fr,
+        expectedAnswer: pair.it,
+        userAnswer: '',
+        isCorrect: false,
+        completed: false
+      });
+      
+      // Item it → fr
+      this.exerciseItems.push({
+        wordPair: pair,
+        direction: 'it2fr',
+        question: pair.it,
+        expectedAnswer: pair.fr,
+        userAnswer: '',
+        isCorrect: false,
+        completed: false
+      });
+    });
+    
+    console.log('🔍 [SpacedRepetition] Nouvelle session avec mots restants:', this.exerciseItems.length, 'items');
+  }
+
+  /**
+   * Réinitialise complètement le composant pour une nouvelle session
+   */
+  resetComponent() {
+    this.wordPairs = [];
+    this.exerciseItems = [];
+    this.currentIndex = 0;
+    this.exerciseCompleted = false;
+    this.currentAnswer = '';
+    this.answerSubmitted = false;
+    this.isCorrect = false;
+    this.reviewedWords = [];
+    this.showQualityOptions = false;
+    this.currentWordId = '';
+  }
+
   private async showToast(message: string) {
     const toast = await this.toastController.create({
       message: message,
@@ -178,5 +372,30 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
       position: 'bottom'
     });
     await toast.present();
+  }
+
+  async showAllTrackedWords() {
+    const words = this.vocabularyTrackingService.getAllTrackedWords();
+    const modal = await this.modalController.create({
+      component: WordListModalComponent,
+      componentProps: {
+        title: 'Tous les mots suivis',
+        words: words
+      }
+    });
+    await modal.present();
+  }
+
+  async showDueWords() {
+    const words = this.vocabularyTrackingService.getAllTrackedWords();
+    const dueWords = words.filter(w => w.nextReview === undefined || w.nextReview <= Date.now());
+    const modal = await this.modalController.create({
+      component: WordListModalComponent,
+      componentProps: {
+        title: 'Mots à réviser',
+        words: dueWords
+      }
+    });
+    await modal.present();
   }
 } 
