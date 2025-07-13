@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list *ngIf="words.length > 0; else emptyList">
+    <ion-item *ngFor="let word of words">
+      <ion-label>
+        <div><strong>{{ word.word }}</strong> <span style="color: #888;">({{ word.translation }})</span></div>
+        <div *ngIf="word.context" class="context">{{ word.context }}</div>
+        <div class="meta">
+          <span>EF: {{ word.eFactor ? (word.eFactor | number:'1.2-2') : 'N/A' }}</span>
+          <span>Maîtrise: {{ word.masteryLevel }}%</span>
+          <span>Répétitions: {{ word.repetitions || 0 }}</span>
+          <span>À revoir: {{ word.nextReview ? (word.nextReview | date:'dd/MM/yyyy HH:mm') : 'N/A' }}</span>
+        </div>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+  <ng-template #emptyList>
+    <div class="empty-list">Aucun mot à afficher.</div>
+  </ng-template>
+</ion-content> 

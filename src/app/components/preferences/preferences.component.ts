@@ -6,6 +6,7 @@ import { StorageService } from '../../services/storage.service';
 import { VocabularyTrackingService, WordMastery } from '../../services/vocabulary-tracking.service';
 import { SM2AlgorithmService } from '../../services/sm2-algorithm.service';
 import { SpacedRepetitionService } from '../../services/spaced-repetition.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-preferences',
@@ -31,13 +32,19 @@ export class PreferencesComponent implements OnInit {
   showApiKey: boolean = false;
   showGoogleApiKey: boolean = false;
   
+  // Propriétés pour les notifications
+  notificationsEnabled: boolean = false;
+  notificationTime: string = '18:30';
+  notificationMessage: string = 'Il est temps de pratiquer votre italien ! 🇮🇹';
+  
   constructor(
     private storageService: StorageService,
     private toastController: ToastController,
     private alertController: AlertController,
     private vocabularyTrackingService: VocabularyTrackingService,
     private sm2Service: SM2AlgorithmService,
-    private spacedRepetitionService: SpacedRepetitionService
+    private spacedRepetitionService: SpacedRepetitionService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit() {
@@ -79,6 +86,12 @@ export class PreferencesComponent implements OnInit {
       this.spacedRepetitionWordsCount = parseInt(savedSpacedRepetitionCount);
       console.log('🔍 [Preferences] Valeur convertie:', this.spacedRepetitionWordsCount);
     }
+
+    // Charger les paramètres de notification
+    const notificationSettings = this.notificationService.getSettings();
+    this.notificationsEnabled = notificationSettings.enabled;
+    this.notificationTime = notificationSettings.time;
+    this.notificationMessage = notificationSettings.message;
   }
 
   /**
@@ -620,5 +633,70 @@ export class PreferencesComponent implements OnInit {
   clearVocabulary() {
     this.vocabularyTrackingService.saveAllWords([]);
     this.showToast('Tous les mots du vocabulaire ont été effacés.');
+  }
+
+  /**
+   * Gère le changement d'état du toggle des notifications
+   */
+  async onNotificationToggleChange() {
+    try {
+      await this.notificationService.toggleNotifications(
+        this.notificationsEnabled,
+        this.notificationTime,
+        this.notificationMessage
+      );
+      
+      if (this.notificationsEnabled) {
+        this.showToast('Notifications quotidiennes activées !');
+      } else {
+        this.showToast('Notifications quotidiennes désactivées.');
+      }
+    } catch (error) {
+      console.error('Erreur lors du changement d\'état des notifications:', error);
+      this.showToast('Erreur lors de la configuration des notifications.');
+    }
+  }
+
+  /**
+   * Gère le changement d'heure de la notification
+   */
+  async onNotificationTimeChange() {
+    if (this.notificationsEnabled) {
+      try {
+        await this.notificationService.updateNotificationTime(this.notificationTime);
+        this.showToast('Heure de notification mise à jour !');
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour de l\'heure:', error);
+        this.showToast('Erreur lors de la mise à jour de l\'heure.');
+      }
+    }
+  }
+
+  /**
+   * Gère le changement de message de la notification
+   */
+  async onNotificationMessageChange() {
+    if (this.notificationsEnabled) {
+      try {
+        await this.notificationService.updateNotificationMessage(this.notificationMessage);
+        this.showToast('Message de notification mis à jour !');
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du message:', error);
+        this.showToast('Erreur lors de la mise à jour du message.');
+      }
+    }
+  }
+
+  /**
+   * Envoie une notification de test
+   */
+  async sendTestNotification() {
+    try {
+      await this.notificationService.sendTestNotification();
+      this.showToast('Notification de test envoyée !');
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de la notification de test:', error);
+      this.showToast('Erreur lors de l\'envoi de la notification de test.');
+    }
   }
 } 

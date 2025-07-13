@@ -8,6 +8,7 @@ import { AddWordComponent } from './components/add-word/add-word.component';
 import { filter } from 'rxjs/operators';
 import { StatusBar } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
+import { NotificationService } from './services/notification.service';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -67,7 +68,8 @@ export class AppComponent {
     private router: Router,
     private modalController: ModalController,
     private platform: Platform,
-    private menuController: MenuController
+    private menuController: MenuController,
+    private notificationService: NotificationService
   ) {
     this.setupRouteListener();
     this.initializeApp();
@@ -78,6 +80,9 @@ export class AppComponent {
    */
   private async initializeApp() {
     await this.platform.ready();
+    
+    // Initialiser le service de notification
+    await this.notificationService.initialize();
     
     if (this.platform.is('android') || this.platform.is('ios')) {
       try {

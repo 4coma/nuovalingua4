@@ -181,6 +181,61 @@ w<ion-header>
   <ion-card>
     <ion-card-header>
       <ion-card-title>
+        <ion-icon name="notifications-outline" slot="start"></ion-icon>
+        Notifications quotidiennes
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>Recevez une notification quotidienne pour vous rappeler de pratiquer votre italien.</p>
+      </ion-text>
+      
+      <ion-item>
+        <ion-label>Activer les notifications quotidiennes</ion-label>
+        <ion-toggle 
+          [(ngModel)]="notificationsEnabled" 
+          (ionChange)="onNotificationToggleChange()">
+        </ion-toggle>
+      </ion-item>
+      
+      <ion-item *ngIf="notificationsEnabled">
+        <ion-label position="stacked">Heure de la notification</ion-label>
+        <ion-input 
+          [(ngModel)]="notificationTime" 
+          type="time"
+          (ionChange)="onNotificationTimeChange()">
+        </ion-input>
+      </ion-item>
+      
+      <ion-item *ngIf="notificationsEnabled">
+        <ion-label position="stacked">Message de la notification</ion-label>
+        <ion-textarea 
+          [(ngModel)]="notificationMessage" 
+          placeholder="Il est temps de pratiquer votre italien ! 🇮🇹"
+          rows="2"
+          (ionChange)="onNotificationMessageChange()">
+        </ion-textarea>
+      </ion-item>
+      
+      <ion-button 
+        *ngIf="notificationsEnabled"
+        expand="block" 
+        color="success" 
+        (click)="sendTestNotification()"
+        class="ion-margin-top">
+        <ion-icon name="send-outline" slot="start"></ion-icon>
+        Envoyer une notification de test
+      </ion-button>
+      
+      <ion-text color="medium" class="ion-padding-top">
+        <p><small>La notification sera envoyée quotidiennement à l'heure choisie pour vous rappeler de pratiquer.</small></p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
         <ion-icon name="flask-outline" slot="start"></ion-icon>
         Test de l'algorithme SM-2
       </ion-card-title>
