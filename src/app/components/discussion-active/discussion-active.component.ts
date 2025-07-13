@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import { SpeechService } from '../../services/speech.service';
 import { AudioPlayerComponent } from '../audio-player/audio-player.component';
 import { SavedConversationsService } from '../../services/saved-conversations.service';
+import { TranslatableMessageComponent } from '../translatable-message/translatable-message.component';
 
 @Component({
   selector: 'app-discussion-active',
@@ -16,7 +17,8 @@ import { SavedConversationsService } from '../../services/saved-conversations.se
   imports: [
     CommonModule,
     IonicModule,
-    AudioPlayerComponent
+    AudioPlayerComponent,
+    TranslatableMessageComponent
   ]
 })
 export class DiscussionActiveComponent implements OnInit, OnDestroy {

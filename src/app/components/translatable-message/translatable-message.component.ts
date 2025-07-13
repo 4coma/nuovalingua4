@@ -1,0 +1,212 @@
+import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IonicModule, PopoverController, LoadingController, ToastController } from '@ionic/angular';
+import { TextGeneratorService, TranslationResult } from '../../services/text-generator.service';
+import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
+import { SafeHtmlDirective } from '../../directives/click-outside.directive';
+import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
+
+@Component({
+  selector: 'app-translatable-message',
+  templateUrl: './translatable-message.component.html',
+  styleUrls: ['./translatable-message.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    IonicModule,
+    SafeHtmlDirective,
+    SafeHtmlPipe
+  ]
+})
+export class TranslatableMessageComponent implements OnInit, OnDestroy {
+  @Input() message: string = '';
+  @Input() speaker: 'ai' | 'user' = 'ai';
+  @Input() speakerName: string = '';
+  @Input() timestamp?: Date;
+  @Input() showTimestamp: boolean = true;
+
+  selectedFragment: string = '';
+  showTranslateButton: boolean = false;
+  translateButtonPosition = { top: 0, left: 0 };
+  
+  selectedWord: string = '';
+  translation: TranslationResult | null = null;
+  isTranslating: boolean = false;
+
+  constructor(
+    private textGeneratorService: TextGeneratorService,
+    private popoverController: PopoverController,
+    private loadingCtrl: LoadingController,
+    private toastCtrl: ToastController,
+    private dictionaryService: PersonalDictionaryService,
+    private cdRef: ChangeDetectorRef
+  ) { }
+
+  ngOnInit() {
+    setTimeout(() => this.attachSelectionListener(), 0);
+  }
+
+  ngOnDestroy() {
+    this.detachSelectionListener();
+  }
+
+  attachSelectionListener() {
+    document.addEventListener('selectionchange', this.onSelectionChange);
+  }
+
+  detachSelectionListener() {
+    document.removeEventListener('selectionchange', this.onSelectionChange);
+  }
+
+  onSelectionChange = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      this.selectedFragment = '';
+      this.showTranslateButton = false;
+      return;
+    }
+
+    const selectedText = selection.toString().trim();
+    if (selectedText.length > 0) {
+      // Vérifie que la sélection est dans ce composant
+      const anchorNode = selection.anchorNode as HTMLElement;
+      const focusNode = selection.focusNode as HTMLElement;
+      const container = document.querySelector('.translatable-message');
+      
+      if (container && (container.contains(anchorNode) || container.contains(focusNode))) {
+        this.selectedFragment = selectedText;
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        this.translateButtonPosition = {
+          top: rect.bottom + window.scrollY,
+          left: rect.right + window.scrollX - 40
+        };
+        this.showTranslateButton = true;
+      } else {
+        this.selectedFragment = '';
+        this.showTranslateButton = false;
+      }
+    } else {
+      this.selectedFragment = '';
+      this.showTranslateButton = false;
+    }
+  };
+
+  translateSelection() {
+    if (!this.selectedFragment) return;
+    this.selectedWord = this.selectedFragment;
+    this.isTranslating = true;
+    this.translation = null;
+    
+    this.textGeneratorService.getContextualTranslation(this.selectedFragment, this.message).subscribe({
+      next: (result) => {
+        this.translation = result;
+        this.isTranslating = false;
+        this.clearSelection();
+      },
+      error: () => {
+        this.isTranslating = false;
+        this.clearSelection();
+        this.showErrorToast('Erreur lors de la traduction');
+      }
+    });
+  }
+
+  clearSelection() {
+    const selection = window.getSelection();
+    if (selection) selection.removeAllRanges();
+    this.selectedFragment = '';
+    this.showTranslateButton = false;
+  }
+
+  onWordClicked(word: string): void {
+    console.log('Mot reçu de la directive:', word);
+    this.getWordTranslation(word);
+  }
+
+  getWordTranslation(word: string): void {
+    this.selectedWord = word;
+    this.isTranslating = true;
+    this.translation = null;
+    
+    // Extraire le contexte autour du mot
+    const context = this.textGeneratorService.extractContext(this.message, word);
+    
+    this.textGeneratorService.getContextualTranslation(word, context).subscribe({
+      next: (result) => {
+        this.translation = result;
+        this.isTranslating = false;
+      },
+      error: () => {
+        this.isTranslating = false;
+        this.showErrorToast('Erreur lors de la traduction');
+      }
+    });
+  }
+
+  closeTranslation(): void {
+    this.translation = null;
+    this.selectedWord = '';
+  }
+
+  addWordToDictionary(): void {
+    if (!this.translation) return;
+
+    const newWord: DictionaryWord = {
+      id: '',
+      sourceWord: this.translation.originalWord,
+      sourceLang: 'it',
+      targetWord: this.translation.translation,
+      targetLang: 'fr',
+      contextualMeaning: this.translation.contextualMeaning,
+      partOfSpeech: this.translation.partOfSpeech,
+      examples: this.translation.examples,
+      dateAdded: 0
+    };
+    
+    const added = this.dictionaryService.addWord(newWord);
+    
+    if (added) {
+      this.showSuccessToast('Mot ajouté à votre dictionnaire personnel');
+    } else {
+      this.showErrorToast('Ce mot existe déjà dans votre dictionnaire');
+    }
+  }
+
+  private async showErrorToast(message: string): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: message,
+      duration: 3000,
+      position: 'bottom',
+      color: 'danger'
+    });
+    await toast.present();
+  }
+
+  private async showSuccessToast(message: string): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom',
+      color: 'success'
+    });
+    await toast.present();
+  }
+
+  getHighlightedText(): string {
+    if (!this.message) return '';
+
+    let text = this.message;
+    
+    // Rendre tous les mots cliquables en les entourant de spans
+    const words = text.split(/(\s+)/);
+    const highlightedWords = words.map(word => {
+      if (word.trim() && !word.match(/^\s+$/)) {
+        return `<span class="clickable-word" data-word="${word.trim()}">${word}</span>`;
+      }
+      return word;
+    });
+    
+    return highlightedWords.join('');
+  }
+} 

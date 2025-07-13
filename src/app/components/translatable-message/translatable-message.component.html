@@ -1,0 +1,92 @@
+<div class="translatable-message">
+  <div class="message-header">
+    <ion-icon [name]="speaker === 'ai' ? 'person' : 'mic'" 
+              [color]="speaker === 'ai' ? 'primary' : 'success'" 
+              class="speaker-icon"></ion-icon>
+    <span class="speaker-name">{{ speakerName }}</span>
+    <small class="timestamp" *ngIf="showTimestamp && timestamp">
+      {{ timestamp | date:'HH:mm' }}
+    </small>
+  </div>
+  
+  <div class="message-content">
+    <div [innerHTML]="getHighlightedText() | safeHtml" 
+         class="message-text" 
+         appSafeHtml
+         (wordClick)="onWordClicked($event)"></div>
+    
+    <button *ngIf="selectedFragment" 
+            class="translate-fixed-btn" 
+            (click)="translateSelection()"
+            [style.top.px]="translateButtonPosition.top"
+            [style.left.px]="translateButtonPosition.left">
+      Traduire la sélection
+    </button>
+  </div>
+</div>
+
+<!-- Modal de traduction contextuelle -->
+<ion-modal [isOpen]="!!translation" [backdropDismiss]="true" (didDismiss)="closeTranslation()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Traduction</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeTranslation()">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <div *ngIf="isTranslating" class="ion-text-center">
+        <ion-spinner></ion-spinner>
+        <p>Traduction en cours...</p>
+      </div>
+      
+      <div *ngIf="translation && !isTranslating">
+        <h2 class="ion-text-center">{{ translation.originalWord }}</h2>
+        
+        <ion-item lines="none">
+          <ion-label>
+            <h3>Traduction</h3>
+            <p class="translation">{{ translation.translation }}</p>
+          </ion-label>
+        </ion-item>
+        
+        <ion-item lines="none">
+          <ion-label>
+            <h3>Sens dans ce contexte</h3>
+            <p>{{ translation.contextualMeaning }}</p>
+          </ion-label>
+        </ion-item>
+        
+        <ion-item *ngIf="translation.partOfSpeech" lines="none">
+          <ion-label>
+            <h3>Catégorie grammaticale</h3>
+            <p>{{ translation.partOfSpeech }}</p>
+          </ion-label>
+        </ion-item>
+        
+        <div *ngIf="translation.examples && translation.examples.length > 0" class="examples-section ion-padding-top">
+          <h3>Exemples</h3>
+          <ion-list>
+            <ion-item *ngFor="let example of translation.examples">
+              <ion-label text-wrap>{{ example }}</ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+        
+        <div class="ion-padding-top ion-text-center">
+          <ion-button (click)="addWordToDictionary()" color="success" class="ion-margin-end">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+            Ajouter au dictionnaire
+          </ion-button>
+          <ion-button (click)="closeTranslation()" color="medium">
+            Fermer
+          </ion-button>
+        </div>
+      </div>
+    </ion-content>
+  </ng-template>
+</ion-modal> 

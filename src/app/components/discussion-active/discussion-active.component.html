@@ -38,17 +38,22 @@
       <ion-card *ngFor="let turn of currentSession.turns" 
                 [class]="turn.speaker === 'ai' ? 'ai-message' : 'user-message'">
         <ion-card-content>
-          <div style="display: flex; align-items: center; margin-bottom: 10px;">
-            <ion-icon [name]="turn.speaker === 'ai' ? 'person' : 'mic'" 
-                      [color]="turn.speaker === 'ai' ? 'primary' : 'success'" 
-                      style="font-size: 2em; margin-right: 10px;"></ion-icon>
-            <span style="font-weight: bold;">{{ turn.speaker === 'ai' ? currentContext?.aiRole : 'Vous' }}</span>
-            <small style="margin-left: auto; color: #666;">
-              {{ turn.timestamp | date:'HH:mm' }}
-            </small>
-          </div>
-          <p>{{ turn.message }}</p>
-          <app-audio-player *ngIf="turn.speaker === 'ai'" [audioUrl]="turn.audioUrl || null" [showControls]="true" style="margin-top: 8px; background: transparent; box-shadow: none;"></app-audio-player>
+          <!-- Utilisation du composant TranslatableMessageComponent -->
+          <app-translatable-message
+            [message]="turn.message"
+            [speaker]="turn.speaker"
+            [speakerName]="turn.speaker === 'ai' ? (currentContext?.aiRole || 'IA') : 'Vous'"
+            [timestamp]="turn.timestamp"
+            [showTimestamp]="true">
+          </app-translatable-message>
+          
+          <!-- Lecteur audio pour les messages IA -->
+          <app-audio-player 
+            *ngIf="turn.speaker === 'ai'" 
+            [audioUrl]="turn.audioUrl || null" 
+            [showControls]="true" 
+            style="margin-top: 8px; background: transparent; box-shadow: none;">
+          </app-audio-player>
         </ion-card-content>
       </ion-card>
     </div>
