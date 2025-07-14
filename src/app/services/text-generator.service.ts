@@ -399,7 +399,7 @@ export class TextGeneratorService {
     
     return words.slice(startIndex, endIndex).join(' ');
   }
-  
+
   /**
    * Affiche une notification pour informer l'utilisateur qu'il doit configurer sa clé API
    */

@@ -312,7 +312,7 @@ export class DiscussionService {
       console.log('🔍 DiscussionService - stopRecording terminé');
     } catch (error) {
       console.error('🔍 DiscussionService - Erreur stopRecording:', error);
-      this.updateState({ isRecording: false });
+    this.updateState({ isRecording: false });
       throw error;
     }
   }

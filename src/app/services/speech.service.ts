@@ -53,7 +53,8 @@ export class SpeechService {
       return of('');
     }
     
-    this.showLoading('Génération de l\'audio...');
+    // Suppression du loader global pour la génération d'audio
+    // Le loader sera géré par le composant audio-player
     
     const headers = new HttpHeaders()
       .set('Content-Type', 'application/json')
@@ -72,7 +73,7 @@ export class SpeechService {
       responseType: 'arraybuffer'
     }).pipe(
       map((response: ArrayBuffer) => {
-        this.hideLoading();
+        // Suppression de hideLoading() car il n'y a plus de loader global
         
         // Convertir la réponse en blob et créer une URL
         const blob = new Blob([response], { type: 'audio/mpeg' });
@@ -86,7 +87,7 @@ export class SpeechService {
         return audioUrl;
       }),
       catchError(error => {
-        this.hideLoading();
+        // Suppression de hideLoading() car il n'y a plus de loader global
         console.error('🔍 SpeechService - Erreur lors de la génération audio:', error);
         this.showErrorToast('Erreur lors de la génération de l\'audio');
         

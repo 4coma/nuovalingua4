@@ -151,7 +151,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     console.log('🔍 DiscussionActiveComponent - Arrêt de l\'enregistrement...');
     try {
       // Attendre que l'enregistrement soit complètement arrêté
-      await this.discussionService.stopRecording();
+    await this.discussionService.stopRecording();
       console.log('🔍 DiscussionActiveComponent - Enregistrement arrêté, début du traitement...');
       
       // Ajouter un petit délai pour s'assurer que l'audio est prêt
