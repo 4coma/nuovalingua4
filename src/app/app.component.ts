@@ -86,7 +86,9 @@ export class AppComponent {
     
     if (this.platform.is('android') || this.platform.is('ios')) {
       try {
+        // Configuration de la StatusBar pour qu'elle soit opaque
         StatusBar.setBackgroundColor({ color: '#3880ff' });
+        StatusBar.setStyle({ style: 'LIGHT' as any });
         
         // Gestion du bouton retour sur Android
         App.addListener('backButton', () => {
