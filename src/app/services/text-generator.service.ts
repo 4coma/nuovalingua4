@@ -2,11 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { LoadingController, ToastController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
 import { WordPair } from './llm.service';
 import { ComprehensionText, ComprehensionQuestion, EvaluationResult } from '../models/vocabulary';
 import { StorageService } from './storage.service';
+import { LoadingService } from './loading.service';
 
 export interface TranslationResult {
   originalWord: string;
@@ -31,13 +31,11 @@ export class TextGeneratorService {
   private apiUrl = environment.openaiApiUrl;
   private apiKey = environment.openaiApiKey;
   private model = environment.openaiModel;
-  private loading: HTMLIonLoadingElement | null = null;
 
   constructor(
     private http: HttpClient,
-    private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private loadingService: LoadingService
   ) {}
 
   /**
@@ -295,14 +293,14 @@ export class TextGeneratorService {
    * Appel à l'API OpenAI
    */
   private callOpenAI<T>(prompt: string): Observable<T> {
-    this.showLoading('Traitement en cours...');
+    this.loadingService.showLoading('Traitement en cours...');
     
     // Vérifier si l'utilisateur a défini sa propre clé API
     const userApiKey = this.storageService.get('userOpenaiApiKey');
     
     // Si aucune clé utilisateur n'est définie, afficher une notification
     if (!userApiKey) {
-      this.hideLoading();
+      this.loadingService.hideLoading();
       this.showApiKeyNotification();
       return throwError(() => new Error('Clé API non configurée'));
     }
@@ -330,7 +328,7 @@ export class TextGeneratorService {
     
     return this.http.post<any>(this.apiUrl, data, { headers }).pipe(
       map(response => {
-        this.hideLoading();
+        this.loadingService.hideLoading();
         const content = response.choices[0].message.content.trim();
         try {
           // Essayer de parser la réponse JSON
@@ -345,9 +343,22 @@ export class TextGeneratorService {
         }
       }),
       catchError(error => {
-        this.hideLoading();
-        this.showErrorToast('Erreur lors du traitement');
+        this.loadingService.hideLoading();
         console.error('OpenAI API error:', error);
+        
+        // Gestion d'erreur plus détaillée
+        let errorMessage = 'Erreur lors du traitement';
+        if (error.status === 401) {
+          errorMessage = 'Clé API invalide. Vérifiez vos préférences.';
+        } else if (error.status === 429) {
+          errorMessage = 'Limite de requêtes dépassée. Réessayez plus tard.';
+        } else if (error.status === 500) {
+          errorMessage = 'Erreur serveur. Réessayez dans quelques instants.';
+        } else if (error.status === 0) {
+          errorMessage = 'Problème de connexion. Vérifiez votre connexion internet.';
+        }
+        
+        this.loadingService.showErrorToast(errorMessage);
         throw error;
       })
     );
@@ -390,61 +401,9 @@ export class TextGeneratorService {
   }
   
   /**
-   * Affiche un indicateur de chargement
-   */
-  private async showLoading(message: string): Promise<void> {
-    this.loading = await this.loadingCtrl.create({
-      message: message,
-      spinner: 'crescent'
-    });
-    await this.loading.present();
-  }
-  
-  /**
-   * Cache l'indicateur de chargement
-   */
-  private hideLoading(): void {
-    if (this.loading) {
-      this.loading.dismiss();
-      this.loading = null;
-    }
-  }
-  
-  /**
-   * Affiche un message d'erreur
-   */
-  private async showErrorToast(message: string): Promise<void> {
-    const toast = await this.toastCtrl.create({
-      message: message,
-      duration: 3000,
-      position: 'bottom',
-      color: 'danger'
-    });
-    await toast.present();
-  }
-
-  /**
    * Affiche une notification pour informer l'utilisateur qu'il doit configurer sa clé API
    */
   private async showApiKeyNotification(): Promise<void> {
-    const toast = await this.toastCtrl.create({
-      message: 'Veuillez configurer votre clé API OpenAI dans les préférences pour utiliser cette fonctionnalité.',
-      duration: 5000,
-      position: 'bottom',
-      color: 'warning',
-      buttons: [
-        {
-          text: 'Préférences',
-          handler: () => {
-            window.location.href = '/preferences';
-          }
-        },
-        {
-          text: 'Fermer',
-          role: 'cancel'
-        }
-      ]
-    });
-    await toast.present();
+    await this.loadingService.showErrorToast('Veuillez configurer votre clé API OpenAI dans les préférences pour utiliser cette fonctionnalité.');
   }
 } 

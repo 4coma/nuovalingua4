@@ -306,9 +306,18 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
       // Extraire le contexte autour du mot
       const context = this.textGeneratorService.extractContext(this.comprehensionText.text, word);
       
+      // Ajouter un timeout pour éviter que le loader reste bloqué
+      const timeout = setTimeout(() => {
+        if (this.isTranslating) {
+          this.isTranslating = false;
+          this.showErrorToast('Délai d\'attente dépassé. Réessayez.');
+        }
+      }, 20000); // 30 secondes de timeout
+      
       // Obtenir la traduction contextuelle
       this.textGeneratorService.getContextualTranslation(word, context).subscribe({
         next: (result) => {
+          clearTimeout(timeout);
           this.translation = result;
           this.isTranslating = false;
           
@@ -329,8 +338,11 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
             );
           }
         },
-        error: () => {
+        error: (error) => {
+          clearTimeout(timeout);
           this.isTranslating = false;
+          console.error('Erreur lors de la traduction:', error);
+          
           // En cas d'erreur, utiliser la traduction de base du vocabulaire
           const vocabularyItem = this.comprehensionText?.vocabularyItems.find(
             item => item.word.toLowerCase() === word.toLowerCase()
@@ -342,30 +354,23 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
               translation: vocabularyItem.translation,
               contextualMeaning: vocabularyItem.context || 'Pas d\'information supplémentaire disponible'
             };
-            
-            // Suivre l'interaction si on a les infos de session
-            if (this.sessionInfo) {
-              this.vocabularyTrackingService.trackWord(
-                vocabularyItem.word,
-                vocabularyItem.translation,
-                this.sessionInfo.category,
-                this.sessionInfo.topic,
-                true, // Considéré comme une reconnaissance
-                vocabularyItem.context
-              );
-            }
+          } else {
+            this.showErrorToast('Erreur lors de la traduction. Réessayez.');
           }
         }
       });
+    } else {
+      this.isTranslating = false;
+      this.showErrorToast('Aucun texte disponible pour la traduction.');
     }
   }
 
   /**
-   * Ferme la fenêtre de traduction
+   * Ferme la modal de traduction
    */
   closeTranslation(): void {
     this.translation = null;
-    this.selectedWord = '';
+    this.isTranslating = false;
   }
 
   /**

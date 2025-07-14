@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, NavController } from '@ionic/angular';
+import { IonicModule, NavController, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ComprehensionText, ComprehensionQuestion, EvaluationResult } from '../../models/vocabulary';
@@ -55,7 +55,8 @@ export class ComprehensionQuestionsComponent implements OnInit {
     private navCtrl: NavController,
     private textGeneratorService: TextGeneratorService,
     private vocabularyTrackingService: VocabularyTrackingService,
-    private dictionaryService: PersonalDictionaryService
+    private dictionaryService: PersonalDictionaryService,
+    private toastCtrl: ToastController
   ) { }
 
   ngOnInit() {
@@ -183,9 +184,18 @@ export class ComprehensionQuestionsComponent implements OnInit {
     // Extraire le contexte autour du mot
     const context = this.textGeneratorService.extractContext(this.comprehensionText.text, word);
     
+    // Ajouter un timeout pour éviter que le loader reste bloqué
+    const timeout = setTimeout(() => {
+      if (this.isTranslating) {
+        this.isTranslating = false;
+        this.showErrorToast('Délai d\'attente dépassé. Réessayez.');
+      }
+    }, 30000); // 30 secondes de timeout
+    
     // Obtenir la traduction contextuelle
     this.textGeneratorService.getContextualTranslation(word, context).subscribe({
       next: (result) => {
+        clearTimeout(timeout);
         this.translation = result;
         this.isTranslating = false;
         
@@ -206,8 +216,11 @@ export class ComprehensionQuestionsComponent implements OnInit {
           );
         }
       },
-      error: () => {
+      error: (error) => {
+        clearTimeout(timeout);
         this.isTranslating = false;
+        console.error('Erreur lors de la traduction:', error);
+        
         // En cas d'erreur, utiliser la traduction de base du vocabulaire
         const vocabularyItem = this.comprehensionText?.vocabularyItems.find(
           item => item.word.toLowerCase() === word.toLowerCase()
@@ -219,9 +232,24 @@ export class ComprehensionQuestionsComponent implements OnInit {
             translation: vocabularyItem.translation,
             contextualMeaning: vocabularyItem.context || 'Pas d\'information supplémentaire disponible'
           };
+        } else {
+          this.showErrorToast('Erreur lors de la traduction. Réessayez.');
         }
       }
     });
+  }
+
+  /**
+   * Affiche un message d'erreur
+   */
+  private async showErrorToast(message: string): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: message,
+      duration: 3000,
+      position: 'bottom',
+      color: 'danger'
+    });
+    await toast.present();
   }
   
   /**

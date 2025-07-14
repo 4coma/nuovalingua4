@@ -132,14 +132,25 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
     // Extraire le contexte autour du mot
     const context = this.textGeneratorService.extractContext(this.message, word);
     
+    // Ajouter un timeout pour éviter que le loader reste bloqué
+    const timeout = setTimeout(() => {
+      if (this.isTranslating) {
+        this.isTranslating = false;
+        this.showErrorToast('Délai d\'attente dépassé. Réessayez.');
+      }
+    },20000); // 30 secondes de timeout
+    
     this.textGeneratorService.getContextualTranslation(word, context).subscribe({
       next: (result) => {
+        clearTimeout(timeout);
         this.translation = result;
         this.isTranslating = false;
       },
-      error: () => {
+      error: (error) => {
+        clearTimeout(timeout);
         this.isTranslating = false;
-        this.showErrorToast('Erreur lors de la traduction');
+        console.error('Erreur lors de la traduction:', error);
+        this.showErrorToast('Erreur lors de la traduction. Réessayez.');
       }
     });
   }
