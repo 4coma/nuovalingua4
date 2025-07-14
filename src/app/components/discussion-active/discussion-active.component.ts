@@ -29,6 +29,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
   isStarting = false;
   audioLoadingTurnId: string | null = null;
   isRecording = false;
+  audioGeneratingTurns: Set<string> = new Set();
   
   private subscription = new Subscription();
 
@@ -88,10 +89,16 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
           this.currentSession.turns.forEach((turn, idx) => {
             if (turn.speaker === 'ai' && !turn.audioUrl && turn.message) {
               console.log('🔍 [Vue] Génération audio pour message IA (tour', idx, '):', turn.message.substring(0, 50) + '...');
+              
+              // Créer un ID unique pour ce tour
+              const turnId = `turn_${idx}_${turn.timestamp.getTime()}`;
+              this.audioGeneratingTurns.add(turnId);
+              
               this.speechService.generateSpeech(turn.message, 'nova', 1.0).subscribe({
                 next: (audioUrl) => {
                   console.log('🔍 [Vue] Audio généré pour IA (tour', idx, '):', audioUrl);
                   turn.audioUrl = audioUrl;
+                  this.audioGeneratingTurns.delete(turnId);
                   // Forcer la détection de changement en Angular
                   this.currentSession = { ...this.currentSession! };
                   console.log('🔍 [Vue] currentSession forcé après audioUrl:', this.currentSession);
@@ -99,6 +106,8 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
                 },
                 error: (error) => {
                   console.error('🔍 [Vue] Erreur génération audio IA:', error);
+                  this.audioGeneratingTurns.delete(turnId);
+                  this.cdRef.detectChanges();
                 }
               });
             }
@@ -154,5 +163,13 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('🔍 DiscussionActiveComponent - Erreur lors de l\'arrêt de l\'enregistrement:', error);
     }
+  }
+
+  /**
+   * Vérifie si un tour est en cours de génération d'audio
+   */
+  isAudioGenerating(turnIndex: number, turn: any): boolean {
+    const turnId = `turn_${turnIndex}_${turn.timestamp.getTime()}`;
+    return this.audioGeneratingTurns.has(turnId);
   }
 } 
