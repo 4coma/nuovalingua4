@@ -190,7 +190,7 @@ export class ComprehensionQuestionsComponent implements OnInit {
         this.isTranslating = false;
         this.showErrorToast('Délai d\'attente dépassé. Réessayez.');
       }
-    }, 30000); // 30 secondes de timeout
+    }, 20000); // 30 secondes de timeout
     
     // Obtenir la traduction contextuelle
     this.textGeneratorService.getContextualTranslation(word, context).subscribe({

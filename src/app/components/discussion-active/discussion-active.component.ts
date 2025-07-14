@@ -140,13 +140,19 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
 
   async stopRecording() {
     console.log('🔍 DiscussionActiveComponent - Arrêt de l\'enregistrement...');
-    await this.discussionService.stopRecording();
     try {
+      // Attendre que l'enregistrement soit complètement arrêté
+      await this.discussionService.stopRecording();
+      console.log('🔍 DiscussionActiveComponent - Enregistrement arrêté, début du traitement...');
+      
+      // Ajouter un petit délai pour s'assurer que l'audio est prêt
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       console.log('🔍 DiscussionActiveComponent - Appel processUserResponse...');
       await this.discussionService.processUserResponse();
       console.log('🔍 DiscussionActiveComponent - processUserResponse terminé');
     } catch (error) {
-      console.error('🔍 DiscussionActiveComponent - Erreur processUserResponse:', error);
+      console.error('🔍 DiscussionActiveComponent - Erreur lors de l\'arrêt de l\'enregistrement:', error);
     }
   }
 } 

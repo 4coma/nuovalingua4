@@ -60,14 +60,26 @@
 
     <!-- Boutons d'action -->
     <div style="margin-top: 20px; text-align: center;">
-      <ion-button *ngIf="!isStarting && currentSession && !isRecording" 
+      <!-- Indicateur de traitement -->
+      <ion-card *ngIf="isLoading" style="margin-bottom: 16px;">
+        <ion-card-content>
+          <div style="text-align: center; padding: 10px;">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p style="margin: 8px 0 0 0; font-size: 14px;">
+              {{ isRecording ? 'Arrêt de l\'enregistrement...' : 'Traitement en cours...' }}
+            </p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button *ngIf="!isStarting && currentSession && !isRecording && !isLoading" 
                   (click)="startRecording()" 
                   color="success" 
                   expand="block">
         <ion-icon name="mic" slot="start"></ion-icon>
         Commencer à parler
       </ion-button>
-      <ion-button *ngIf="!isStarting && currentSession && isRecording" 
+      <ion-button *ngIf="!isStarting && currentSession && isRecording && !isLoading" 
                   (click)="stopRecording()" 
                   color="danger" 
                   expand="block">
@@ -78,7 +90,8 @@
       <ion-button routerLink="/discussion-context-selection" 
                   color="medium" 
                   fill="outline" 
-                  expand="block">
+                  expand="block"
+                  [disabled]="isLoading">
         <ion-icon name="arrow-back" slot="start"></ion-icon>
         Retour à la sélection
       </ion-button>
