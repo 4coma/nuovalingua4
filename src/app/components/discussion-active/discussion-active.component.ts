@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { DiscussionService, DiscussionContext, DiscussionSession } from '../../services/discussion.service';
 import { Subscription } from 'rxjs';
@@ -17,6 +18,7 @@ import { TranslatableMessageComponent } from '../translatable-message/translatab
   imports: [
     CommonModule,
     IonicModule,
+    FormsModule,
     AudioPlayerComponent,
     TranslatableMessageComponent
   ]
@@ -30,6 +32,8 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
   audioLoadingTurnId: string | null = null;
   isRecording = false;
   audioGeneratingTurns: Set<string> = new Set();
+  responseMode: 'voice' | 'text' = 'voice';
+  textResponse: string = '';
   
   private subscription = new Subscription();
 
@@ -171,5 +175,37 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
   isAudioGenerating(turnIndex: number, turn: any): boolean {
     const turnId = `turn_${turnIndex}_${turn.timestamp.getTime()}`;
     return this.audioGeneratingTurns.has(turnId);
+  }
+
+  /**
+   * Gère le changement de mode de réponse
+   */
+  onResponseModeChange() {
+    console.log('🔍 DiscussionActiveComponent - Changement de mode de réponse:', this.responseMode);
+    // Réinitialiser la réponse texte lors du changement de mode
+    if (this.responseMode === 'voice') {
+      this.textResponse = '';
+    }
+  }
+
+  /**
+   * Envoie la réponse texte
+   */
+  async sendTextResponse() {
+    if (!this.textResponse.trim() || this.isLoading) {
+      return;
+    }
+
+    console.log('🔍 DiscussionActiveComponent - Envoi de la réponse texte:', this.textResponse);
+    
+    try {
+      // Traiter la réponse avec l'IA (le service ajoute le message utilisateur)
+      await this.discussionService.processTextResponse(this.textResponse.trim());
+      // Vider le champ de texte
+      this.textResponse = '';
+      console.log('🔍 DiscussionActiveComponent - Réponse texte envoyée avec succès');
+    } catch (error) {
+      console.error('🔍 DiscussionActiveComponent - Erreur lors de l\'envoi de la réponse texte:', error);
+    }
   }
 } 
