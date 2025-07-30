@@ -153,12 +153,31 @@ export class LlmService {
     if (category === 'conjugation') {
       prompt = `Génère ${count} verbes en italien avec leur traduction en français pour pratiquer la conjugaison au temps "${topic}". 
       ${reviewWordsContext}
-      Varie les personnes. La traduction française doit inclure la personne (ex: "it": "mangio", "fr": "je mange").
-      Pour la 3e personne du singulier et du pluriel, utilise uniquement le masculin. N'oublie pas les apostrophes quand nécessaire pour les traductions françaises (ex : "j'allais" et pas "je allais")
+      
+      IMPORTANT : Les verbes italiens DOIVENT être conjugués au temps "${topic}", pas à l'infinitif.
+      
+      Exemples corrects selon le temps :
+      - Présent : "it": "mangio", "fr": "je mange"
+      - Passé composé : "it": "ho mangiato", "fr": "j'ai mangé"
+      - Imparfait : "it": "mangiavo", "fr": "je mangeais"
+      - Futur : "it": "mangerò", "fr": "je mangerai"
+      - Subjonctif présent : "it": "mangi", "fr": "que je mange"
+      - Subjonctif passé : "it": "abbia mangiato", "fr": "que j'aie mangé"
+      - Conditionnel : "it": "mangerei", "fr": "je mangerais"
+      - Plus-que-parfait : "it": "avevo mangiato", "fr": "j'avais mangé"
+      - Futur antérieur : "it": "avrò mangiato", "fr": "j'aurai mangé"
+      - Impératif : "it": "mangia", "fr": "mange"
+      - Gérondif : "it": "mangiando", "fr": "en mangeant"
+      
+      Varie les personnes (je, tu, il/elle, nous, vous, ils/elles). 
+      Pour la 3e personne du singulier et du pluriel, utilise uniquement le masculin.
+      N'oublie pas les apostrophes quand nécessaire pour les traductions françaises (ex : "j'allais" et pas "je allais").
+      
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
+      
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
-        {"it": "verbe_italien", "fr": "traduction_française", "context": "exemple de phrase conjuguée au temps ${topic}"},
+        {"it": "verbe_italien_conjugué", "fr": "traduction_française_conjuguée", "context": "exemple de phrase avec le verbe conjugué au temps ${topic}"},
         // Répète pour ${count} verbes au total.
       ]
       N'inclus aucun texte avant ou après le JSON.`;
