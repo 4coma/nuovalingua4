@@ -159,18 +159,12 @@ export class LlmService {
       Exemples corrects selon le temps :
       - Présent : "it": "mangio", "fr": "je mange"
       - Passé composé : "it": "ho mangiato", "fr": "j'ai mangé"
-      - Imparfait : "it": "mangiavo", "fr": "je mangeais"
-      - Futur : "it": "mangerò", "fr": "je mangerai"
-      - Subjonctif présent : "it": "mangi", "fr": "que je mange"
-      - Subjonctif passé : "it": "abbia mangiato", "fr": "que j'aie mangé"
-      - Conditionnel : "it": "mangerei", "fr": "je mangerais"
-      - Plus-que-parfait : "it": "avevo mangiato", "fr": "j'avais mangé"
-      - Futur antérieur : "it": "avrò mangiato", "fr": "j'aurai mangé"
-      - Impératif : "it": "mangia", "fr": "mange"
-      - Gérondif : "it": "mangiando", "fr": "en mangeant"
+      etc.
       
       Varie les personnes (je, tu, il/elle, nous, vous, ils/elles). 
       Pour la 3e personne du singulier et du pluriel, utilise uniquement le masculin.
+      IMPORTANT : Évite les formulations ambiguës comme "ils/elles" ou "lui/lei". 
+      Fais toujours un choix clair : utilise "il" ou "elle" pour le singulier, "ils" pour le pluriel.
       N'oublie pas les apostrophes quand nécessaire pour les traductions françaises (ex : "j'allais" et pas "je allais").
       
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
