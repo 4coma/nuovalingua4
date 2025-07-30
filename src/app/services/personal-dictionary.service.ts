@@ -16,6 +16,7 @@ export interface DictionaryWord {
   partOfSpeech?: string;
   examples?: string[];
   dateAdded: number;
+  minRevisionDate?: number; // Timestamp de la date minimum pour la révision (null = pas de restriction)
 }
 
 export interface TranslationResponse {
@@ -137,6 +138,41 @@ export class PersonalDictionaryService {
     
     console.log('Mot non trouvé pour la mise à jour');
     return false; // Mot non trouvé
+  }
+
+  /**
+   * Définit la date minimum de révision pour un mot
+   */
+  setMinRevisionDate(wordId: string, minRevisionDate: number | undefined): boolean {
+    const words = this.getAllWords();
+    const wordIndex = words.findIndex(w => w.id === wordId);
+    
+    if (wordIndex !== -1) {
+      words[wordIndex].minRevisionDate = minRevisionDate;
+      localStorage.setItem(this.storageKey, JSON.stringify(words));
+      console.log('Date minimum de révision mise à jour pour le mot:', words[wordIndex].sourceWord);
+      return true;
+    }
+    
+    console.log('Mot non trouvé pour la mise à jour de la date de révision');
+    return false;
+  }
+
+  /**
+   * Obtient les mots disponibles pour la révision (filtrés par minRevisionDate)
+   */
+  getAvailableWordsForRevision(): DictionaryWord[] {
+    const allWords = this.getAllWords();
+    const currentTimestamp = Date.now();
+    
+    return allWords.filter(word => {
+      // Si minRevisionDate n'est pas définie, le mot est disponible
+      if (!word.minRevisionDate) {
+        return true;
+      }
+      // Si la date actuelle est supérieure ou égale à minRevisionDate, le mot est disponible
+      return currentTimestamp >= word.minRevisionDate;
+    });
   }
 
   /**

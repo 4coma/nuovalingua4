@@ -37,12 +37,12 @@ export class HomePage {
 
   async startPersonalWordsRevision() {
     try {
-      // Récupérer les mots du dictionnaire personnel
-      const personalWords = this.personalDictionaryService.getAllWords();
+      // Récupérer les mots disponibles pour la révision (filtrés par minRevisionDate)
+      const availableWords = this.personalDictionaryService.getAvailableWordsForRevision();
       
-      if (personalWords.length === 0) {
+      if (availableWords.length === 0) {
         const toast = await this.toastController.create({
-          message: 'Votre dictionnaire personnel est vide. Ajoutez d\'abord des mots !',
+          message: 'Aucun mot disponible pour la révision à ce moment. Vérifiez les dates de révision de vos mots !',
           duration: 3000,
           position: 'bottom',
           color: 'warning'
@@ -56,8 +56,8 @@ export class HomePage {
       const maxWords = savedCount ? parseInt(savedCount) : 8; // Valeur par défaut si pas configurée
       
       // Sélectionner aléatoirement des mots (entre 3 et 20, ou tous si moins de 3)
-      const actualMaxWords = Math.min(20, Math.max(3, Math.min(maxWords, personalWords.length)));
-      const selectedWords = this.shuffleArray(personalWords).slice(0, actualMaxWords);
+      const actualMaxWords = Math.min(20, Math.max(3, Math.min(maxWords, availableWords.length)));
+      const selectedWords = this.shuffleArray(availableWords).slice(0, actualMaxWords);
 
       // Créer les paires de mots pour l'exercice d'association
       const wordPairs = selectedWords.map(word => ({
