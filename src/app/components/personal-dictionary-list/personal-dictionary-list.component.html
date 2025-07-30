@@ -59,36 +59,36 @@
               <span class="date-added">Ajouté le {{ getFormattedDate(word.dateAdded) }}</span>
             </div>
           </ion-label>
-          
-          <!-- Contrôles de révision -->
-          <div class="revision-controls">
-            <div class="revision-delay-control">
-              <small>Prochaine révision :</small>
-              <ion-select 
-                [(ngModel)]="word.revisionDelay" 
-                (ionChange)="onRevisionDelayChange(word)"
-                placeholder="Délai"
-                interface="popover"
-                class="revision-delay-select">
-                <ion-select-option value="1j">1 jour</ion-select-option>
-                <ion-select-option value="3j">3 jours</ion-select-option>
-                <ion-select-option value="7j">7 jours</ion-select-option>
-                <ion-select-option value="15j">15 jours</ion-select-option>
-                <ion-select-option value="1m">1 mois</ion-select-option>
-                <ion-select-option value="3m">3 mois</ion-select-option>
-                <ion-select-option value="6m">6 mois</ion-select-option>
-              </ion-select>
-            </div>
-            <div class="known-status-control">
-              <ion-toggle 
-                [(ngModel)]="word.isKnown" 
-                (ionChange)="onKnownStatusChange(word)"
-                class="known-toggle">
-                <ion-label>Connu</ion-label>
-              </ion-toggle>
-            </div>
-          </div>
         </ion-item>
+        
+        <!-- Contrôles de révision sur ligne séparée -->
+        <div class="revision-controls-row">
+          <div class="revision-delay-control">
+            <small>Prochaine révision :</small>
+            <ion-select 
+              [(ngModel)]="word.revisionDelay" 
+              (ionChange)="onRevisionDelayChange(word)"
+              placeholder="Délai"
+              interface="popover"
+              class="revision-delay-select">
+              <ion-select-option value="1j">1 jour</ion-select-option>
+              <ion-select-option value="3j">3 jours</ion-select-option>
+              <ion-select-option value="7j">7 jours</ion-select-option>
+              <ion-select-option value="15j">15 jours</ion-select-option>
+              <ion-select-option value="1m">1 mois</ion-select-option>
+              <ion-select-option value="3m">3 mois</ion-select-option>
+              <ion-select-option value="6m">6 mois</ion-select-option>
+            </ion-select>
+          </div>
+          <div class="known-status-control">
+            <ion-toggle 
+              [(ngModel)]="word.isKnown" 
+              (ionChange)="onKnownStatusChange(word)"
+              class="known-toggle">
+              <ion-label>Connu</ion-label>
+            </ion-toggle>
+          </div>
+        </div>
         
         <!-- Options de glissement (édition et suppression) -->
         <ion-item-options side="end">
