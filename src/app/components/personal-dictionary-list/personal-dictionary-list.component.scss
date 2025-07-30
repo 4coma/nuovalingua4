@@ -1,3 +1,94 @@
+// Section du diagramme qui prend toute la hauteur
+.diagram-section {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background: var(--ion-background-color);
+  position: relative;
+  padding-top: 15vh;
+  
+  .circular-progress {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    
+    .progress-circle {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--ion-color-success) 0deg,
+        var(--ion-color-success) calc((var(--known-percentage, 0) * 360deg)),
+        #8B9DC3 calc((var(--known-percentage, 0) * 360deg)),
+        #8B9DC3 360deg
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        width: 170px;
+        height: 170px;
+        border-radius: 50%;
+        background: var(--ion-background-color);
+      }
+    }
+    
+    .progress-text {
+      text-align: center;
+      
+      .known-count {
+        color: var(--ion-color-success);
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      
+      .unknown-count {
+        color: #8B9DC3;
+        font-size: 16px;
+        font-weight: 500;
+      }
+    }
+  }
+  
+  .scroll-indicator {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.7;
+    
+    ion-icon {
+      color: var(--ion-color-medium);
+      font-size: 20px;
+    }
+    
+    small {
+      color: var(--ion-color-medium);
+      font-size: 12px;
+      text-align: center;
+    }
+  }
+}
+
+// Section de la liste des mots
+.words-section {
+  min-height: 100vh;
+  background: var(--ion-background-color);
+}
+
 .container {
   padding: 16px;
 }
@@ -75,6 +166,8 @@ ion-item {
   --inner-padding-end: 16px;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  --border-style: none;
+  --border-width: 0;
   
   &:hover {
     --background: var(--ion-color-light);
@@ -83,6 +176,16 @@ ion-item {
   &:active {
     --background: var(--ion-color-light-shade);
   }
+}
+
+ion-list {
+  --border-style: none;
+  --border-width: 0;
+}
+
+ion-item-sliding {
+  --border-style: none;
+  --border-width: 0;
 }
 
 .word-pair {
@@ -161,10 +264,19 @@ ion-item {
   justify-content: space-between;
   gap: 12px;
   padding: 12px 16px;
-  background: var(--ion-color-light);
   border-radius: 0 0 8px 8px;
   margin-top: -8px; // Pour coller à l'ion-item
-  border-top: 1px solid var(--ion-color-light-shade);
+  border: none;
+  border-top: none;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  border-left: none;
+  border-right: none;
+  
+  &::before,
+  &::after {
+    display: none;
+    border: none;
+  }
   
   .revision-delay-control {
     display: flex;
@@ -200,6 +312,29 @@ ion-item {
         color: var(--ion-color-dark);
         margin-left: 8px;
       }
+    }
+  }
+}
+
+// Amélioration des boutons de swipe
+ion-item-options {
+  --background: transparent;
+  
+  ion-item-option {
+    --background: var(--ion-color-primary);
+    --color: var(--ion-color-light);
+    min-width: 80px;
+    max-width: 100px;
+    margin: 4px;
+    border-radius: 8px;
+    
+    &:last-child {
+      --background: var(--ion-color-danger);
+    }
+    
+    ion-icon {
+      font-size: 20px;
+      margin-bottom: 4px;
     }
   }
 }

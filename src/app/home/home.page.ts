@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, MenuController, ToastController } from '@ionic/angular';
+import { IonicModule, MenuController, ToastController, ModalController } from '@ionic/angular';
 import { RouterModule, Router } from '@angular/router';
 import { PersonalDictionaryService } from '../services/personal-dictionary.service';
 import { StorageService } from '../services/storage.service';
+import { FocusModeService } from '../services/focus-mode.service';
+import { FocusModalComponent } from '../components/focus-modal/focus-modal.component';
 
 @Component({
   selector: 'app-home',
@@ -18,14 +20,95 @@ import { StorageService } from '../services/storage.service';
 })
 export class HomePage {
   pageTitle: string = 'Accueil';
+  currentFocus: string | null = null;
 
   constructor(
     private router: Router,
     private menuController: MenuController,
     private personalDictionaryService: PersonalDictionaryService,
     private storageService: StorageService,
-    private toastController: ToastController
-  ) {}
+    private toastController: ToastController,
+    private focusModeService: FocusModeService,
+    private modalController: ModalController
+  ) {
+    this.loadCurrentFocus();
+  }
+
+  /**
+   * Charge le focus actuel depuis le stockage
+   */
+  private loadCurrentFocus() {
+    this.currentFocus = this.focusModeService.getCurrentFocus();
+  }
+
+  /**
+   * Ouvre le modal pour définir un focus
+   */
+  async openFocusModal() {
+    const modal = await this.modalController.create({
+      component: FocusModalComponent,
+      componentProps: {},
+      cssClass: 'focus-modal'
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data && data.focus) {
+      this.focusModeService.setCurrentFocus(data.focus);
+      this.currentFocus = data.focus;
+      
+      const toast = await this.toastController.create({
+        message: `Focus défini : ${data.focus}`,
+        duration: 2000,
+        position: 'bottom',
+        color: 'success'
+      });
+      await toast.present();
+    }
+  }
+
+  /**
+   * Démarre une session de révision avec le focus actuel
+   */
+  async startFocusRevision() {
+    if (!this.currentFocus) {
+      return;
+    }
+
+    try {
+      // Mettre à jour la date de dernière utilisation
+      this.focusModeService.updateLastUsed();
+
+      // Créer une session avec le focus comme consigne personnalisée
+      const sessionInfo = {
+        category: 'Focus Mode',
+        topic: this.currentFocus,
+        date: new Date().toISOString(),
+        translationDirection: 'fr2it' as const,
+        customInstruction: this.currentFocus
+      };
+
+      // Sauvegarder dans le localStorage avec le flag isFocusMode
+      this.storageService.set('sessionInfo', sessionInfo);
+      this.storageService.set('isFocusMode', true);
+      this.storageService.set('focusInstruction', this.currentFocus);
+      this.storageService.set('fromFocusButton', true); // Flag spécifique pour indiquer qu'on vient du bouton focus
+
+      // Naviguer vers la sélection de catégorie (qui sera adaptée pour le focus)
+      this.router.navigate(['/category']);
+
+    } catch (error) {
+      console.error('Erreur lors du démarrage de la révision focus:', error);
+      const toast = await this.toastController.create({
+        message: 'Erreur lors du démarrage de la révision focus',
+        duration: 3000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    }
+  }
 
   onDiscussionClick() {
     console.log('🔍 HomePage - Bouton Discussion cliqué');

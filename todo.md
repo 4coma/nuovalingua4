@@ -39,12 +39,22 @@ révision du système de POM (implémenter les principes de mémorisation espac�
 
 ~~notification~~
 
+révision dico perso : ajouterp ossibilité de marquer mot comme connu puis diagramme en rond avec nb de mots connus sur nombre total de mots 
+
+- mise en place du focus mode -->
+
+à la fin des session de révision classique d'apprentissage de nouveaux mots, les mots qui sont déjà dans le dico ça doit être impossible de les jouter on doit voir s'ils y sont déjà
+
 corrections du POM révisions espacées
 
 notifications particulière si mots ajoutés pendant la journée, pour la notification quotidienne
 
-ajout d'une notification supplémentaire le matin par exemple avec génération d'une compréhension à l'audition (s/b mots mémorisation espacée ou dico perso)
+ajout d'une notification supplémentaire le matin par exemple avec génération d'une compréhension à l'audition (s/b mots mémorisation espacée ou dico perso) et proposition d'ajouter les mots qui ne sont pas encore dans le dico
 
 procédure d'import et d'export ou sauvegarde avec firebase ou supabase
 
 UX UI
+
+internationnalisation 
+
+message d'accueil lors de premier lancement et configurations

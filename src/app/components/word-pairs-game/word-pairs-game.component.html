@@ -133,6 +133,7 @@
       <h3 class="ion-text-center">Exercices disponibles</h3>
       
       <!-- Bouton pour ajouter au dictionnaire personnel (masqué si révision du dictionnaire personnel) -->
+      <!-- DEBUG: isPersonalDictionaryRevision={{isPersonalDictionaryRevision}}, gameComplete={{gameComplete}} -->
       <ion-button 
         *ngIf="!isPersonalDictionaryRevision"
         (click)="openDictionaryModal()" 
@@ -183,6 +184,17 @@
       <ion-button routerLink="/category" expand="block" color="medium" class="ion-margin-vertical">
         <ion-icon name="list-outline" slot="start"></ion-icon>
         Retour aux catégories
+      </ion-button>
+      
+      <!-- Bouton pour changer le focus (visible uniquement en mode focus) -->
+      <ion-button 
+        *ngIf="isFocusMode"
+        (click)="changeFocus()" 
+        expand="block" 
+        color="warning" 
+        class="ion-margin-vertical">
+        <ion-icon name="target-outline" slot="start"></ion-icon>
+        Changer le focus
       </ion-button>
       
       <ion-button routerLink="/home" expand="block" color="light" class="ion-margin-vertical">

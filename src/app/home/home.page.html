@@ -32,6 +32,27 @@
           Discussion avec l'IA
         </ion-button>
         
+        <!-- Bouton Focus Mode -->
+        <ion-button 
+          *ngIf="!currentFocus" 
+          expand="block" 
+          (click)="openFocusModal()" 
+          class="ion-margin-top" 
+          color="warning">
+          <ion-icon slot="start" name="target-outline"></ion-icon>
+          Définir un focus
+        </ion-button>
+        
+        <ion-button 
+          *ngIf="currentFocus" 
+          expand="block" 
+          (click)="startFocusRevision()" 
+          class="ion-margin-top" 
+          color="warning">
+          <ion-icon slot="start" name="target-outline"></ion-icon>
+          Réviser le focus : {{ currentFocus }}
+        </ion-button>
+        
         <!-- <ion-button expand="block" (click)="forceOpenMenu()" class="ion-margin-top" color="warning">
           <ion-icon slot="start" name="menu-outline"></ion-icon>
           Forcer le menu

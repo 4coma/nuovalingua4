@@ -1,119 +1,132 @@
 <ion-content>
-  <ion-toolbar>
-    <ion-searchbar
-      placeholder="Rechercher un mot"
-      [(ngModel)]="searchTerm"
-      (ionInput)="onSearch($event)"
-      animated
-    ></ion-searchbar>
-  </ion-toolbar>
-
-  <div class="container">
-
-
-    <!-- Chargement -->
-    <div *ngIf="isLoading" class="loading-container">
-      <ion-spinner></ion-spinner>
-      <p>Chargement du dictionnaire...</p>
-    </div>
-
-    <!-- Dictionnaire vide -->
-    <div *ngIf="!isLoading && dictionaryWords.length === 0" class="empty-dictionary">
-      <ion-icon name="book-outline" size="large"></ion-icon>
-      <h3>Votre dictionnaire est vide</h3>
-      <p>Ajoutez des mots en cliquant sur le bouton + en bas de l'écran</p>
-    </div>
-
-    <!-- Liste des mots -->
-    <ion-list *ngIf="!isLoading && filteredWords.length > 0">
-      <!-- Indicateur d'aide pour le glissement -->
-      <div class="swipe-help" *ngIf="filteredWords.length > 0">
-        <ion-icon name="chevron-back-outline"></ion-icon>
-        <small>Glissez vers la gauche pour éditer ou supprimer</small>
+  <!-- Section du diagramme qui prend toute la hauteur -->
+  <div *ngIf="!isLoading && totalWords > 0" class="diagram-section">
+    <div class="circular-progress" [style.--known-percentage]="totalWords > 0 ? (knownWords / totalWords) : 0">
+      <div class="progress-circle"></div>
+      <div class="progress-text">
+        <div class="known-count">{{ knownWords }} mots connus</div>
+        <div class="unknown-count">{{ unknownWords }} mots en cours de maîtrise</div>
       </div>
-      
-      <ion-item-sliding *ngFor="let word of filteredWords">
-        <ion-item (click)="editWord(word)">
-          <ion-label>
-            <!-- Mot source et cible -->
-            <div class="word-pair">
-              <div class="word source-word">
-                <strong>{{ word.sourceWord }}</strong>
-                <small>{{ getLanguageName(word.sourceLang) }}</small>
-              </div>
-              <ion-icon name="arrow-forward-outline"></ion-icon>
-              <div class="word target-word">
-                <strong>{{ word.targetWord }}</strong>
-                <small>{{ getLanguageName(word.targetLang) }}</small>
-              </div>
-            </div>
-            
-            <!-- Informations supplémentaires -->
-            <div *ngIf="word.contextualMeaning" class="meaning">
-              <p>{{ word.contextualMeaning }}</p>
-            </div>
-            
-            <!-- Catégorie grammaticale et date d'ajout -->
-            <div class="word-info">
-              <span *ngIf="word.partOfSpeech" class="part-of-speech">{{ word.partOfSpeech }}</span>
-              <span class="date-added">Ajouté le {{ getFormattedDate(word.dateAdded) }}</span>
-            </div>
-          </ion-label>
-        </ion-item>
-        
-        <!-- Contrôles de révision sur ligne séparée -->
-        <div class="revision-controls-row">
-          <div class="revision-delay-control">
-            <small>Prochaine révision :</small>
-            <ion-select 
-              [(ngModel)]="word.revisionDelay" 
-              (ionChange)="onRevisionDelayChange(word)"
-              placeholder="Délai"
-              interface="popover"
-              class="revision-delay-select">
-              <ion-select-option value="1j">1 jour</ion-select-option>
-              <ion-select-option value="3j">3 jours</ion-select-option>
-              <ion-select-option value="7j">7 jours</ion-select-option>
-              <ion-select-option value="15j">15 jours</ion-select-option>
-              <ion-select-option value="1m">1 mois</ion-select-option>
-              <ion-select-option value="3m">3 mois</ion-select-option>
-              <ion-select-option value="6m">6 mois</ion-select-option>
-            </ion-select>
-          </div>
-          <div class="known-status-control">
-            <ion-toggle 
-              [(ngModel)]="word.isKnown" 
-              (ionChange)="onKnownStatusChange(word)"
-              class="known-toggle">
-              <ion-label>Connu</ion-label>
-            </ion-toggle>
-          </div>
+    </div>
+    
+    <!-- Indicateur de scroll discret -->
+    <div class="scroll-indicator">
+      <ion-icon name="chevron-down-outline"></ion-icon>
+      <small>Glissez vers le bas pour voir vos mots</small>
+    </div>
+  </div>
+
+  <!-- Section de la liste des mots -->
+  <div class="words-section">
+    <ion-toolbar>
+      <ion-searchbar
+        placeholder="Rechercher un mot"
+        [(ngModel)]="searchTerm"
+        (ionInput)="onSearch($event)"
+        animated
+      ></ion-searchbar>
+    </ion-toolbar>
+
+    <div class="container">
+      <!-- Chargement -->
+      <div *ngIf="isLoading" class="loading-container">
+        <ion-spinner></ion-spinner>
+        <p>Chargement du dictionnaire...</p>
+      </div>
+
+      <!-- Dictionnaire vide -->
+      <div *ngIf="!isLoading && dictionaryWords.length === 0" class="empty-dictionary">
+        <ion-icon name="book-outline" size="large"></ion-icon>
+        <h3>Votre dictionnaire est vide</h3>
+        <p>Ajoutez des mots en cliquant sur le bouton + en bas de l'écran</p>
+      </div>
+
+      <!-- Liste des mots -->
+      <ion-list *ngIf="!isLoading && filteredWords.length > 0">
+        <!-- Indicateur d'aide pour le glissement -->
+        <div class="swipe-help" *ngIf="filteredWords.length > 0">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+          <small>Glissez vers la gauche pour éditer ou supprimer</small>
         </div>
         
-        <!-- Options de glissement (édition et suppression) -->
-        <ion-item-options side="end">
-          <ion-item-option color="primary" (click)="editWord(word)">
-            <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-          </ion-item-option>
-          <ion-item-option color="danger" (click)="confirmDelete(word.id, word.sourceWord)">
-            <ion-icon slot="icon-only" name="trash"></ion-icon>
-          </ion-item-option>
-        </ion-item-options>
-      </ion-item-sliding>
-    </ion-list>
+        <div *ngFor="let word of filteredWords">
+          <ion-item-sliding>
+            <ion-item (click)="editWord(word)">
+              <ion-label>
+                <!-- Mot source et cible -->
+                <div class="word-pair">
+                  <div class="word source-word">
+                    <strong>{{ word.sourceWord }}</strong>
+                    <small>{{ getLanguageName(word.sourceLang) }}</small>
+                  </div>
+                  <ion-icon name="arrow-forward-outline"></ion-icon>
+                  <div class="word target-word">
+                    <strong>{{ word.targetWord }}</strong>
+                    <small>{{ getLanguageName(word.targetLang) }}</small>
+                  </div>
+                </div>
+                
+                <!-- Informations supplémentaires -->
+                <div *ngIf="word.contextualMeaning" class="meaning">
+                  <p>{{ word.contextualMeaning }}</p>
+                </div>
+                
+                <!-- Catégorie grammaticale et date d'ajout -->
+                <div class="word-info">
+                  <span *ngIf="word.partOfSpeech" class="part-of-speech">{{ word.partOfSpeech }}</span>
+                  <span class="date-added">Ajouté le {{ getFormattedDate(word.dateAdded) }}</span>
+                </div>
+              </ion-label>
+            </ion-item>
+            
+            <!-- Options de glissement (édition et suppression) -->
+            <ion-item-options side="end">
+              <ion-item-option color="primary" (click)="editWord(word)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-item-option>
+              <ion-item-option color="danger" (click)="confirmDelete(word.id, word.sourceWord)">
+                <ion-icon slot="icon-only" name="trash"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+          
+          <!-- Contrôles de révision sur ligne séparée -->
+          <div class="revision-controls-row">
+            <div class="revision-delay-control">
+              <small>Prochaine révision :</small>
+              <ion-select 
+                [(ngModel)]="word.revisionDelay" 
+                (ionChange)="onRevisionDelayChange(word)"
+                placeholder="Délai"
+                interface="popover"
+                class="revision-delay-select">
+                <ion-select-option value="1j">1 jour</ion-select-option>
+                <ion-select-option value="3j">3 jours</ion-select-option>
+                <ion-select-option value="7j">7 jours</ion-select-option>
+                <ion-select-option value="15j">15 jours</ion-select-option>
+                <ion-select-option value="1m">1 mois</ion-select-option>
+                <ion-select-option value="3m">3 mois</ion-select-option>
+                <ion-select-option value="6m">6 mois</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="known-status-control">
+              <ion-toggle 
+                [(ngModel)]="word.isKnown" 
+                (ionChange)="onKnownStatusChange(word)"
+                class="known-toggle">
+                <ion-label>Connu</ion-label>
+              </ion-toggle>
+            </div>
+          </div>
+        </div>
+      </ion-list>
 
-    <!-- Message si aucun résultat de recherche -->
-    <div *ngIf="!isLoading && dictionaryWords.length > 0 && filteredWords.length === 0" class="no-results">
-      <ion-icon name="search-outline" size="large"></ion-icon>
-      <h3>Aucun résultat</h3>
-      <p>Aucun mot ne correspond à votre recherche "{{ searchTerm }}"</p>
+      <!-- Message si aucun résultat de recherche -->
+      <div *ngIf="!isLoading && dictionaryWords.length > 0 && filteredWords.length === 0" class="no-results">
+        <ion-icon name="search-outline" size="large"></ion-icon>
+        <h3>Aucun résultat</h3>
+        <p>Aucun mot ne correspond à votre recherche "{{ searchTerm }}"</p>
+      </div>
     </div>
   </div>
 </ion-content>
-
-<!-- Bouton d'action flottant pour ajouter un mot -->
-<ion-fab vertical="bottom" horizontal="end" slot="fixed">
-  <ion-fab-button (click)="openAddWordModal()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>

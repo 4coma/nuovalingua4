@@ -28,6 +28,11 @@ export class PersonalDictionaryListComponent implements OnInit {
   searchTerm: string = '';
   filteredWords: DictionaryWord[] = [];
   
+  // Statistiques du dictionnaire
+  totalWords: number = 0;
+  knownWords: number = 0;
+  unknownWords: number = 0;
+  
   // Options de langues pour l'affichage
   languages: { [key: string]: string } = {
     'fr': 'Français',
@@ -64,7 +69,17 @@ export class PersonalDictionaryListComponent implements OnInit {
     
     this.sortWords();
     this.filterWords();
+    this.calculateStatistics();
     this.isLoading = false;
+  }
+
+  /**
+   * Calcule les statistiques du dictionnaire
+   */
+  calculateStatistics() {
+    this.totalWords = this.dictionaryWords.length;
+    this.knownWords = this.dictionaryWords.filter(word => word.isKnown).length;
+    this.unknownWords = this.totalWords - this.knownWords;
   }
 
   /**
@@ -237,6 +252,7 @@ export class PersonalDictionaryListComponent implements OnInit {
     const success = this.dictionaryService.updateWord(word);
     if (success) {
       console.log(`Délai de révision mis à jour pour ${word.sourceWord}: ${word.revisionDelay}`);
+      this.calculateStatistics(); // Recalculer les statistiques
     }
   }
 
@@ -250,6 +266,7 @@ export class PersonalDictionaryListComponent implements OnInit {
     const success = this.dictionaryService.updateWord(word);
     if (success) {
       console.log(`Statut 'connu' mis à jour pour ${word.sourceWord}: ${word.isKnown}`);
+      this.calculateStatistics(); // Recalculer les statistiques
     }
   }
 

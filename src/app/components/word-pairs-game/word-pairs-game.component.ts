@@ -13,6 +13,8 @@ import { SpeechService } from 'src/app/services/speech.service';
 import { StorageService } from '../../services/storage.service';
 import { DictionaryModalComponent } from './dictionary-modal.component';
 import { PersonalDictionaryService } from '../../services/personal-dictionary.service';
+import { FocusModeService } from '../../services/focus-mode.service';
+import { FocusModalComponent } from '../focus-modal/focus-modal.component';
 import { Injector } from '@angular/core';
 
 interface GamePair {
@@ -70,6 +72,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   // Pour identifier si c'est une révision du dictionnaire personnel
   isPersonalDictionaryRevision: boolean = false;
   
+  // Pour le mode focus
+  isFocusMode: boolean = false;
+  
   // Pour gérer les mots révisés dans la session
   revisedWords: RevisedWord[] = [];
   
@@ -95,21 +100,17 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     private modalController: ModalController,
     private speechService: SpeechService,
     private storageService: StorageService,
+    private focusModeService: FocusModeService,
     private injector: Injector
   ) { }
 
   ngOnInit() {
+    this.loadSessionData();
     this.loadAudioPreference();
     this.loadGeneratedSessions();
-
-    // Nouvelle logique : charger la dernière session générée si elle existe
-    const lastSessionId = localStorage.getItem('lastAssociationSessionId');
-    if (lastSessionId) {
-      this.loadGeneratedSession(lastSessionId);
-      localStorage.removeItem('lastAssociationSessionId');
-    } else {
-      this.loadSessionData();
-    }
+    
+    // Vérifier si on est en mode focus
+    this.isFocusMode = this.storageService.get('isFocusMode') || false;
   }
 
   /**
@@ -131,7 +132,16 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       try {
         this.wordPairs = JSON.parse(wordPairsJson);
         this.sessionInfo = JSON.parse(sessionInfoJson);
+        
+        // Initialiser explicitement isPersonalDictionaryRevision
         this.isPersonalDictionaryRevision = isPersonalRevision === 'true';
+        console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision initialisé à:', this.isPersonalDictionaryRevision);
+        
+        // S'assurer que isPersonalDictionaryRevision est explicitement false pour les sessions normales
+        if (!this.isPersonalDictionaryRevision) {
+          localStorage.setItem('isPersonalDictionaryRevision', 'false');
+          console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision explicitement défini à false dans localStorage');
+        }
         
         // Charger les mots révisés si c'est une révision du dictionnaire personnel
         if (this.isPersonalDictionaryRevision && revisedWordsJson) {
@@ -152,6 +162,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision:', this.isPersonalDictionaryRevision);
         console.log('🔍 [WordPairsGame] revisedWords.length:', this.revisedWords.length);
         console.log('🔍 [WordPairsGame] gameComplete:', this.gameComplete);
+        console.log('🔍 [WordPairsGame] Bouton "Ajouter au dictionnaire" visible:', !this.isPersonalDictionaryRevision && this.gameComplete);
         
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
@@ -797,6 +808,42 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       default:
         console.warn('Délai de révision non reconnu:', delay);
         return null;
+    }
+  }
+
+  /**
+   * Ouvre le modal pour changer le focus
+   */
+  async changeFocus() {
+    const modal = await this.modalController.create({
+      component: FocusModalComponent,
+      componentProps: {},
+      cssClass: 'focus-modal'
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data && data.focus) {
+      // Mettre à jour le focus
+      this.focusModeService.setCurrentFocus(data.focus);
+      
+      // Nettoyer les données de session actuelles
+      this.storageService.remove('isFocusMode');
+      this.storageService.remove('focusInstruction');
+      this.storageService.remove('wordPairs');
+      this.storageService.remove('sessionInfo');
+      
+      const toast = await this.toastController.create({
+        message: `Focus changé : ${data.focus}`,
+        duration: 2000,
+        position: 'bottom',
+        color: 'success'
+      });
+      await toast.present();
+      
+      // Retourner à l'accueil pour redémarrer avec le nouveau focus
+      this.router.navigate(['/home']);
     }
   }
 
