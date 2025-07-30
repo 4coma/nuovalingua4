@@ -87,6 +87,46 @@
 
     <!-- Section des actions (visible uniquement quand le jeu est terminé) -->
     <div class="actions-section" *ngIf="gameComplete">
+      <!-- Section des mots révisés (visible uniquement pour la révision du dictionnaire personnel) -->
+      <div class="revised-words-section" *ngIf="isPersonalDictionaryRevision && revisedWords.length > 0">
+        <h3 class="ion-text-center">Mots révisés</h3>
+        <p class="ion-text-center ion-text-muted">
+          <small>Définissez quand ces mots pourront être révisés à nouveau</small>
+        </p>
+        
+        <ion-list>
+          <ion-item *ngFor="let word of revisedWords" class="revised-word-item">
+            <ion-label>
+              <h4>{{ word.sourceWord }} → {{ word.targetWord }}</h4>
+              <p *ngIf="word.context" class="word-context">{{ word.context }}</p>
+            </ion-label>
+            <ion-select 
+              [(ngModel)]="word.revisionDelay" 
+              (ionChange)="onRevisionDelayChange(word)"
+              placeholder="Délai"
+              interface="popover"
+              class="revision-delay-select">
+              <ion-select-option value="1j">1 jour</ion-select-option>
+              <ion-select-option value="3j">3 jours</ion-select-option>
+              <ion-select-option value="7j">7 jours</ion-select-option>
+              <ion-select-option value="15j">15 jours</ion-select-option>
+              <ion-select-option value="1m">1 mois</ion-select-option>
+              <ion-select-option value="3m">3 mois</ion-select-option>
+              <ion-select-option value="6m">6 mois</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-list>
+        
+        <ion-button 
+          expand="block" 
+          color="primary" 
+          (click)="saveRevisionDelays()"
+          class="ion-margin-top">
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          Sauvegarder les délais de révision
+        </ion-button>
+      </div>
+
       <h3 class="ion-text-center">Exercices disponibles</h3>
       
       <!-- Bouton pour ajouter au dictionnaire personnel (masqué si révision du dictionnaire personnel) -->

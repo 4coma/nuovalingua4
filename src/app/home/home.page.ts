@@ -66,6 +66,15 @@ export class HomePage {
         context: word.contextualMeaning
       }));
 
+      // Créer la liste des mots révisés pour l'affichage
+      const revisedWords = selectedWords.map(word => ({
+        id: word.id,
+        sourceWord: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
+        targetWord: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
+        context: word.contextualMeaning,
+        revisionDelay: undefined // Sera défini par l'utilisateur
+      }));
+
       // Sauvegarder les données de session
       const sessionInfo = {
         category: 'Dictionnaire personnel',
@@ -78,6 +87,7 @@ export class HomePage {
       this.storageService.set('sessionInfo', sessionInfo);
       this.storageService.set('wordPairs', wordPairs);
       this.storageService.set('isPersonalDictionaryRevision', true);
+      this.storageService.set('revisedWords', revisedWords);
 
       // Naviguer vers l'exercice d'association
       this.router.navigate(['/word-pairs-game']);

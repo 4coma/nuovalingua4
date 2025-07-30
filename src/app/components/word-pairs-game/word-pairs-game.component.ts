@@ -12,6 +12,8 @@ import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-sel
 import { SpeechService } from 'src/app/services/speech.service';
 import { StorageService } from '../../services/storage.service';
 import { DictionaryModalComponent } from './dictionary-modal.component';
+import { PersonalDictionaryService } from '../../services/personal-dictionary.service';
+import { Injector } from '@angular/core';
 
 interface GamePair {
   id: number;
@@ -19,6 +21,14 @@ interface GamePair {
   isSource: boolean;
   isSelected: boolean;
   isMatched: boolean;
+}
+
+interface RevisedWord {
+  id: string;
+  sourceWord: string;
+  targetWord: string;
+  context?: string;
+  revisionDelay?: string; // '1j', '3j', '7j', '15j', '1m', '3m', '6m'
 }
 
 @Component({
@@ -59,6 +69,9 @@ export class WordPairsGameComponent implements OnInit {
   // Pour identifier si c'est une révision du dictionnaire personnel
   isPersonalDictionaryRevision: boolean = false;
   
+  // Pour gérer les mots révisés dans la session
+  revisedWords: RevisedWord[] = [];
+  
   // Info de la session
   sessionInfo: { 
     category: string; 
@@ -80,7 +93,8 @@ export class WordPairsGameComponent implements OnInit {
     private textGeneratorService: TextGeneratorService,
     private modalController: ModalController,
     private speechService: SpeechService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private injector: Injector
   ) { }
 
   ngOnInit() {
@@ -104,12 +118,18 @@ export class WordPairsGameComponent implements OnInit {
     const wordPairsJson = localStorage.getItem('wordPairs');
     const sessionInfoJson = localStorage.getItem('sessionInfo');
     const isPersonalRevision = localStorage.getItem('isPersonalDictionaryRevision');
+    const revisedWordsJson = localStorage.getItem('revisedWords');
     
     if (wordPairsJson && sessionInfoJson) {
       try {
         this.wordPairs = JSON.parse(wordPairsJson);
         this.sessionInfo = JSON.parse(sessionInfoJson);
         this.isPersonalDictionaryRevision = isPersonalRevision === 'true';
+        
+        // Charger les mots révisés si c'est une révision du dictionnaire personnel
+        if (this.isPersonalDictionaryRevision && revisedWordsJson) {
+          this.revisedWords = JSON.parse(revisedWordsJson);
+        }
         
         // Préparer le jeu
         this.totalPairs = this.wordPairs.length;
@@ -682,9 +702,78 @@ export class WordPairsGameComponent implements OnInit {
    * Retourne une classe CSS en fonction de l'état de la paire
    */
   getCardClass(pair: GamePair): string {
-    if (pair.isMatched) return 'matched';
-    if (pair.isSelected) return 'selected';
-    if (this.errorShown && this.selectedPair && pair.id === this.selectedPair.id) return 'error';
-    return '';
+    if (pair.isMatched) {
+      return 'matched';
+    } else if (pair.isSelected) {
+      return 'selected';
+    } else {
+      return '';
+    }
+  }
+
+  /**
+   * Gère le changement de délai de révision pour un mot
+   */
+  onRevisionDelayChange(word: RevisedWord) {
+    console.log('Délai de révision changé pour:', word.sourceWord, '→', word.revisionDelay);
+  }
+
+  /**
+   * Sauvegarde les délais de révision dans le dictionnaire personnel
+   */
+  async saveRevisionDelays() {
+    try {
+      const personalDictionaryService = this.injector.get(PersonalDictionaryService);
+      
+      for (const word of this.revisedWords) {
+        if (word.revisionDelay) {
+          const delayInMs = this.calculateDelayInMs(word.revisionDelay);
+          if (delayInMs !== null) {
+            const minRevisionDate = Date.now() + delayInMs;
+            personalDictionaryService.setMinRevisionDate(word.id, minRevisionDate);
+            console.log(`Date de révision définie pour ${word.sourceWord}: ${new Date(minRevisionDate).toLocaleDateString()}`);
+          }
+        }
+      }
+      
+      await this.showToast('Délais de révision sauvegardés avec succès !');
+      
+      // Vider la liste des mots révisés après sauvegarde
+      this.revisedWords = [];
+      localStorage.removeItem('revisedWords');
+      
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des délais de révision:', error);
+      await this.showToast('Erreur lors de la sauvegarde des délais de révision');
+    }
+  }
+
+  /**
+   * Calcule le délai en millisecondes à partir d'une chaîne de délai
+   */
+  private calculateDelayInMs(delay: string): number | null {
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+    const oneMonth = 30 * oneDay; // Approximation
+    
+    switch (delay) {
+      case '1j':
+        return oneDay;
+      case '3j':
+        return 3 * oneDay;
+      case '7j':
+        return 7 * oneDay;
+      case '15j':
+        return 15 * oneDay;
+      case '1m':
+        return oneMonth;
+      case '3m':
+        return 3 * oneMonth;
+      case '6m':
+        return 6 * oneMonth;
+      default:
+        console.warn('Délai de révision non reconnu:', delay);
+        return null;
+    }
   }
 } 
