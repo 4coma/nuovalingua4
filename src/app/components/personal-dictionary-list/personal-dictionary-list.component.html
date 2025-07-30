@@ -26,6 +26,12 @@
 
     <!-- Liste des mots -->
     <ion-list *ngIf="!isLoading && filteredWords.length > 0">
+      <!-- Indicateur d'aide pour le glissement -->
+      <div class="swipe-help" *ngIf="filteredWords.length > 0">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+        <small>Glissez vers la gauche pour éditer ou supprimer</small>
+      </div>
+      
       <ion-item-sliding *ngFor="let word of filteredWords">
         <ion-item (click)="editWord(word)">
           <ion-grid>
@@ -90,8 +96,8 @@
 </ion-content>
 
 <!-- Bouton d'action flottant pour ajouter un mot -->
-<!-- <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+<ion-fab vertical="bottom" horizontal="end" slot="fixed">
   <ion-fab-button (click)="openAddWordModal()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
-</ion-fab>  -->
+</ion-fab>
