@@ -22,16 +22,25 @@
 ~~permettre à l'utilisateur de générer une session d'associatio net tout ce qui s'en suit à partir des mots présents dans un texte enregistré...~~
 ~~régler problème si je clique sur "annuler" à la question d'ajout d'une consigne supp~~
 ~~vérification du stockage local~~
-- ajouter une option "discussion" dans les types de révision après assocation -> commencer par ajouter un composant te test accessible dans l'écran principal puis y aller petit à petit
-- procédure d'import et d'export
-- UX UI 
+~~ajouter une option "discussion" dans les types de révision après assocation -> commencer par ajouter un composant te test accessible dans l'écran principal puis y aller petit à petit~~
 
-permettre dialogue interactif
--- permettre la génération d'un nouveau contexte interactionnel
--- améliorer le contexte interactionnel en les rendant plus riches et en précisant le sexe de l'IA pour le passer en param à l'API de génération de voix
--- pouvoir soit continuer des discussions passées et enregistrées soit commencer des nouvelles
--- avoir les mêmes fonctionnalités d'obtention de traduction et d'ajout au dictionnaire personnel qu'ailleurs
+~~permettre dialogue interactif~~
+~~permettre la génération d'un nouveau contexte interactionnel~~
+~~pouvoir soit continuer des discussions passées et enregistrées soit commencer des nouvelles~~
+~~mettre une limite au contenu des interactions passées passées à l'API~~
+~~avoir les mêmes fonctionnalités d'obtention de traduction et d'ajout au dictionnaire personnel qu'ailleurs~~
 
-révision du système de POM
+révision du système de POM (implémenter les principes de mémorisation espacée via clic sur le bouton)
+~~système d'encodage dans les deux sens puis choix du niveau de faciliter pour chaque mot~~
+~~faire en sorte que les mots ratés on doive cliquer sur suivant et que le toaster qui affiche la bonne réponse reste affiché jusqu'à ce qu'on clique sur suivant ~~
+-- il doit y avoir une progress bar en ver qui montre la progression par rapport au nombre de mots à réviser
+~~permetrte le lancement des mêmes options à la fin d'une mémorisation espacée -> orale écrite discussion ~~
+~~permettre, à la fin des session de révision classique, d'ajouter en un clic chaque mot vu au dictionnaire personnel~~
+
+~~notification~~
+
+rectifications diverses
+
+procédure d'import et d'export ou sauvegarde avec firebase ou supabase
 
 UX UI

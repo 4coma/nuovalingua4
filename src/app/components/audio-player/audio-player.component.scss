@@ -47,6 +47,19 @@
       font-size: 24px;
     }
   }
+  
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 48px;
+    height: 48px;
+    margin: 0 4px;
+    
+    ion-spinner {
+      --color: var(--ion-color-primary);
+    }
+  }
 }
 
 .speed-control {

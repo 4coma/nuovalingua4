@@ -35,7 +35,7 @@
 
     <!-- Messages de la discussion -->
     <div *ngIf="currentSession && currentSession.turns.length > 0">
-      <ion-card *ngFor="let turn of currentSession.turns" 
+      <ion-card *ngFor="let turn of currentSession.turns; let i = index" 
                 [class]="turn.speaker === 'ai' ? 'ai-message' : 'user-message'">
         <ion-card-content>
           <!-- Utilisation du composant TranslatableMessageComponent -->
@@ -52,37 +52,97 @@
             *ngIf="turn.speaker === 'ai'" 
             [audioUrl]="turn.audioUrl || null" 
             [showControls]="true" 
+            [isLoading]="isAudioGenerating(i, turn)"
             style="margin-top: 8px; background: transparent; box-shadow: none;">
           </app-audio-player>
         </ion-card-content>
       </ion-card>
     </div>
 
-    <!-- Boutons d'action -->
-    <div style="margin-top: 20px; text-align: center;">
-      <ion-button *ngIf="!isStarting && currentSession && !isRecording" 
+    <!-- Sélecteur de mode de réponse -->
+    <ion-card *ngIf="!isStarting && currentSession && !isLoading" style="margin-bottom: 16px;">
+      <ion-card-content>
+        <ion-segment [(ngModel)]="responseMode" (ionChange)="onResponseModeChange()">
+          <ion-segment-button value="voice">
+            <ion-icon name="mic"></ion-icon>
+            <ion-label>Vocal</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="text">
+            <ion-icon name="create"></ion-icon>
+            <ion-label>Écrit</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Mode vocal -->
+    <div *ngIf="responseMode === 'voice' && !isStarting && currentSession && !isLoading">
+      <!-- Indicateur de traitement -->
+      <ion-card *ngIf="isLoading" style="margin-bottom: 16px;">
+        <ion-card-content>
+          <div style="text-align: center; padding: 10px;">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p style="margin: 8px 0 0 0; font-size: 14px;">
+              {{ isRecording ? 'Arrêt de l\'enregistrement...' : 'Traitement en cours...' }}
+            </p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button *ngIf="!isRecording && !isLoading" 
                   (click)="startRecording()" 
                   color="success" 
                   expand="block">
         <ion-icon name="mic" slot="start"></ion-icon>
         Commencer à parler
       </ion-button>
-      <ion-button *ngIf="!isStarting && currentSession && isRecording" 
+      <ion-button *ngIf="isRecording && !isLoading" 
                   (click)="stopRecording()" 
                   color="danger" 
                   expand="block">
         <ion-icon name="stop" slot="start"></ion-icon>
         Arrêter l'enregistrement
       </ion-button>
+    </div>
+
+    <!-- Mode écrit -->
+    <div *ngIf="responseMode === 'text' && !isStarting && currentSession && !isLoading">
+      <ion-card style="margin-bottom: 16px;">
+        <ion-card-content>
+          <ion-textarea
+            [(ngModel)]="textResponse"
+            placeholder="Tapez votre réponse ici..."
+            rows="4"
+            maxlength="500"
+            [disabled]="isLoading"
+            style="border: 1px solid #ccc; border-radius: 8px; padding: 12px;">
+          </ion-textarea>
+          <div style="text-align: right; margin-top: 8px; font-size: 12px; color: #666;">
+            {{ textResponse.length }}/500 caractères
+          </div>
+        </ion-card-content>
+      </ion-card>
       
-      <ion-button routerLink="/discussion-context-selection" 
-                  color="medium" 
-                  fill="outline" 
-                  expand="block">
-        <ion-icon name="arrow-back" slot="start"></ion-icon>
-        Retour à la sélection
+      <ion-button 
+        (click)="sendTextResponse()" 
+        color="success" 
+        expand="block"
+        [disabled]="!textResponse.trim() || isLoading">
+        <ion-icon name="send" slot="start"></ion-icon>
+        Envoyer la réponse
       </ion-button>
     </div>
+
+    <!-- Bouton retour -->
+    <ion-button routerLink="/discussion-context-selection" 
+                color="medium" 
+                fill="outline" 
+                expand="block"
+                [disabled]="isLoading"
+                style="margin-top: 16px;">
+      <ion-icon name="arrow-back" slot="start"></ion-icon>
+      Retour à la sélection
+    </ion-button>
 
   </div>
 </ion-content> 

@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 import { AddWordComponent } from '../add-word/add-word.component';
+import { EditWordModalComponent } from './edit-word-modal.component';
 
 @Component({
   selector: 'app-personal-dictionary-list',
@@ -89,6 +90,35 @@ export class PersonalDictionaryListComponent implements OnInit {
   onSearch(event: any) {
     this.searchTerm = event.target.value;
     this.filterWords();
+  }
+
+  /**
+   * Ouvre le modal pour éditer un mot
+   */
+  async editWord(word: DictionaryWord) {
+    const modal = await this.modalController.create({
+      component: EditWordModalComponent,
+      componentProps: {
+        word: word
+      },
+      cssClass: 'edit-word-modal'
+    });
+    
+    await modal.present();
+    
+    // Traiter le résultat du modal
+    const { data } = await modal.onDidDismiss();
+    if (data) {
+      console.log('Données reçues du modal:', data);
+      // Mettre à jour le mot dans le service
+      const success = this.dictionaryService.updateWord(data);
+      if (success) {
+        this.showToast('Mot modifié avec succès');
+        this.loadDictionary(); // Recharger la liste
+      } else {
+        this.showToast('Erreur lors de la modification du mot', 'danger');
+      }
+    }
   }
 
   /**

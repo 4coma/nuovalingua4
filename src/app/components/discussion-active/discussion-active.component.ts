@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { DiscussionService, DiscussionContext, DiscussionSession } from '../../services/discussion.service';
 import { Subscription } from 'rxjs';
@@ -17,6 +18,7 @@ import { TranslatableMessageComponent } from '../translatable-message/translatab
   imports: [
     CommonModule,
     IonicModule,
+    FormsModule,
     AudioPlayerComponent,
     TranslatableMessageComponent
   ]
@@ -29,6 +31,9 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
   isStarting = false;
   audioLoadingTurnId: string | null = null;
   isRecording = false;
+  audioGeneratingTurns: Set<string> = new Set();
+  responseMode: 'voice' | 'text' = 'voice';
+  textResponse: string = '';
   
   private subscription = new Subscription();
 
@@ -88,10 +93,16 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
           this.currentSession.turns.forEach((turn, idx) => {
             if (turn.speaker === 'ai' && !turn.audioUrl && turn.message) {
               console.log('🔍 [Vue] Génération audio pour message IA (tour', idx, '):', turn.message.substring(0, 50) + '...');
+              
+              // Créer un ID unique pour ce tour
+              const turnId = `turn_${idx}_${turn.timestamp.getTime()}`;
+              this.audioGeneratingTurns.add(turnId);
+              
               this.speechService.generateSpeech(turn.message, 'nova', 1.0).subscribe({
                 next: (audioUrl) => {
                   console.log('🔍 [Vue] Audio généré pour IA (tour', idx, '):', audioUrl);
                   turn.audioUrl = audioUrl;
+                  this.audioGeneratingTurns.delete(turnId);
                   // Forcer la détection de changement en Angular
                   this.currentSession = { ...this.currentSession! };
                   console.log('🔍 [Vue] currentSession forcé après audioUrl:', this.currentSession);
@@ -99,6 +110,8 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
                 },
                 error: (error) => {
                   console.error('🔍 [Vue] Erreur génération audio IA:', error);
+                  this.audioGeneratingTurns.delete(turnId);
+                  this.cdRef.detectChanges();
                 }
               });
             }
@@ -140,13 +153,59 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
 
   async stopRecording() {
     console.log('🔍 DiscussionActiveComponent - Arrêt de l\'enregistrement...');
-    await this.discussionService.stopRecording();
     try {
+      // Attendre que l'enregistrement soit complètement arrêté
+    await this.discussionService.stopRecording();
+      console.log('🔍 DiscussionActiveComponent - Enregistrement arrêté, début du traitement...');
+      
+      // Ajouter un petit délai pour s'assurer que l'audio est prêt
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       console.log('🔍 DiscussionActiveComponent - Appel processUserResponse...');
       await this.discussionService.processUserResponse();
       console.log('🔍 DiscussionActiveComponent - processUserResponse terminé');
     } catch (error) {
-      console.error('🔍 DiscussionActiveComponent - Erreur processUserResponse:', error);
+      console.error('🔍 DiscussionActiveComponent - Erreur lors de l\'arrêt de l\'enregistrement:', error);
+    }
+  }
+
+  /**
+   * Vérifie si un tour est en cours de génération d'audio
+   */
+  isAudioGenerating(turnIndex: number, turn: any): boolean {
+    const turnId = `turn_${turnIndex}_${turn.timestamp.getTime()}`;
+    return this.audioGeneratingTurns.has(turnId);
+  }
+
+  /**
+   * Gère le changement de mode de réponse
+   */
+  onResponseModeChange() {
+    console.log('🔍 DiscussionActiveComponent - Changement de mode de réponse:', this.responseMode);
+    // Réinitialiser la réponse texte lors du changement de mode
+    if (this.responseMode === 'voice') {
+      this.textResponse = '';
+    }
+  }
+
+  /**
+   * Envoie la réponse texte
+   */
+  async sendTextResponse() {
+    if (!this.textResponse.trim() || this.isLoading) {
+      return;
+    }
+
+    console.log('🔍 DiscussionActiveComponent - Envoi de la réponse texte:', this.textResponse);
+    
+    try {
+      // Traiter la réponse avec l'IA (le service ajoute le message utilisateur)
+      await this.discussionService.processTextResponse(this.textResponse.trim());
+      // Vider le champ de texte
+      this.textResponse = '';
+      console.log('🔍 DiscussionActiveComponent - Réponse texte envoyée avec succès');
+    } catch (error) {
+      console.error('🔍 DiscussionActiveComponent - Erreur lors de l\'envoi de la réponse texte:', error);
     }
   }
 } 

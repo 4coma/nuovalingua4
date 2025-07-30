@@ -108,6 +108,38 @@ export class PersonalDictionaryService {
   }
 
   /**
+   * Met à jour un mot du dictionnaire personnel
+   */
+  updateWord(updatedWord: DictionaryWord): boolean {
+    console.log('Tentative de mise à jour du mot:', updatedWord);
+    const words = this.getAllWords();
+    const wordIndex = words.findIndex(w => w.id === updatedWord.id);
+    
+    console.log('Index du mot trouvé:', wordIndex);
+    
+    if (wordIndex !== -1) {
+      // Préserver la date d'ajout originale
+      updatedWord.dateAdded = words[wordIndex].dateAdded;
+      
+      // Mettre à jour le mot
+      words[wordIndex] = updatedWord;
+      
+      // Sauvegarder dans le localStorage
+      localStorage.setItem(this.storageKey, JSON.stringify(words));
+      
+      console.log('Mot mis à jour avec succès');
+      
+      // Mettre à jour également le tracking SM-2 si nécessaire
+      this.updateWordInSM2Tracking(updatedWord);
+      
+      return true;
+    }
+    
+    console.log('Mot non trouvé pour la mise à jour');
+    return false; // Mot non trouvé
+  }
+
+  /**
    * Traduit un mot d'une langue à une autre
    */
   translateWord(word: string, sourceLang: string, targetLang: string): Observable<TranslationResponse> {
@@ -311,6 +343,45 @@ export class PersonalDictionaryService {
       console.log('Mot ajouté au tracking SM-2:', wordMastery.word);
     } catch (error) {
       console.error('Erreur lors de l\'ajout au tracking SM-2:', error);
+    }
+  }
+
+  /**
+   * Met à jour le tracking SM-2 pour un mot existant
+   */
+  private updateWordInSM2Tracking(updatedWord: DictionaryWord): void {
+    try {
+      const isItalianToFrench = updatedWord.sourceLang === 'it' && updatedWord.targetLang === 'fr';
+      const isFrenchToItalian = updatedWord.sourceLang === 'fr' && updatedWord.targetLang === 'it';
+
+      if (!isItalianToFrench && !isFrenchToItalian) {
+        console.warn('Langues non supportées pour le tracking SM-2:', updatedWord.sourceLang, updatedWord.targetLang);
+        return;
+      }
+
+      const wordToUpdate = isItalianToFrench ? updatedWord.sourceWord : updatedWord.targetWord;
+      const translationToUpdate = isItalianToFrench ? updatedWord.targetWord : updatedWord.sourceWord;
+
+      const allWords = this.vocabularyTrackingService.getAllTrackedWords();
+      const existingIndex = allWords.findIndex(w => w.word === wordToUpdate);
+
+      if (existingIndex >= 0) {
+        allWords[existingIndex] = {
+          ...allWords[existingIndex],
+          word: wordToUpdate,
+          translation: translationToUpdate,
+          context: updatedWord.contextualMeaning,
+          lastReviewed: Date.now(),
+          timesReviewed: allWords[existingIndex].timesReviewed + 1,
+          timesCorrect: allWords[existingIndex].timesCorrect + (updatedWord.contextualMeaning ? 1 : 0) // Incrémenter si le mot a une signification contextuelle
+        };
+        this.vocabularyTrackingService.saveAllWords(allWords);
+        console.log('Mot mis à jour dans le tracking SM-2:', wordToUpdate);
+      } else {
+        console.warn('Mot non trouvé dans le tracking SM-2 pour la mise à jour:', wordToUpdate);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du tracking SM-2:', error);
     }
   }
 } 

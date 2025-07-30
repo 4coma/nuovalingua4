@@ -17,6 +17,7 @@ export class AudioPlayerComponent implements OnInit, OnDestroy, OnChanges {
   @Input() autoPlay: boolean = false;
   @Input() loop: boolean = false;
   @Input() preload: 'none' | 'metadata' | 'auto' = 'metadata';
+  @Input() isLoading: boolean = false;
   
   @Output() playEvent = new EventEmitter<void>();
   @Output() pauseEvent = new EventEmitter<void>();

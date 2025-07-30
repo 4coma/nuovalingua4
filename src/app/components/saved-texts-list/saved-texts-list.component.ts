@@ -202,15 +202,29 @@ export class SavedTextsListComponent implements OnInit {
     this.selectedWord = word;
     this.isTranslating = true;
     this.translation = null;
+    
     // Extraire le contexte autour du mot
     const context = this.textGeneratorService.extractContext(text.text, word);
+    
+    // Ajouter un timeout pour éviter que le loader reste bloqué
+    const timeout = setTimeout(() => {
+      if (this.isTranslating) {
+        this.isTranslating = false;
+        this.showToast('Délai d\'attente dépassé. Réessayez.', 'danger');
+      }
+    }, 20000); // 30 secondes de timeout
+    
     this.textGeneratorService.getContextualTranslation(word, context).subscribe({
       next: (result) => {
+        clearTimeout(timeout);
         this.translation = result;
         this.isTranslating = false;
       },
-      error: () => {
+      error: (error) => {
+        clearTimeout(timeout);
         this.isTranslating = false;
+        console.error('Erreur lors de la traduction:', error);
+        
         // En cas d'erreur, utiliser la traduction de base du vocabulaire
         const vocabularyItem = (text.vocabularyItems || []).find(
           item => item.word.toLowerCase() === word.toLowerCase()
@@ -221,6 +235,8 @@ export class SavedTextsListComponent implements OnInit {
             translation: vocabularyItem.translation,
             contextualMeaning: vocabularyItem.context || 'Pas d\'information supplémentaire disponible'
           };
+        } else {
+          this.showToast('Erreur lors de la traduction. Réessayez.', 'danger');
         }
       }
     });

@@ -239,6 +239,7 @@ export class DiscussionService {
       console.log('🔍 DiscussionService - audioBlob récupéré', audioBlob);
 
       // Transcrire l'audio
+      console.log('🔍 DiscussionService - Début de la transcription...');
       const transcription = await this.transcribeAudio(audioBlob);
       if (!transcription) {
         console.warn('🔍 DiscussionService - Transcription échouée');
@@ -262,7 +263,14 @@ export class DiscussionService {
       currentState.currentSession.turns.push(userTurn);
       console.log('🔍 DiscussionService - Tour utilisateur ajouté à la session');
 
+      // Mettre à jour l'état pour afficher le message utilisateur immédiatement
+      this.updateState({
+        currentSession: currentState.currentSession,
+        currentTurn: userTurn
+      });
+
       // Générer la réponse de l'IA
+      console.log('🔍 DiscussionService - Début génération réponse IA...');
       const aiResponse = await this.generateAIResponse(
         currentState.currentSession.context,
         transcription.text,
@@ -294,11 +302,83 @@ export class DiscussionService {
   }
 
   /**
+   * Traite la réponse texte de l'utilisateur
+   */
+  async processTextResponse(userMessage: string): Promise<void> {
+    const currentState = this.stateSubject.value;
+    if (!currentState.currentSession) {
+      console.warn('🔍 DiscussionService - Pas de session courante, abandon processTextResponse');
+      return;
+    }
+
+    this.updateState({ isProcessing: true });
+    console.log('🔍 DiscussionService - Début processTextResponse avec message:', userMessage);
+
+    try {
+      // Créer le tour de l'utilisateur
+      const userTurn: DiscussionTurn = {
+        speaker: 'user',
+        message: userMessage,
+        timestamp: new Date()
+      };
+      console.log('🔍 DiscussionService - Tour utilisateur créé', userTurn);
+
+      // Ajouter le tour à la session
+      currentState.currentSession.turns.push(userTurn);
+      console.log('🔍 DiscussionService - Tour utilisateur ajouté à la session');
+
+      // Mettre à jour l'état pour afficher le message utilisateur immédiatement
+      this.updateState({
+        currentSession: currentState.currentSession,
+        currentTurn: userTurn
+      });
+
+      // Générer la réponse de l'IA
+      console.log('🔍 DiscussionService - Début génération réponse IA...');
+      const aiResponse = await this.generateAIResponse(
+        currentState.currentSession.context,
+        userMessage,
+        currentState.currentSession.turns
+      );
+      console.log('🔍 DiscussionService - Réponse IA générée', aiResponse);
+
+      const aiTurn: DiscussionTurn = {
+        speaker: 'ai',
+        message: aiResponse,
+        timestamp: new Date()
+      };
+      currentState.currentSession.turns.push(aiTurn);
+      console.log('🔍 DiscussionService - Tour IA ajouté à la session');
+
+      this.updateState({
+        isProcessing: false,
+        currentSession: currentState.currentSession,
+        currentTurn: aiTurn
+      });
+      this.savedConversations.saveConversation(currentState.currentSession);
+      console.log('🔍 DiscussionService - State mis à jour');
+
+    } catch (error) {
+      console.error('🔍 DiscussionService - Erreur processTextResponse:', error);
+      this.updateState({ isProcessing: false });
+      this.showToast('Erreur lors du traitement de la réponse');
+    }
+  }
+
+  /**
    * Arrête l'enregistrement en cours
    */
-  stopRecording(): void {
-    this.audioRecordingService.stopRecording();
+  async stopRecording(): Promise<void> {
+    console.log('🔍 DiscussionService - stopRecording appelé');
+    try {
+      await this.audioRecordingService.stopRecording();
+      this.updateState({ isRecording: false });
+      console.log('🔍 DiscussionService - stopRecording terminé');
+    } catch (error) {
+      console.error('🔍 DiscussionService - Erreur stopRecording:', error);
     this.updateState({ isRecording: false });
+      throw error;
+    }
   }
 
   /**
