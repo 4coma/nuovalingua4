@@ -58,7 +58,7 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
   ];
 
   topics: { [key: string]: string[] } = {
-    'conjugation': ['Présent', 'Passé composé', 'Imparfait', 'Futur'],
+    'conjugation': ['Présent', 'Passé composé', 'Imparfait', 'Futur', 'Plus-que-parfait', 'Futur antérieur', 'Subjonctif présent', 'Subjonctif passé', 'Conditionnel', 'Impératif', 'Gérondif'],
     'grammar': ['Articles', 'Prépositions', 'Adjectifs', 'Adverbes'],
     'vocabulary': ['Tourisme', 'Nourriture', 'Travail', 'Transport', 'Loisirs', 'Personnel']
   };
