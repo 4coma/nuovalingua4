@@ -126,7 +126,7 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
             isCorrect: false,
             completed: false
           });
-          
+
           // Item it → fr
           this.exerciseItems.push({
             wordPair: pair,
@@ -138,6 +138,9 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
             completed: false
           });
         });
+
+        // Mélanger les items pour éviter d'avoir les deux sens d'un même mot à la suite
+        this.exerciseItems = this.shuffleExerciseItems(this.exerciseItems);
         
         console.log('🔍 [SpacedRepetition] Items d\'exercice créés:', this.exerciseItems.length);
       },
@@ -364,7 +367,7 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
         isCorrect: false,
         completed: false
       });
-      
+
       // Item it → fr
       this.exerciseItems.push({
         wordPair: pair,
@@ -376,6 +379,9 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
         completed: false
       });
     });
+
+    // Mélanger les items pour éviter les doublons consécutifs
+    this.exerciseItems = this.shuffleExerciseItems(this.exerciseItems);
     
     console.log('🔍 [SpacedRepetition] Nouvelle session avec mots restants:', this.exerciseItems.length, 'items');
   }
@@ -501,4 +507,32 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
       this.startNewSessionWithWords(remaining);
     }
   }
-} 
+
+  /**
+   * Mélange les items d'exercice tout en évitant d'avoir deux fois le même mot consécutivement
+   */
+  private shuffleExerciseItems(items: ExerciseItem[]): ExerciseItem[] {
+    const shuffled = [...items];
+
+    // Mélange de base (Fisher-Yates)
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    // S'assurer que les deux sens d'un même mot ne sont pas consécutifs
+    for (let i = 1; i < shuffled.length; i++) {
+      if (shuffled[i].wordPair === shuffled[i - 1].wordPair) {
+        let j = i + 1;
+        while (j < shuffled.length && shuffled[j].wordPair === shuffled[i - 1].wordPair) {
+          j++;
+        }
+        if (j < shuffled.length) {
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+      }
+    }
+
+    return shuffled;
+  }
+}
