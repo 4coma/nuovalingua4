@@ -51,9 +51,13 @@ export class HomePage {
         return;
       }
 
-      // Sélectionner aléatoirement des mots (entre 6 et 12, ou tous si moins de 6)
-      const maxWords = Math.min(12, Math.max(6, personalWords.length));
-      const selectedWords = this.shuffleArray(personalWords).slice(0, maxWords);
+      // Récupérer le nombre de mots configuré dans les préférences
+      const savedCount = this.storageService.get('personalDictionaryWordsCount');
+      const maxWords = savedCount ? parseInt(savedCount) : 8; // Valeur par défaut si pas configurée
+      
+      // Sélectionner aléatoirement des mots (entre 3 et 20, ou tous si moins de 3)
+      const actualMaxWords = Math.min(20, Math.max(3, Math.min(maxWords, personalWords.length)));
+      const selectedWords = this.shuffleArray(personalWords).slice(0, actualMaxWords);
 
       // Créer les paires de mots pour l'exercice d'association
       const wordPairs = selectedWords.map(word => ({

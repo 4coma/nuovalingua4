@@ -29,6 +29,7 @@ export class PreferencesComponent implements OnInit {
   wordAssociationsCount: number = 10;
   oralComprehensionLength: number = 150; // Longueur par défaut en mots
   spacedRepetitionWordsCount: number = 10; // Nombre de mots par session de mémorisation espacée
+  personalDictionaryWordsCount: number = 8; // Nombre de mots par session de révision du dictionnaire personnel
   showApiKey: boolean = false;
   showGoogleApiKey: boolean = false;
   
@@ -87,6 +88,14 @@ export class PreferencesComponent implements OnInit {
       console.log('🔍 [Preferences] Valeur convertie:', this.spacedRepetitionWordsCount);
     }
 
+    // Charger le nombre de mots pour la révision du dictionnaire personnel
+    const savedPersonalDictionaryCount = this.storageService.get('personalDictionaryWordsCount');
+    console.log('🔍 [Preferences] Chargement personalDictionaryWordsCount:', savedPersonalDictionaryCount);
+    if (savedPersonalDictionaryCount !== null && savedPersonalDictionaryCount !== undefined) {
+      this.personalDictionaryWordsCount = parseInt(savedPersonalDictionaryCount);
+      console.log('🔍 [Preferences] Valeur convertie:', this.personalDictionaryWordsCount);
+    }
+
     // Charger les paramètres de notification
     const notificationSettings = this.notificationService.getSettings();
     this.notificationsEnabled = notificationSettings.enabled;
@@ -119,6 +128,12 @@ export class PreferencesComponent implements OnInit {
       return;
     }
 
+    // Valider le nombre de mots pour la révision du dictionnaire personnel
+    if (this.personalDictionaryWordsCount < 1 || this.personalDictionaryWordsCount > 50) {
+      this.showToast('Le nombre de mots par session de révision du dictionnaire personnel doit être entre 5 et 50.');
+      return;
+    }
+
     // Sauvegarder la clé API OpenAI si fournie
     if (this.openaiApiKey.trim()) {
       this.storageService.set('userOpenaiApiKey', this.openaiApiKey.trim());
@@ -143,6 +158,10 @@ export class PreferencesComponent implements OnInit {
     this.storageService.set('spacedRepetitionWordsCount', this.spacedRepetitionWordsCount);
     console.log('🔍 [Preferences] Sauvegarde spacedRepetitionWordsCount:', this.spacedRepetitionWordsCount);
 
+    // Sauvegarder le nombre de mots pour la révision du dictionnaire personnel
+    this.storageService.set('personalDictionaryWordsCount', this.personalDictionaryWordsCount);
+    console.log('🔍 [Preferences] Sauvegarde personalDictionaryWordsCount:', this.personalDictionaryWordsCount);
+
     this.showToast('Préférences sauvegardées avec succès !');
   }
 
@@ -155,11 +174,13 @@ export class PreferencesComponent implements OnInit {
     this.wordAssociationsCount = 10;
     this.oralComprehensionLength = 150;
     this.spacedRepetitionWordsCount = 10; // Réinitialiser le nombre de mots pour la répétition espacée
+    this.personalDictionaryWordsCount = 8; // Réinitialiser le nombre de mots pour la révision du dictionnaire personnel
     this.storageService.remove('userOpenaiApiKey');
     this.storageService.remove('userGoogleTtsApiKey');
     this.storageService.remove('wordAssociationsCount');
     this.storageService.remove('oralComprehensionLength');
     this.storageService.remove('spacedRepetitionWordsCount');
+    this.storageService.remove('personalDictionaryWordsCount');
     this.showToast('Préférences réinitialisées aux valeurs par défaut.');
   }
 
