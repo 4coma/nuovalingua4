@@ -75,6 +75,9 @@ export class HomePage {
         revisionDelay: undefined // Sera défini par l'utilisateur
       }));
 
+      console.log('🔍 [HomePage] Mots révisés créés:', revisedWords.length);
+      console.log('🔍 [HomePage] Détail des mots révisés:', revisedWords);
+
       // Sauvegarder les données de session
       const sessionInfo = {
         category: 'Dictionnaire personnel',
@@ -88,6 +91,12 @@ export class HomePage {
       this.storageService.set('wordPairs', wordPairs);
       this.storageService.set('isPersonalDictionaryRevision', true);
       this.storageService.set('revisedWords', revisedWords);
+
+      console.log('🔍 [HomePage] Données sauvegardées dans le localStorage:');
+      console.log('🔍 [HomePage] sessionInfo:', sessionInfo);
+      console.log('🔍 [HomePage] wordPairs.length:', wordPairs.length);
+      console.log('🔍 [HomePage] isPersonalDictionaryRevision: true');
+      console.log('🔍 [HomePage] revisedWords.length:', revisedWords.length);
 
       // Naviguer vers l'exercice d'association
       this.router.navigate(['/word-pairs-game']);

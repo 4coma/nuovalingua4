@@ -120,6 +120,12 @@ export class WordPairsGameComponent implements OnInit {
     const isPersonalRevision = localStorage.getItem('isPersonalDictionaryRevision');
     const revisedWordsJson = localStorage.getItem('revisedWords');
     
+    console.log('🔍 [WordPairsGame] Chargement des données de session:');
+    console.log('🔍 [WordPairsGame] wordPairsJson:', wordPairsJson ? 'présent' : 'absent');
+    console.log('🔍 [WordPairsGame] sessionInfoJson:', sessionInfoJson ? 'présent' : 'absent');
+    console.log('🔍 [WordPairsGame] isPersonalRevision:', isPersonalRevision);
+    console.log('🔍 [WordPairsGame] revisedWordsJson:', revisedWordsJson ? 'présent' : 'absent');
+    
     if (wordPairsJson && sessionInfoJson) {
       try {
         this.wordPairs = JSON.parse(wordPairsJson);
@@ -129,11 +135,23 @@ export class WordPairsGameComponent implements OnInit {
         // Charger les mots révisés si c'est une révision du dictionnaire personnel
         if (this.isPersonalDictionaryRevision && revisedWordsJson) {
           this.revisedWords = JSON.parse(revisedWordsJson);
+          console.log('🔍 [WordPairsGame] Mots révisés chargés:', this.revisedWords.length);
+          console.log('🔍 [WordPairsGame] Détail des mots révisés:', this.revisedWords);
+        } else {
+          console.log('🔍 [WordPairsGame] Pas de mots révisés à charger');
+          console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision:', this.isPersonalDictionaryRevision);
+          console.log('🔍 [WordPairsGame] revisedWordsJson:', revisedWordsJson);
         }
         
         // Préparer le jeu
         this.totalPairs = this.wordPairs.length;
         this.setupCurrentGameRound();
+        
+        console.log('🔍 [WordPairsGame] État final:');
+        console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision:', this.isPersonalDictionaryRevision);
+        console.log('🔍 [WordPairsGame] revisedWords.length:', this.revisedWords.length);
+        console.log('🔍 [WordPairsGame] gameComplete:', this.gameComplete);
+        
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
         this.showToast('Erreur lors du chargement des données de session');
