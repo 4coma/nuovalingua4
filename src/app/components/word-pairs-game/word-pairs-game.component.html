@@ -133,9 +133,7 @@
       <h3 class="ion-text-center">Exercices disponibles</h3>
       
       <!-- Bouton pour ajouter au dictionnaire personnel (masqué si révision du dictionnaire personnel) -->
-      <!-- DEBUG: isPersonalDictionaryRevision={{isPersonalDictionaryRevision}}, gameComplete={{gameComplete}} -->
       <ion-button 
-        *ngIf="!isPersonalDictionaryRevision"
         (click)="openDictionaryModal()" 
         expand="block" 
         color="medium" 

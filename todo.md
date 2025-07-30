@@ -39,9 +39,9 @@ révision du système de POM (implémenter les principes de mémorisation espac�
 
 ~~notification~~
 
-révision dico perso : ajouterp ossibilité de marquer mot comme connu puis diagramme en rond avec nb de mots connus sur nombre total de mots 
+~~révision dico perso : ajouterp ossibilité de marquer mot comme connu puis diagramme en rond avec nb de mots connus sur nombre total de mots ~~
 
-- mise en place du focus mode -->
+<!-- mise en place du focus mode  -->
 
 à la fin des session de révision classique d'apprentissage de nouveaux mots, les mots qui sont déjà dans le dico ça doit être impossible de les jouter on doit voir s'ils y sont déjà
 

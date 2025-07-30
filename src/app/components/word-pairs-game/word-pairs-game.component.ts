@@ -132,16 +132,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       try {
         this.wordPairs = JSON.parse(wordPairsJson);
         this.sessionInfo = JSON.parse(sessionInfoJson);
-        
-        // Initialiser explicitement isPersonalDictionaryRevision
         this.isPersonalDictionaryRevision = isPersonalRevision === 'true';
-        console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision initialisé à:', this.isPersonalDictionaryRevision);
-        
-        // S'assurer que isPersonalDictionaryRevision est explicitement false pour les sessions normales
-        if (!this.isPersonalDictionaryRevision) {
-          localStorage.setItem('isPersonalDictionaryRevision', 'false');
-          console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision explicitement défini à false dans localStorage');
-        }
         
         // Charger les mots révisés si c'est une révision du dictionnaire personnel
         if (this.isPersonalDictionaryRevision && revisedWordsJson) {
@@ -162,7 +153,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision:', this.isPersonalDictionaryRevision);
         console.log('🔍 [WordPairsGame] revisedWords.length:', this.revisedWords.length);
         console.log('🔍 [WordPairsGame] gameComplete:', this.gameComplete);
-        console.log('🔍 [WordPairsGame] Bouton "Ajouter au dictionnaire" visible:', !this.isPersonalDictionaryRevision && this.gameComplete);
         
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
