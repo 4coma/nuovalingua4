@@ -34,43 +34,60 @@
       
       <ion-item-sliding *ngFor="let word of filteredWords">
         <ion-item (click)="editWord(word)">
-          <ion-grid>
-            <ion-row>
-              <!-- Mot source et cible -->
-              <ion-col size="12">
-                <div class="word-pair">
-                  <div class="word source-word">
-                    <strong>{{ word.sourceWord }}</strong>
-                    <small>{{ getLanguageName(word.sourceLang) }}</small>
-                  </div>
-                  <ion-icon name="arrow-forward-outline"></ion-icon>
-                  <div class="word target-word">
-                    <strong>{{ word.targetWord }}</strong>
-                    <small>{{ getLanguageName(word.targetLang) }}</small>
-                  </div>
-                </div>
-              </ion-col>
-            </ion-row>
+          <ion-label>
+            <!-- Mot source et cible -->
+            <div class="word-pair">
+              <div class="word source-word">
+                <strong>{{ word.sourceWord }}</strong>
+                <small>{{ getLanguageName(word.sourceLang) }}</small>
+              </div>
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+              <div class="word target-word">
+                <strong>{{ word.targetWord }}</strong>
+                <small>{{ getLanguageName(word.targetLang) }}</small>
+              </div>
+            </div>
             
             <!-- Informations supplémentaires -->
-            <ion-row *ngIf="word.contextualMeaning">
-              <ion-col size="12">
-                <div class="meaning">
-                  <p>{{ word.contextualMeaning }}</p>
-                </div>
-              </ion-col>
-            </ion-row>
+            <div *ngIf="word.contextualMeaning" class="meaning">
+              <p>{{ word.contextualMeaning }}</p>
+            </div>
             
             <!-- Catégorie grammaticale et date d'ajout -->
-            <ion-row>
-              <ion-col size="6" *ngIf="word.partOfSpeech">
-                <small class="part-of-speech">{{ word.partOfSpeech }}</small>
-              </ion-col>
-              <ion-col size="6" [attr.size]="word.partOfSpeech ? '6' : '12'" class="text-right">
-                <small class="date-added">Ajouté le {{ getFormattedDate(word.dateAdded) }}</small>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
+            <div class="word-info">
+              <span *ngIf="word.partOfSpeech" class="part-of-speech">{{ word.partOfSpeech }}</span>
+              <span class="date-added">Ajouté le {{ getFormattedDate(word.dateAdded) }}</span>
+            </div>
+          </ion-label>
+          
+          <!-- Contrôles de révision -->
+          <div class="revision-controls">
+            <div class="revision-delay-control">
+              <small>Prochaine révision :</small>
+              <ion-select 
+                [(ngModel)]="word.revisionDelay" 
+                (ionChange)="onRevisionDelayChange(word)"
+                placeholder="Délai"
+                interface="popover"
+                class="revision-delay-select">
+                <ion-select-option value="1j">1 jour</ion-select-option>
+                <ion-select-option value="3j">3 jours</ion-select-option>
+                <ion-select-option value="7j">7 jours</ion-select-option>
+                <ion-select-option value="15j">15 jours</ion-select-option>
+                <ion-select-option value="1m">1 mois</ion-select-option>
+                <ion-select-option value="3m">3 mois</ion-select-option>
+                <ion-select-option value="6m">6 mois</ion-select-option>
+              </ion-select>
+            </div>
+            <div class="known-status-control">
+              <ion-toggle 
+                [(ngModel)]="word.isKnown" 
+                (ionChange)="onKnownStatusChange(word)"
+                class="known-toggle">
+                <ion-label>Connu</ion-label>
+              </ion-toggle>
+            </div>
+          </div>
         </ion-item>
         
         <!-- Options de glissement (édition et suppression) -->

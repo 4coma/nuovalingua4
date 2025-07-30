@@ -100,20 +100,28 @@
               <h4>{{ word.sourceWord }} → {{ word.targetWord }}</h4>
               <p *ngIf="word.context" class="word-context">{{ word.context }}</p>
             </ion-label>
-            <ion-select 
-              [(ngModel)]="word.revisionDelay" 
-              (ionChange)="onRevisionDelayChange(word)"
-              placeholder="Délai"
-              interface="popover"
-              class="revision-delay-select">
-              <ion-select-option value="1j">1 jour</ion-select-option>
-              <ion-select-option value="3j">3 jours</ion-select-option>
-              <ion-select-option value="7j">7 jours</ion-select-option>
-              <ion-select-option value="15j">15 jours</ion-select-option>
-              <ion-select-option value="1m">1 mois</ion-select-option>
-              <ion-select-option value="3m">3 mois</ion-select-option>
-              <ion-select-option value="6m">6 mois</ion-select-option>
-            </ion-select>
+            <div class="word-controls">
+              <ion-select 
+                [(ngModel)]="word.revisionDelay" 
+                (ionChange)="onRevisionDelayChange(word)"
+                placeholder="Délai"
+                interface="popover"
+                class="revision-delay-select">
+                <ion-select-option value="1j">1 jour</ion-select-option>
+                <ion-select-option value="3j">3 jours</ion-select-option>
+                <ion-select-option value="7j">7 jours</ion-select-option>
+                <ion-select-option value="15j">15 jours</ion-select-option>
+                <ion-select-option value="1m">1 mois</ion-select-option>
+                <ion-select-option value="3m">3 mois</ion-select-option>
+                <ion-select-option value="6m">6 mois</ion-select-option>
+              </ion-select>
+              <ion-toggle 
+                [(ngModel)]="word.isKnown" 
+                (ionChange)="onKnownStatusChange(word)"
+                class="known-toggle">
+                <ion-label>Connu</ion-label>
+              </ion-toggle>
+            </div>
           </ion-item>
         </ion-list>
         

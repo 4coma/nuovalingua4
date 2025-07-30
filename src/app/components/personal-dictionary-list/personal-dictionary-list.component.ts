@@ -54,6 +54,14 @@ export class PersonalDictionaryListComponent implements OnInit {
   loadDictionary() {
     this.isLoading = true;
     this.dictionaryWords = this.dictionaryService.getAllWords();
+    
+    // Calculer les délais de révision pour l'affichage
+    this.dictionaryWords.forEach(word => {
+      if (word.minRevisionDate) {
+        word.revisionDelay = this.calculateDelayFromTimestamp(word.minRevisionDate);
+      }
+    });
+    
     this.sortWords();
     this.filterWords();
     this.isLoading = false;
@@ -189,18 +197,124 @@ export class PersonalDictionaryListComponent implements OnInit {
   }
 
   /**
-   * Ouvre le modal pour ajouter un mot au dictionnaire personnel
+   * Ouvre le modal pour ajouter un nouveau mot
    */
   async openAddWordModal() {
     const modal = await this.modalController.create({
       component: AddWordComponent,
-      cssClass: 'add-word-modal'
+      componentProps: {
+        isModal: true
+      }
     });
-    
+
     await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data && data.wordAdded) {
+      this.loadDictionary();
+      this.showToast('Mot ajouté avec succès !');
+    }
+  }
+
+  /**
+   * Gère le changement de délai de révision pour un mot
+   */
+  onRevisionDelayChange(word: DictionaryWord) {
+    console.log('Délai de révision changé pour:', word.sourceWord, '→', word.revisionDelay);
     
-    // Rafraîchir la liste quand le modal est fermé
-    const { data } = await modal.onDidDismiss();
-    this.loadDictionary();
+    if (word.revisionDelay) {
+      const delayInMs = this.calculateDelayInMs(word.revisionDelay);
+      if (delayInMs !== null) {
+        word.minRevisionDate = Date.now() + delayInMs;
+      } else {
+        word.minRevisionDate = undefined;
+      }
+    } else {
+      word.minRevisionDate = undefined;
+    }
+    
+    // Sauvegarder le mot entier pour persister revisionDelay et minRevisionDate
+    const success = this.dictionaryService.updateWord(word);
+    if (success) {
+      console.log(`Délai de révision mis à jour pour ${word.sourceWord}: ${word.revisionDelay}`);
+    }
+  }
+
+  /**
+   * Gère le changement de statut "connu" pour un mot
+   */
+  onKnownStatusChange(word: DictionaryWord) {
+    console.log('Statut "connu" changé pour:', word.sourceWord, '→', word.isKnown);
+    
+    // Sauvegarder le mot entier pour persister isKnown
+    const success = this.dictionaryService.updateWord(word);
+    if (success) {
+      console.log(`Statut 'connu' mis à jour pour ${word.sourceWord}: ${word.isKnown}`);
+    }
+  }
+
+  /**
+   * Calcule le délai en millisecondes à partir d'une chaîne de délai
+   */
+  private calculateDelayInMs(delay: string): number | null {
+    const oneDay = 24 * 60 * 60 * 1000;
+    const oneMonth = 30 * oneDay; // Approximation
+    
+    switch (delay) {
+      case '1j':
+        return oneDay;
+      case '3j':
+        return 3 * oneDay;
+      case '7j':
+        return 7 * oneDay;
+      case '15j':
+        return 15 * oneDay;
+      case '1m':
+        return oneMonth;
+      case '3m':
+        return 3 * oneMonth;
+      case '6m':
+        return 6 * oneMonth;
+      default:
+        console.warn('Délai de révision non reconnu:', delay);
+        return null;
+    }
+  }
+
+  /**
+   * Calcule le délai de révision à partir d'une date minimale de révision
+   */
+  private calculateDelayFromTimestamp(minRevisionDate: number): string | undefined {
+    const now = Date.now();
+    const diffInMs = minRevisionDate - now;
+
+    if (diffInMs <= 0) {
+      return undefined; // Pas de délai ou délai déjà passé
+    }
+
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+    if (diffInDays < 1) {
+      return '1j'; // Moins d'un jour
+    }
+    if (diffInDays < 3) {
+      return '3j'; // Moins de 3 jours
+    }
+    if (diffInDays < 7) {
+      return '7j'; // Moins de 7 jours
+    }
+    if (diffInDays < 15) {
+      return '15j'; // Moins de 15 jours
+    }
+    if (diffInDays < 30) {
+      return '1m'; // Moins d'un mois
+    }
+    if (diffInDays < 90) {
+      return '3m'; // Moins de 3 mois
+    }
+    if (diffInDays < 180) {
+      return '6m'; // Moins de 6 mois
+    }
+    return undefined; // Plus de 6 mois
   }
 } 

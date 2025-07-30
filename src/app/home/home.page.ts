@@ -72,7 +72,8 @@ export class HomePage {
         sourceWord: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
         targetWord: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
         context: word.contextualMeaning,
-        revisionDelay: undefined // Sera défini par l'utilisateur
+        revisionDelay: undefined, // Sera défini par l'utilisateur
+        isKnown: word.isKnown || false // Récupérer le statut existant ou false par défaut
       }));
 
       console.log('🔍 [HomePage] Mots révisés créés:', revisedWords.length);

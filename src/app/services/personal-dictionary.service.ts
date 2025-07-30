@@ -16,7 +16,9 @@ export interface DictionaryWord {
   partOfSpeech?: string;
   examples?: string[];
   dateAdded: number;
-  minRevisionDate?: number; // Timestamp de la date minimum pour la révision (null = pas de restriction)
+  minRevisionDate?: number; // Timestamp de la date minimum pour la révision (undefined = pas de restriction)
+  isKnown?: boolean; // Si le mot est marqué comme connu
+  revisionDelay?: string; // Délai de révision sélectionné ('1j', '3j', '7j', '15j', '1m', '3m', '6m')
 }
 
 export interface TranslationResponse {
@@ -159,13 +161,36 @@ export class PersonalDictionaryService {
   }
 
   /**
-   * Obtient les mots disponibles pour la révision (filtrés par minRevisionDate)
+   * Marque un mot comme connu ou non connu
+   */
+  setWordKnownStatus(wordId: string, isKnown: boolean): boolean {
+    const words = this.getAllWords();
+    const wordIndex = words.findIndex(w => w.id === wordId);
+    
+    if (wordIndex !== -1) {
+      words[wordIndex].isKnown = isKnown;
+      localStorage.setItem(this.storageKey, JSON.stringify(words));
+      console.log(`Statut 'connu' mis à jour pour ${words[wordIndex].sourceWord}: ${isKnown}`);
+      return true;
+    }
+    
+    console.log('Mot non trouvé pour la mise à jour du statut connu');
+    return false;
+  }
+
+  /**
+   * Obtient les mots disponibles pour la révision (filtrés par minRevisionDate et isKnown)
    */
   getAvailableWordsForRevision(): DictionaryWord[] {
     const allWords = this.getAllWords();
     const currentTimestamp = Date.now();
     
     return allWords.filter(word => {
+      // Exclure les mots marqués comme connus
+      if (word.isKnown) {
+        return false;
+      }
+      
       // Si minRevisionDate n'est pas définie, le mot est disponible
       if (!word.minRevisionDate) {
         return true;

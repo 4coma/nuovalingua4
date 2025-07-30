@@ -29,6 +29,7 @@ interface RevisedWord {
   targetWord: string;
   context?: string;
   revisionDelay?: string; // '1j', '3j', '7j', '15j', '1m', '3m', '6m'
+  isKnown?: boolean; // Indique si le mot est déjà connu
 }
 
 @Component({
@@ -713,6 +714,13 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Gère le changement de statut "connu" pour un mot
+   */
+  onKnownStatusChange(word: RevisedWord) {
+    console.log('Statut "connu" changé pour:', word.sourceWord, '→', word.isKnown);
+  }
+
+  /**
    * Sauvegarde les délais de révision dans le dictionnaire personnel
    */
   async saveRevisionDelays() {
@@ -724,9 +732,20 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     try {
       const personalDictionaryService = this.injector.get(PersonalDictionaryService);
       let savedCount = 0;
+      let knownCount = 0;
       
       for (const word of this.revisedWords) {
-        if (word.revisionDelay) {
+        // Sauvegarder le statut "connu"
+        if (word.isKnown !== undefined) {
+          const success = personalDictionaryService.setWordKnownStatus(word.id, word.isKnown);
+          if (success) {
+            knownCount++;
+            console.log(`Statut 'connu' sauvegardé pour ${word.sourceWord}: ${word.isKnown}`);
+          }
+        }
+        
+        // Sauvegarder le délai de révision (seulement si le mot n'est pas marqué comme connu)
+        if (word.revisionDelay && !word.isKnown) {
           const delayInMs = this.calculateDelayInMs(word.revisionDelay);
           if (delayInMs !== null) {
             const minRevisionDate = Date.now() + delayInMs;
@@ -739,8 +758,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         }
       }
       
-      if (savedCount > 0) {
-        console.log(`🔍 [WordPairsGame] ${savedCount} délais de révision sauvegardés automatiquement`);
+      if (savedCount > 0 || knownCount > 0) {
+        console.log(`🔍 [WordPairsGame] ${savedCount} délais de révision et ${knownCount} statuts 'connu' sauvegardés automatiquement`);
         
         // Vider la liste des mots révisés après sauvegarde
         this.revisedWords = [];
