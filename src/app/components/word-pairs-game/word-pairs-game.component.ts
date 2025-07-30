@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, ModalController } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -44,7 +44,7 @@ interface RevisedWord {
     FormsModule
   ]
 })
-export class WordPairsGameComponent implements OnInit {
+export class WordPairsGameComponent implements OnInit, OnDestroy {
   pageTitle: string = 'Associer les mots';
   
   // Pour le jeu
@@ -496,90 +496,66 @@ export class WordPairsGameComponent implements OnInit {
   }
 
   /**
-   * Recommence l'exercice complet
+   * Recommence l'exercice actuel
    */
   restartExercise() {
-    // Réinitialiser les statistiques
+    this.saveRevisionDelays(); // Sauvegarder avant de recommencer
     this.matchedPairs = 0;
     this.attempts = 0;
-    this.currentPairsSet = 1;
     this.gameComplete = false;
+    this.selectedPair = null;
+    this.selectedWordId = null;
+    this.errorShown = false;
     this.failedWords = [];
     this.hasFailedWords = false;
-    
-    // Préparer le jeu
     this.setupCurrentGameRound();
-    
-    this.showToast('Exercice recommencé');
   }
 
   /**
-   * Recommence uniquement avec les mots ratés
+   * Recommence avec seulement les mots ratés
    */
   restartFailedWords() {
+    this.saveRevisionDelays(); // Sauvegarder avant de recommencer
     if (this.failedWords.length === 0) {
       this.showToast('Aucun mot raté à recommencer');
       return;
     }
     
     // Créer un nouveau jeu avec seulement les mots ratés
-    const failedWordPairs = this.failedWords.map(id => this.wordPairs[id]);
+    const failedPairs = this.currentPairs.filter(pair => 
+      this.failedWords.includes(pair.id)
+    );
     
-    // Stocker temporairement les mots ratés pour le nouveau jeu
-    localStorage.setItem('wordPairs', JSON.stringify(failedWordPairs));
+    if (failedPairs.length === 0) {
+      this.showToast('Aucun mot raté disponible');
+      return;
+    }
     
-    // Réinitialiser les statistiques
+    this.currentPairs = failedPairs;
     this.matchedPairs = 0;
     this.attempts = 0;
-    this.currentPairsSet = 1;
     this.gameComplete = false;
+    this.selectedPair = null;
+    this.selectedWordId = null;
+    this.errorShown = false;
     this.failedWords = [];
     this.hasFailedWords = false;
-    
-    // Mettre à jour les données de session
-    this.wordPairs = failedWordPairs;
-    this.totalPairs = this.wordPairs.length;
-    
-    // Préparer le nouveau jeu
     this.setupCurrentGameRound();
-    
-    this.showToast(`Recommencement avec ${failedWordPairs.length} mots ratés`);
   }
   
   /**
    * Navigue vers l'exercice de vocabulaire
    */
   goToVocabularyExercise() {
-    // Créer un exercice de vocabulaire à partir des paires de mots
-    const direction = this.sessionInfo?.translationDirection || 'fr2it';
-    
-    // Pour le vocabulaire/encodage, on veut que l'utilisateur traduise dans la direction OPPOSÉE
-    // à celle utilisée dans l'association
-    const vocabularyExercise = {
-      items: this.wordPairs.map(pair => {
-        // Inverser la direction pour l'exercice d'encodage
-        // Si mode fr2it en association, utiliser it2fr pour l'encodage
-        return {
-          word: direction === 'fr2it' ? pair.it : pair.fr,
-          translation: direction === 'fr2it' ? pair.fr : pair.it,
-          context: pair.context
-        };
-      }),
-      type: 'vocabulary',
-      topic: this.sessionInfo?.topic || 'Vocabulaire'
-    };
-    
-    // Stocker l'exercice dans le localStorage
-    localStorage.setItem('vocabularyExercise', JSON.stringify(vocabularyExercise));
-    
-    // Naviguer vers l'exercice de vocabulaire
-    this.router.navigate(['/vocabulary']);
+    this.saveRevisionDelays(); // Sauvegarder avant de naviguer
+    this.router.navigate(['/vocabulary-exercise']);
   }
   
   /**
    * Génère un texte de compréhension écrite
    */
   async generateWrittenComprehension() {
+    this.saveRevisionDelays(); // Sauvegarder avant de générer
     // Demander à l'utilisateur s'il veut préciser des thèmes
     const modal = await this.modalController.create({
       component: ThemeSelectionModalComponent,
@@ -629,9 +605,11 @@ export class WordPairsGameComponent implements OnInit {
   }
   
   /**
-   * Génère un texte de compréhension orale
+   * Génère un exercice de compréhension orale
    */
   async generateOralComprehension() {
+    this.saveRevisionDelays(); // Sauvegarder avant de générer
+    this.isGenerating = true;
     // Demander à l'utilisateur s'il veut préciser des thèmes
     const modal = await this.modalController.create({
       component: ThemeSelectionModalComponent,
@@ -649,8 +627,6 @@ export class WordPairsGameComponent implements OnInit {
       translation: pair.fr,
       context: pair.context
     }));
-    
-    this.isGenerating = true;
     
     // Générer le texte de compréhension via le service avec les thèmes sélectionnés
     this.textGeneratorService.generateComprehensionText(this.wordPairs, 'oral', selectedThemes).subscribe({
@@ -740,29 +716,39 @@ export class WordPairsGameComponent implements OnInit {
    * Sauvegarde les délais de révision dans le dictionnaire personnel
    */
   async saveRevisionDelays() {
+    // Ne sauvegarder que si c'est une révision du dictionnaire personnel et qu'il y a des mots révisés
+    if (!this.isPersonalDictionaryRevision || this.revisedWords.length === 0) {
+      return;
+    }
+
     try {
       const personalDictionaryService = this.injector.get(PersonalDictionaryService);
+      let savedCount = 0;
       
       for (const word of this.revisedWords) {
         if (word.revisionDelay) {
           const delayInMs = this.calculateDelayInMs(word.revisionDelay);
           if (delayInMs !== null) {
             const minRevisionDate = Date.now() + delayInMs;
-            personalDictionaryService.setMinRevisionDate(word.id, minRevisionDate);
-            console.log(`Date de révision définie pour ${word.sourceWord}: ${new Date(minRevisionDate).toLocaleDateString()}`);
+            const success = personalDictionaryService.setMinRevisionDate(word.id, minRevisionDate);
+            if (success) {
+              savedCount++;
+              console.log(`Date de révision définie pour ${word.sourceWord}: ${new Date(minRevisionDate).toLocaleDateString()}`);
+            }
           }
         }
       }
       
-      await this.showToast('Délais de révision sauvegardés avec succès !');
-      
-      // Vider la liste des mots révisés après sauvegarde
-      this.revisedWords = [];
-      localStorage.removeItem('revisedWords');
+      if (savedCount > 0) {
+        console.log(`🔍 [WordPairsGame] ${savedCount} délais de révision sauvegardés automatiquement`);
+        
+        // Vider la liste des mots révisés après sauvegarde
+        this.revisedWords = [];
+        localStorage.removeItem('revisedWords');
+      }
       
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde des délais de révision:', error);
-      await this.showToast('Erreur lors de la sauvegarde des délais de révision');
+      console.error('Erreur lors de la sauvegarde automatique des délais de révision:', error);
     }
   }
 
@@ -793,5 +779,9 @@ export class WordPairsGameComponent implements OnInit {
         console.warn('Délai de révision non reconnu:', delay);
         return null;
     }
+  }
+
+  ngOnDestroy() {
+    this.saveRevisionDelays();
   }
 } 

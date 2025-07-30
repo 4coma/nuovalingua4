@@ -39,7 +39,11 @@ révision du système de POM (implémenter les principes de mémorisation espac�
 
 ~~notification~~
 
-rectifications diverses
+corrections du POM révisions espacées
+
+notifications particulière si mots ajoutés pendant la journée, pour la notification quotidienne
+
+ajout d'une notification supplémentaire le matin par exemple avec génération d'une compréhension à l'audition (s/b mots mémorisation espacée ou dico perso)
 
 procédure d'import et d'export ou sauvegarde avec firebase ou supabase
 
