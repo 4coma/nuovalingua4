@@ -161,7 +161,6 @@ export class LlmService {
       - Passé composé : "it": "ho mangiato", "fr": "j'ai mangé"
       etc.
       
-      Varie les personnes (je, tu, il/elle, nous, vous, ils/elles). 
       Pour la 3e personne du singulier et du pluriel, utilise uniquement le masculin.
       IMPORTANT : Évite les formulations ambiguës comme "ils/elles" ou "lui/lei". 
       Fais toujours un choix clair : utilise "il" ou "elle" pour le singulier, "ils" pour le pluriel.

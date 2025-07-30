@@ -28,8 +28,19 @@ export class SpacedRepetitionService {
 
     const allWords = this.vocabularyTrackingService.getAllTrackedWords();
 
+    // Filtrer pour ne garder que les mots du dictionnaire personnel
+    const personalDictionaryWords = this.getPersonalDictionaryWords();
+    const filteredWords = allWords.filter(word => 
+      personalDictionaryWords.some(dictWord => 
+        dictWord.sourceWord.toLowerCase() === word.word.toLowerCase() ||
+        dictWord.targetWord.toLowerCase() === word.word.toLowerCase() ||
+        dictWord.sourceWord.toLowerCase() === word.translation.toLowerCase() ||
+        dictWord.targetWord.toLowerCase() === word.translation.toLowerCase()
+      )
+    );
+
     // Trier tous les mots par EF croissant (plus faible en premier)
-    const sortedWords = allWords.sort((a, b) => {
+    const sortedWords = filteredWords.sort((a, b) => {
       const aEF = a.eFactor ?? 2.5;
       const bEF = b.eFactor ?? 2.5;
       return aEF - bEF;
@@ -38,7 +49,7 @@ export class SpacedRepetitionService {
     // Prendre les N mots avec le plus faible EF
     const selectedWords = sortedWords.slice(0, count);
 
-    console.log('🔍 [SpacedRepetition] === MOTS SÉLECTIONNÉS PAR EF ===');
+    console.log('🔍 [SpacedRepetition] === MOTS SÉLECTIONNÉS PAR EF (DICTIONNAIRE PERSONNEL) ===');
     selectedWords.forEach((word, index) => {
       console.log(`🔍 [SpacedRepetition] ${index + 1}. "${word.word}" (${word.translation}) - EF: ${word.eFactor?.toFixed(2) || 'N/A'}`);
     });
@@ -112,5 +123,21 @@ export class SpacedRepetitionService {
       averageEF: averageEF,
       nextReviewDate: nextReview
     };
+  }
+
+  /**
+   * Récupère les mots du dictionnaire personnel
+   */
+  private getPersonalDictionaryWords(): any[] {
+    try {
+      const storedWords = localStorage.getItem('personalDictionary');
+      if (storedWords) {
+        return JSON.parse(storedWords);
+      }
+      return [];
+    } catch (error) {
+      console.error('Erreur lors de la récupération du dictionnaire personnel:', error);
+      return [];
+    }
   }
 } 
