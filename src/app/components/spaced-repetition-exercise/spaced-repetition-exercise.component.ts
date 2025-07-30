@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, AlertController, ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
@@ -38,7 +38,7 @@ interface ExerciseItem {
     FormsModule
   ]
 })
-export class SpacedRepetitionExerciseComponent implements OnInit {
+export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
   pageTitle: string = 'Mémorisation espacée';
   
   wordPairs: WordPair[] = [];
@@ -82,6 +82,8 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
     context?: string;
     quality: number;
   }> = [];
+
+  private autoSaved = false;
 
   constructor(
     private router: Router,
@@ -152,6 +154,26 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
    */
   loadStats() {
     this.stats = this.spacedRepetitionService.getSpacedRepetitionStats();
+  }
+
+  ngOnDestroy() {
+    this.autoSaveSession();
+  }
+
+  /**
+   * Enregistre les résultats de la session si ce n'est pas déjà fait
+   */
+  private autoSaveSession() {
+    if (this.autoSaved || this.reviewedWords.length === 0) {
+      return;
+    }
+
+    for (const word of this.reviewedWords) {
+      const wordId = this.vocabularyTrackingService.generateWordId(word.it, word.fr);
+      this.spacedRepetitionService.updateWordAfterReview(wordId, word.quality);
+    }
+
+    this.autoSaved = true;
   }
   
   /**
@@ -269,6 +291,7 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
    * Termine l'exercice et retourne à l'accueil
    */
   finishExercise() {
+    this.autoSaveSession();
     this.router.navigate(['/home']);
   }
 
@@ -276,12 +299,8 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
   async validateSession() {
     console.log('🔍 [SpacedRepetition] validateSession() appelée');
     console.log('🔍 [SpacedRepetition] Mots à traiter:', this.reviewedWords);
-    
-    for (const word of this.reviewedWords) {
-      const wordId = this.vocabularyTrackingService.generateWordId(word.it, word.fr);
-      console.log('🔍 [SpacedRepetition] Traitement du mot:', word.it, 'qualité:', word.quality, 'ID:', wordId);
-      this.spacedRepetitionService.updateWordAfterReview(wordId, word.quality);
-    }
+
+    this.autoSaveSession();
     
     // Vérifier s'il reste des mots à revoir
     const allWords = this.vocabularyTrackingService.getAllTrackedWords();
@@ -375,6 +394,7 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
     this.reviewedWords = [];
     this.showQualityOptions = false;
     this.currentWordId = '';
+    this.autoSaved = false;
   }
 
   private async showToast(message: string) {
@@ -420,6 +440,7 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
   }
 
   async launchComprehension(type: 'written' | 'oral') {
+    this.autoSaveSession();
     // Ouvre le modal pour le choix des thèmes
     const modal = await this.modalController.create({
       component: ThemeSelectionModalComponent,
@@ -470,6 +491,7 @@ export class SpacedRepetitionExerciseComponent implements OnInit {
   }
 
   continueRevision() {
+    this.autoSaveSession();
     // Relance la révision avec les mots restants
     const allWords = this.vocabularyTrackingService.getAllTrackedWords();
     const dueWords = allWords.filter(w => w.nextReview && w.nextReview <= Date.now());
