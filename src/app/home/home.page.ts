@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, MenuController } from '@ionic/angular';
+import { IonicModule, MenuController, ToastController } from '@ionic/angular';
 import { RouterModule, Router } from '@angular/router';
+import { PersonalDictionaryService } from '../services/personal-dictionary.service';
+import { StorageService } from '../services/storage.service';
 
 @Component({
   selector: 'app-home',
@@ -19,7 +21,10 @@ export class HomePage {
 
   constructor(
     private router: Router,
-    private menuController: MenuController
+    private menuController: MenuController,
+    private personalDictionaryService: PersonalDictionaryService,
+    private storageService: StorageService,
+    private toastController: ToastController
   ) {}
 
   onDiscussionClick() {
@@ -28,6 +33,73 @@ export class HomePage {
 
   startSpacedRepetition() {
     this.router.navigate(['/spaced-repetition']);
+  }
+
+  async startPersonalWordsRevision() {
+    try {
+      // Récupérer les mots du dictionnaire personnel
+      const personalWords = this.personalDictionaryService.getAllWords();
+      
+      if (personalWords.length === 0) {
+        const toast = await this.toastController.create({
+          message: 'Votre dictionnaire personnel est vide. Ajoutez d\'abord des mots !',
+          duration: 3000,
+          position: 'bottom',
+          color: 'warning'
+        });
+        await toast.present();
+        return;
+      }
+
+      // Sélectionner aléatoirement des mots (entre 6 et 12, ou tous si moins de 6)
+      const maxWords = Math.min(12, Math.max(6, personalWords.length));
+      const selectedWords = this.shuffleArray(personalWords).slice(0, maxWords);
+
+      // Créer les paires de mots pour l'exercice d'association
+      const wordPairs = selectedWords.map(word => ({
+        it: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
+        fr: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
+        context: word.contextualMeaning
+      }));
+
+      // Sauvegarder les données de session
+      const sessionInfo = {
+        category: 'Dictionnaire personnel',
+        topic: 'Révision personnalisée',
+        date: new Date().toISOString(),
+        translationDirection: 'fr2it' as const
+      };
+
+      // Sauvegarder dans le localStorage
+      this.storageService.set('sessionInfo', sessionInfo);
+      this.storageService.set('wordPairs', wordPairs);
+      this.storageService.set('isPersonalDictionaryRevision', true);
+
+      // Naviguer vers l'exercice d'association
+      this.router.navigate(['/word-pairs-game']);
+
+    } catch (error) {
+      console.error('Erreur lors du démarrage de la révision personnalisée:', error);
+      const toast = await this.toastController.create({
+        message: 'Erreur lors du démarrage de la révision',
+        duration: 3000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    }
+  }
+
+  /**
+   * Mélange un tableau d'éléments
+   */
+  private shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   }
 
   async forceOpenMenu() {

@@ -56,6 +56,8 @@ export class WordPairsGameComponent implements OnInit {
   // Pour les sessions générées
   generatedSessions: any[] = [];
 
+  // Pour identifier si c'est une révision du dictionnaire personnel
+  isPersonalDictionaryRevision: boolean = false;
   
   // Info de la session
   sessionInfo: { 
@@ -101,11 +103,13 @@ export class WordPairsGameComponent implements OnInit {
   loadSessionData() {
     const wordPairsJson = localStorage.getItem('wordPairs');
     const sessionInfoJson = localStorage.getItem('sessionInfo');
+    const isPersonalRevision = localStorage.getItem('isPersonalDictionaryRevision');
     
     if (wordPairsJson && sessionInfoJson) {
       try {
         this.wordPairs = JSON.parse(wordPairsJson);
         this.sessionInfo = JSON.parse(sessionInfoJson);
+        this.isPersonalDictionaryRevision = isPersonalRevision === 'true';
         
         // Préparer le jeu
         this.totalPairs = this.wordPairs.length;
