@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ToastController, ModalController } from '@ionic/angular';
+import { IonicModule, ToastController, ModalController, AlertController } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { WordPair, TranslationDirection, LlmService } from '../../services/llm.service';
 import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
@@ -50,35 +50,36 @@ interface RevisedWord {
 export class WordPairsGameComponent implements OnInit, OnDestroy {
   pageTitle: string = 'Associer les mots';
   
-  // Pour le jeu
+  // Propriétés pour le jeu d'association
   wordPairs: WordPair[] = [];
   currentPairs: GamePair[] = [];
   currentPairsSet: number = 1; // Première ou deuxième moitié (1 ou 2)
   gameComplete: boolean = false;
   
+  // État du jeu
   selectedPair: GamePair | null = null;
   selectedWordId: number | null = null;
   errorShown: boolean = false;
   isGenerating: boolean = false; // Pour la génération de textes de compréhension
   audioEnabled: boolean = true; // Pour activer/désactiver la prononciation audio
-
-  // Pour gérer les mots ratés
+  
+  // Pour les mots ratés
   failedWords: number[] = []; // IDs des mots ratés
   hasFailedWords: boolean = false; // Si il y a des mots ratés
-
+  
   // Pour les sessions générées
   generatedSessions: any[] = [];
-
-  // Pour identifier si c'est une révision du dictionnaire personnel
+  
+  // Pour la révision du dictionnaire personnel
   isPersonalDictionaryRevision: boolean = false;
   
-  // Pour le mode focus
+  // Pour le focus mode
   isFocusMode: boolean = false;
   
-  // Pour gérer les mots révisés dans la session
+  // Pour les mots révisés
   revisedWords: RevisedWord[] = [];
   
-  // Info de la session
+  // Informations de session
   sessionInfo: { 
     category: string; 
     topic: string; 
@@ -90,6 +91,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   matchedPairs: number = 0;
   totalPairs: number = 0;
   attempts: number = 0;
+
+  // Variable globale pour la clé API
+  private googleTtsApiKey: string | null = null;
   
   constructor(
     private router: Router,
@@ -101,7 +105,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     private speechService: SpeechService,
     private storageService: StorageService,
     private focusModeService: FocusModeService,
-    private injector: Injector
+    private injector: Injector,
+    private alertController: AlertController
   ) { }
 
   ngOnInit() {
@@ -169,10 +174,20 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   /**
    * Charge la préférence audio depuis le localStorage
    */
-  loadAudioPreference() {
+  async loadAudioPreference() {
     const savedAudioEnabled = localStorage.getItem('audioEnabled');
+    
+    // Charger la préférence audio d'abord
     if (savedAudioEnabled !== null) {
       this.audioEnabled = JSON.parse(savedAudioEnabled);
+    }
+    
+    // Récupérer la clé API Google TTS depuis le StorageService
+    this.googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
+    if (!this.googleTtsApiKey && this.audioEnabled) {
+      console.log('❌ Aucune clé API Google TTS trouvée. Affichage de la modale d\'alerte.');
+      await this.showApiKeyAlert();
+      return;
     }
   }
 
@@ -227,8 +242,17 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   /**
    * Bascule l'état audio (mute/unmute)
    */
-  toggleAudio() {
+  async toggleAudio() {
     this.audioEnabled = !this.audioEnabled;
+    
+    // Récupérer la clé API Google TTS depuis le StorageService
+    this.googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
+    if (!this.googleTtsApiKey && this.audioEnabled) {
+      console.log('❌ Aucune clé API Google TTS trouvée. Affichage de la modale d\'alerte.');
+      await this.showApiKeyAlert();
+      return;
+    }
+    
     this.saveAudioPreference();
     this.showToast(this.audioEnabled ? 'Prononciation activée' : 'Prononciation désactivée');
   }
@@ -413,10 +437,10 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       console.log('direction:', direction);
       console.log('mot italien à prononcer:', italianWord);
       
-      // Récupérer la clé API Google TTS depuis le StorageService
-      const googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
-      if (!googleTtsApiKey) {
-        console.log('❌ Aucune clé API Google TTS trouvée. Veuillez configurer votre clé dans les préférences.');
+      // Vérifier la clé API Google TTS
+      if (!this.googleTtsApiKey) {
+        console.log('❌ Aucune clé API Google TTS trouvée. Affichage de la modale d\'alerte.');
+        await this.showApiKeyAlert();
         return;
       }
       
@@ -428,7 +452,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       console.log('request envoyé à l\'API:', request);
       
       console.log('🔄 Envoi de la requête à l\'API Google TTS...');
-      const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${googleTtsApiKey}`, {
+      const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.googleTtsApiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),
@@ -469,6 +493,30 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         console.error('Stack trace:', error.stack);
       }
     }
+  }
+
+  /**
+   * Affiche une modale d'alerte pour configurer la clé API
+   */
+  async showApiKeyAlert() {
+    const alert = await this.alertController.create({
+      header: 'Clé API manquante',
+      message: 'Pour utiliser la prononciation audio des mots, vous devez configurer votre clé API Google Text-to-Speech dans les préférences. \n En attendant, vous pouvez désactiver les sons via l\'icone mute ci-dessus.' ,
+      buttons: [
+        {
+          text: 'Compris',
+          role: 'cancel'
+        },
+        {
+          text: 'Configurer',
+          handler: () => {
+            this.router.navigate(['/preferences']);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
   
   /**

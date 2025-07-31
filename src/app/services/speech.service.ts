@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { LoadingController, ToastController, AlertController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -37,7 +37,8 @@ export class SpeechService {
   constructor(
     private http: HttpClient,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private alertController: AlertController
   ) {}
 
   /**
@@ -49,7 +50,7 @@ export class SpeechService {
     // Vérifier que la clé API est configurée
     if (!this.apiKey) {
       console.error('🔍 SpeechService - Clé API OpenAI non configurée');
-      this.showErrorToast('Clé API OpenAI non configurée');
+      this.showApiKeyAlert();
       return of('');
     }
     
@@ -338,5 +339,26 @@ export class SpeechService {
       color: 'danger'
     });
     await toast.present();
+  }
+
+  /**
+   * Affiche une modale d'alerte pour la clé API non configurée
+   */
+  private async showApiKeyAlert(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Clé API OpenAI non configurée',
+      message: 'Veuillez configurer la clé API OpenAI dans le fichier environment.ts.',
+      buttons: [
+        {
+          text: 'OK',
+          handler: () => {
+            // Rediriger l'utilisateur vers la page de configuration
+            // Par exemple, si vous avez une page de configuration à /config
+            // window.location.href = '/config'; 
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 } 
