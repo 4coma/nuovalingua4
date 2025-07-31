@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LoadingController, ToastController, AlertController } from '@ionic/angular';
+import { StorageService } from './storage.service';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -38,7 +39,8 @@ export class SpeechService {
     private http: HttpClient,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private storageService: StorageService
   ) {}
 
   /**
@@ -47,8 +49,12 @@ export class SpeechService {
   generateSpeech(text: string, voice: string = 'nova', speed: number = 1.0): Observable<string> {
     console.log('🔍 SpeechService - Début de la génération audio pour:', text.substring(0, 50) + '...');
     
+    // Récupérer la clé API éventuellement définie par l'utilisateur
+    const userApiKey = this.storageService.get('userOpenaiApiKey');
+    const apiKeyToUse = userApiKey || this.apiKey;
+
     // Vérifier que la clé API est configurée
-    if (!this.apiKey) {
+    if (!apiKeyToUse) {
       console.error('🔍 SpeechService - Clé API OpenAI non configurée');
       this.showApiKeyAlert();
       return of('');
@@ -59,7 +65,7 @@ export class SpeechService {
     
     const headers = new HttpHeaders()
       .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${this.apiKey}`);
+      .set('Authorization', `Bearer ${apiKeyToUse}`);
     
     const data = {
       model: 'tts-1',
