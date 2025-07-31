@@ -9,6 +9,7 @@ import { filter } from 'rxjs/operators';
 import { StatusBar } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
 import { NotificationService } from './services/notification.service';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -83,6 +84,9 @@ export class AppComponent {
     
     // Initialiser le service de notification
     await this.notificationService.initialize();
+    
+    // Configurer la gestion des notifications
+    this.setupNotificationHandling();
     
     if (this.platform.is('android') || this.platform.is('ios')) {
       try {
@@ -279,5 +283,44 @@ export class AppComponent {
     });
     
     await modal.present();
+  }
+
+  /**
+   * Configure la gestion des notifications
+   */
+  private setupNotificationHandling() {
+    // Écouter les clics sur les notifications
+    LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
+      console.log('🔔 [Notification] Action effectuée:', notificationAction);
+      
+      // Vérifier si c'est notre notification quotidienne
+      if (notificationAction.notification.id === 1001 || notificationAction.notification.id === 9999) {
+        const extra = notificationAction.notification.extra;
+        
+        if (extra && extra.action === 'start_revision') {
+          console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
+          
+          // Lancer directement la révision du dictionnaire personnel
+          this.router.navigate(['/personal-dictionary']);
+        }
+      }
+    });
+
+    // Écouter les notifications reçues (quand l'app est fermée)
+    LocalNotifications.addListener('localNotificationReceived', (notification) => {
+      console.log('🔔 [Notification] Notification reçue:', notification);
+      
+      // Vérifier si c'est notre notification quotidienne
+      if (notification.id === 1001 || notification.id === 9999) {
+        const extra = notification.extra;
+        
+        if (extra && extra.action === 'start_revision') {
+          console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
+          
+          // Lancer directement la révision du dictionnaire personnel
+          this.router.navigate(['/personal-dictionary']);
+        }
+      }
+    });
   }
 }

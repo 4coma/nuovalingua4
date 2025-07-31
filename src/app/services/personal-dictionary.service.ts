@@ -5,6 +5,7 @@ import { catchError, map } from 'rxjs/operators';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
 import { VocabularyTrackingService, WordMastery } from './vocabulary-tracking.service';
+import { NotificationService } from './notification.service';
 
 export interface DictionaryWord {
   id: string;
@@ -45,7 +46,8 @@ export class PersonalDictionaryService {
     private http: HttpClient,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
-    private vocabularyTrackingService: VocabularyTrackingService
+    private vocabularyTrackingService: VocabularyTrackingService,
+    private notificationService: NotificationService
   ) {}
 
   /**
@@ -91,6 +93,9 @@ export class PersonalDictionaryService {
     
     // Ajouter automatiquement le mot au système de tracking SM-2
     this.addWordToSM2Tracking(word);
+    
+    // Mettre à jour la notification quotidienne avec le nombre de mots ajoutés aujourd'hui
+    this.updateDailyNotification();
     
     return true;
   }
@@ -444,5 +449,35 @@ export class PersonalDictionaryService {
     } catch (error) {
       console.error('Erreur lors de la mise à jour du tracking SM-2:', error);
     }
+  }
+
+  /**
+   * Compte le nombre de mots ajoutés aujourd'hui
+   */
+  countWordsAddedToday(): number {
+    const words = this.getAllWords();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Définir l'heure à minuit pour compter les mots ajoutés aujourd'hui
+
+    return words.filter(word => {
+      const wordDate = new Date(word.dateAdded);
+      wordDate.setHours(0, 0, 0, 0); // Définir l'heure à minuit pour compter les mots ajoutés aujourd'hui
+      return wordDate >= today;
+    }).length;
+  }
+
+  /**
+   * Met à jour la notification quotidienne avec le nombre de mots ajoutés aujourd'hui
+   */
+  private updateDailyNotification(): void {
+    const wordsAddedToday = this.countWordsAddedToday();
+    this.notificationService.updateNotificationMessageWithTodayWords(wordsAddedToday);
+  }
+
+  /**
+   * Réinitialise la notification au message par défaut (appelé au début de chaque jour)
+   */
+  resetDailyNotification(): void {
+    this.notificationService.resetNotificationMessage();
   }
 } 

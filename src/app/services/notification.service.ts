@@ -25,6 +25,9 @@ export class NotificationService {
       // Demander les permissions si nécessaire
       await this.requestPermissions();
       
+      // Configurer les actions de notification
+      await this.setupNotificationActions();
+      
       // Programmer la notification quotidienne si activée
       const settings = this.getSettings();
       if (settings.enabled) {
@@ -52,6 +55,32 @@ export class NotificationService {
       }
     } catch (error) {
       console.error('Erreur lors de la demande de permissions:', error);
+    }
+  }
+
+  /**
+   * Configure les actions de notification
+   */
+  private async setupNotificationActions(): Promise<void> {
+    try {
+      // Configurer l'action pour la révision quotidienne
+      await LocalNotifications.registerActionTypes({
+        types: [
+          {
+            id: 'DAILY_REVISION',
+            actions: [
+              {
+                id: 'start_revision',
+                title: 'Commencer la révision'
+              }
+            ]
+          }
+        ]
+      });
+      
+      console.log('🔔 [Notification] Actions configurées');
+    } catch (error) {
+      console.error('Erreur lors de la configuration des actions de notification:', error);
     }
   }
 
@@ -116,7 +145,7 @@ export class NotificationService {
         nextNotification.setDate(nextNotification.getDate() + 1);
       }
 
-      // Créer la notification
+      // Créer la notification avec action personnalisée
       await LocalNotifications.schedule({
         notifications: [
           {
@@ -129,9 +158,10 @@ export class NotificationService {
               every: 'day'
             },
             sound: 'default',
-            actionTypeId: 'OPEN_APP',
+            actionTypeId: 'DAILY_REVISION',
             extra: {
-              type: 'daily_reminder'
+              type: 'daily_reminder',
+              action: 'start_revision'
             }
           }
         ]
@@ -171,9 +201,10 @@ export class NotificationService {
             body: settings.message || 'Test de notification quotidienne',
             schedule: { at: new Date(Date.now() + 1000) }, // Dans 1 seconde
             sound: 'default',
-            actionTypeId: 'OPEN_APP',
+            actionTypeId: 'DAILY_REVISION',
             extra: {
-              type: 'test_notification'
+              type: 'test_notification',
+              action: 'start_revision'
             }
           }
         ]
@@ -248,5 +279,40 @@ export class NotificationService {
     }
     settings.message = newMessage;
     this.saveSettings(settings);
+  }
+
+  /**
+   * Met à jour dynamiquement le message de notification en fonction des mots ajoutés aujourd'hui
+   */
+  async updateNotificationMessageWithTodayWords(wordsAddedToday: number): Promise<void> {
+    const settings = this.getSettings();
+    let message = settings.message; // Message par défaut
+    
+    if (wordsAddedToday > 0) {
+      // Message personnalisé avec le nombre de mots ajoutés aujourd'hui
+      if (wordsAddedToday === 1) {
+        message = `Vous avez ajouté 1 nouveau mot aujourd'hui ! Il serait bon de le réviser. 🇮🇹`;
+      } else {
+        message = `Vous avez ajouté ${wordsAddedToday} nouveaux mots aujourd'hui ! Il serait bon de les réviser. 🇮🇹`;
+      }
+    }
+    // Si aucun mot ajouté, garder le message par défaut
+    
+    if (settings.enabled) {
+      await this.scheduleDailyNotification(settings.time, message);
+    }
+    
+    console.log('🔔 [Notification] Message mis à jour:', message);
+  }
+
+  /**
+   * Réinitialise le message de notification au message par défaut
+   */
+  async resetNotificationMessage(): Promise<void> {
+    const settings = this.getSettings();
+    if (settings.enabled) {
+      await this.scheduleDailyNotification(settings.time, settings.message);
+    }
+    console.log('🔔 [Notification] Message réinitialisé au message par défaut');
   }
 } 
