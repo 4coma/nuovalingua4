@@ -10,6 +10,9 @@ import { StatusBar } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
 import { NotificationService } from './services/notification.service';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { PersonalDictionaryService } from './services/personal-dictionary.service';
+import { StorageService } from './services/storage.service';
+import { ToastController } from '@ionic/angular';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -70,7 +73,10 @@ export class AppComponent {
     private modalController: ModalController,
     private platform: Platform,
     private menuController: MenuController,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private personalDictionaryService: PersonalDictionaryService,
+    private storageService: StorageService,
+    private toastController: ToastController
   ) {
     this.setupRouteListener();
     this.initializeApp();
@@ -301,7 +307,7 @@ export class AppComponent {
           console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
           
           // Lancer directement la révision du dictionnaire personnel
-          this.router.navigate(['/personal-dictionary']);
+          this.startPersonalDictionaryRevision();
         }
       }
     });
@@ -318,9 +324,98 @@ export class AppComponent {
           console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
           
           // Lancer directement la révision du dictionnaire personnel
-          this.router.navigate(['/personal-dictionary']);
+          this.startPersonalDictionaryRevision();
         }
       }
     });
+  }
+
+  /**
+   * Lance directement une session de révision du dictionnaire personnel
+   */
+  private async startPersonalDictionaryRevision() {
+    try {
+      // Récupérer les mots disponibles pour la révision (filtrés par minRevisionDate)
+      const availableWords = this.personalDictionaryService.getAvailableWordsForRevision();
+      
+      if (availableWords.length === 0) {
+        const toast = await this.toastController.create({
+          message: 'Aucun mot disponible pour la révision à ce moment. Vérifiez les dates de révision de vos mots !',
+          duration: 3000,
+          position: 'bottom',
+          color: 'warning'
+        });
+        await toast.present();
+        return;
+      }
+
+      // Récupérer le nombre de mots configuré dans les préférences
+      const savedCount = this.storageService.get('personalDictionaryWordsCount');
+      const maxWords = savedCount ? parseInt(savedCount) : 8; // Valeur par défaut si pas configurée
+      
+      // Sélectionner aléatoirement des mots (entre 3 et 20, ou tous si moins de 3)
+      const actualMaxWords = Math.min(20, Math.max(3, Math.min(maxWords, availableWords.length)));
+      const selectedWords = this.shuffleArray(availableWords).slice(0, actualMaxWords);
+
+      // Créer les paires de mots pour l'exercice d'association
+      const wordPairs = selectedWords.map(word => ({
+        it: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
+        fr: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
+        context: word.contextualMeaning
+      }));
+
+      // Créer la liste des mots révisés pour l'affichage
+      const revisedWords = selectedWords.map(word => ({
+        id: word.id,
+        sourceWord: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
+        targetWord: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
+        context: word.contextualMeaning,
+        revisionDelay: undefined, // Sera défini par l'utilisateur
+        isKnown: word.isKnown || false // Récupérer le statut existant ou false par défaut
+      }));
+
+      console.log('🔔 [Notification] Mots révisés créés:', revisedWords.length);
+
+      // Sauvegarder les données de session
+      const sessionInfo = {
+        category: 'Dictionnaire personnel',
+        topic: 'Révision personnalisée',
+        date: new Date().toISOString(),
+        translationDirection: 'fr2it' as const
+      };
+
+      // Sauvegarder dans le localStorage
+      this.storageService.set('sessionInfo', sessionInfo);
+      this.storageService.set('wordPairs', wordPairs);
+      this.storageService.set('isPersonalDictionaryRevision', true);
+      this.storageService.set('revisedWords', revisedWords);
+
+      console.log('🔔 [Notification] Données sauvegardées, navigation vers l\'exercice');
+
+      // Naviguer vers l'exercice d'association
+      this.router.navigate(['/word-pairs-game']);
+
+    } catch (error) {
+      console.error('Erreur lors du démarrage de la révision depuis la notification:', error);
+      const toast = await this.toastController.create({
+        message: 'Erreur lors du démarrage de la révision',
+        duration: 3000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    }
+  }
+
+  /**
+   * Mélange un tableau d'éléments
+   */
+  private shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   }
 }

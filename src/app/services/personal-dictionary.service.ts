@@ -6,6 +6,7 @@ import { LoadingController, ToastController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
 import { VocabularyTrackingService, WordMastery } from './vocabulary-tracking.service';
 import { NotificationService } from './notification.service';
+import { StorageService } from './storage.service';
 
 export interface DictionaryWord {
   id: string;
@@ -47,7 +48,8 @@ export class PersonalDictionaryService {
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private vocabularyTrackingService: VocabularyTrackingService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private storageService: StorageService
   ) {}
 
   /**
@@ -209,6 +211,16 @@ export class PersonalDictionaryService {
    * Traduit un mot d'une langue à une autre
    */
   translateWord(word: string, sourceLang: string, targetLang: string): Observable<TranslationResponse> {
+    // Vérifier si la clé API est configurée
+    const userApiKey = this.storageService.get('userOpenaiApiKey');
+    
+    if (!userApiKey) {
+      this.showErrorToast('Clé API OpenAI non configurée. Veuillez configurer votre clé API dans les préférences.');
+      return new Observable(observer => {
+        observer.error(new Error('Clé API non configurée'));
+      });
+    }
+
     return this.callOpenAI<TranslationResponse>(
       this.createTranslationPrompt(word, sourceLang, targetLang)
     );
@@ -256,9 +268,13 @@ export class PersonalDictionaryService {
   private callOpenAI<T>(prompt: string): Observable<T> {
     this.showLoading('Traduction en cours...');
     
+    // Récupérer la clé API utilisateur
+    const userApiKey = this.storageService.get('userOpenaiApiKey');
+    const apiKeyToUse = userApiKey || this.apiKey;
+    
     const headers = new HttpHeaders()
       .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${this.apiKey}`);
+      .set('Authorization', `Bearer ${apiKeyToUse}`);
     
     const data = {
       model: this.model,

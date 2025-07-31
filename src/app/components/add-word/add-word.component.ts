@@ -68,7 +68,19 @@ export class AddWordComponent implements OnInit {
         error: (error) => {
           console.error('Erreur de traduction:', error);
           this.isTranslating = false;
-          this.showToast('Erreur lors de la traduction. Veuillez réessayer.');
+          
+          // Message d'erreur personnalisé selon le type d'erreur
+          if (error.message === 'Clé API non configurée') {
+            this.showToast('Clé API OpenAI non configurée. Veuillez configurer votre clé API dans les préférences.');
+          } else if (error.status === 401) {
+            this.showToast('Clé API OpenAI invalide. Veuillez vérifier votre clé dans les préférences.');
+          } else if (error.status === 429) {
+            this.showToast('Limite de requêtes dépassée. Veuillez réessayer plus tard.');
+          } else if (error.status === 0 || error.status === 503) {
+            this.showToast('Erreur de connexion. Vérifiez votre connexion internet.');
+          } else {
+            this.showToast('Erreur lors de la traduction. Veuillez réessayer.');
+          }
         }
       });
   }
