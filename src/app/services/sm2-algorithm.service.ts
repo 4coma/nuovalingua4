@@ -24,15 +24,15 @@ export class SM2AlgorithmService {
     // Calculer le nouveau facteur d'efficacité
     updatedWord.eFactor = this.calculateEFactor(currentEF, quality);
     
-    // Calculer le nouvel intervalle
-    updatedWord.interval = this.calculateInterval({ ...word, interval: currentInterval, repetitions: currentRepetitions }, quality);
-    
     // Mettre à jour les répétitions
     if (quality >= 3) {
       updatedWord.repetitions = currentRepetitions + 1;
     } else {
       updatedWord.repetitions = 0;
     }
+    
+    // Calculer le nouvel intervalle avec les nouvelles valeurs
+    updatedWord.interval = this.calculateInterval(updatedWord, quality);
     
     // Calculer la prochaine révision
     const nextReviewDate = new Date();
@@ -70,7 +70,6 @@ export class SM2AlgorithmService {
     }
     
     const repetitions = word.repetitions ?? 0;
-    const interval = word.interval ?? 0;
     const eFactor = word.eFactor ?? 2.5;
     
     if (repetitions === 0) {
@@ -78,7 +77,9 @@ export class SM2AlgorithmService {
     } else if (repetitions === 1) {
       return 6;
     } else {
-      return Math.round(interval * eFactor);
+      // Pour les répétitions > 1, utiliser l'intervalle précédent * EF
+      const previousInterval = word.interval ?? 6; // Utiliser 6 comme valeur par défaut si pas d'intervalle
+      return Math.round(previousInterval * eFactor);
     }
   }
   

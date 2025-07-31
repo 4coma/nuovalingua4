@@ -103,7 +103,12 @@ export class VocabularyTrackingService {
           masteryLevel: isCorrect ? 100 : 0,
           timesReviewed: 1,
           timesCorrect: isCorrect ? 1 : 0,
-          context
+          context,
+          // Initialiser les propriétés SM-2
+          eFactor: 2.5,
+          interval: 0,
+          repetitions: 0,
+          nextReview: Date.now() + (24 * 60 * 60 * 1000) // Révision dans 1 jour
         };
         
         allWords.push(newWord);

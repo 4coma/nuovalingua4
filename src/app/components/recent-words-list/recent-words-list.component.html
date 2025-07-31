@@ -70,6 +70,14 @@
               <ion-icon name="repeat-outline"></ion-icon> {{ word.timesReviewed }} fois
             </ion-text>
           </p>
+          <p *ngIf="word.eFactor !== undefined">
+            <ion-text color="medium">
+              <ion-icon name="trending-up-outline"></ion-icon> EF: {{ word.eFactor.toFixed(2) }}
+              <span *ngIf="word.nextReview">
+                · Prochaine révision: {{ formatDate(word.nextReview) }}
+              </span>
+            </ion-text>
+          </p>
           <p *ngIf="word.context">
             <ion-text color="medium">
               <ion-icon name="information-circle-outline"></ion-icon> {{ word.context }}

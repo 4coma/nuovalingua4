@@ -18,7 +18,7 @@ export class SpacedRepetitionService {
   ) { }
   
   /**
-   * Génère une session de mémorisation espacée basée uniquement sur le plus faible EF
+   * Génère une session de mémorisation espacée basée sur les mots dûs pour révision
    */
   generateSpacedRepetitionSession(count?: number): Observable<WordPair[]> {
     if (count === undefined) {
@@ -39,19 +39,33 @@ export class SpacedRepetitionService {
       )
     );
 
-    // Trier tous les mots par EF croissant (plus faible en premier)
-    const sortedWords = filteredWords.sort((a, b) => {
-      const aEF = a.eFactor ?? 2.5;
-      const bEF = b.eFactor ?? 2.5;
-      return aEF - bEF;
-    });
+    // Récupérer les mots dûs pour révision selon l'algorithme SM-2
+    const dueWords = this.sm2Service.getWordsDueForReview(filteredWords);
+    
+    // Si pas assez de mots dûs, ajouter les mots avec le plus faible EF
+    let selectedWords = dueWords;
+    if (selectedWords.length < count) {
+      const remainingWords = filteredWords.filter(word => !dueWords.includes(word));
+      const sortedByEF = remainingWords.sort((a, b) => {
+        const aEF = a.eFactor ?? 2.5;
+        const bEF = b.eFactor ?? 2.5;
+        return aEF - bEF;
+      });
+      
+      const additionalWords = sortedByEF.slice(0, count - selectedWords.length);
+      selectedWords = [...selectedWords, ...additionalWords];
+    }
 
-    // Prendre les N mots avec le plus faible EF
-    const selectedWords = sortedWords.slice(0, count);
+    // Limiter au nombre demandé
+    selectedWords = selectedWords.slice(0, count);
 
-    console.log('🔍 [SpacedRepetition] === MOTS SÉLECTIONNÉS PAR EF (DICTIONNAIRE PERSONNEL) ===');
+    console.log('🔍 [SpacedRepetition] === MOTS SÉLECTIONNÉS ===');
+    console.log(`🔍 [SpacedRepetition] Mots dûs pour révision: ${dueWords.length}`);
+    console.log(`🔍 [SpacedRepetition] Total sélectionnés: ${selectedWords.length}`);
     selectedWords.forEach((word, index) => {
-      console.log(`🔍 [SpacedRepetition] ${index + 1}. "${word.word}" (${word.translation}) - EF: ${word.eFactor?.toFixed(2) || 'N/A'}`);
+      const isDue = this.sm2Service.isDueForReview(word);
+      const nextReviewDate = word.nextReview ? new Date(word.nextReview).toLocaleDateString() : 'Non définie';
+      console.log(`🔍 [SpacedRepetition] ${index + 1}. "${word.word}" (${word.translation}) - EF: ${word.eFactor?.toFixed(2) || 'N/A'} - Dû: ${isDue} - Prochaine révision: ${nextReviewDate}`);
     });
     console.log('🔍 [SpacedRepetition] === FIN DE LA SÉLECTION ===');
 
@@ -101,24 +115,36 @@ export class SpacedRepetitionService {
     nextReviewDate: Date | null;
   } {
     const allWords = this.vocabularyTrackingService.getAllTrackedWords();
-    const dueWords = this.sm2Service.getWordsDueForReview(allWords);
     
-    const totalEF = allWords.reduce((sum, word) => sum + (word.eFactor ?? 2.5), 0);
-    const averageEF = allWords.length > 0 ? totalEF / allWords.length : 2.5;
+    // Filtrer pour ne garder que les mots du dictionnaire personnel
+    const personalDictionaryWords = this.getPersonalDictionaryWords();
+    const filteredWords = allWords.filter(word => 
+      personalDictionaryWords.some(dictWord => 
+        dictWord.sourceWord.toLowerCase() === word.word.toLowerCase() ||
+        dictWord.targetWord.toLowerCase() === word.word.toLowerCase() ||
+        dictWord.sourceWord.toLowerCase() === word.translation.toLowerCase() ||
+        dictWord.targetWord.toLowerCase() === word.translation.toLowerCase()
+      )
+    );
+    
+    const dueWords = this.sm2Service.getWordsDueForReview(filteredWords);
+    
+    const totalEF = filteredWords.reduce((sum, word) => sum + (word.eFactor ?? 2.5), 0);
+    const averageEF = filteredWords.length > 0 ? totalEF / filteredWords.length : 2.5;
     
     const nextReview = dueWords.length > 0 
       ? new Date(Math.min(...dueWords.map(w => w.nextReview ?? 0)))
       : null;
     
     console.log('🔍 [SpacedRepetition] === STATISTIQUES GLOBALES ===');
-    console.log(`🔍 [SpacedRepetition] Total mots: ${allWords.length}`);
+    console.log(`🔍 [SpacedRepetition] Total mots (dictionnaire personnel): ${filteredWords.length}`);
     console.log(`🔍 [SpacedRepetition] Mots dûs pour révision: ${dueWords.length}`);
     console.log(`🔍 [SpacedRepetition] EF moyen: ${averageEF.toFixed(2)}`);
     console.log(`🔍 [SpacedRepetition] Prochaine révision: ${nextReview ? nextReview.toLocaleDateString() : 'Aucune'}`);
     console.log('🔍 [SpacedRepetition] === FIN DES STATISTIQUES ===');
     
     return {
-      totalWords: allWords.length,
+      totalWords: filteredWords.length,
       dueForReview: dueWords.length,
       averageEF: averageEF,
       nextReviewDate: nextReview
