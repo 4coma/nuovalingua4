@@ -85,6 +85,12 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
       this.autoGenerateQuestions();
     }
+    
+    // Générer l'audio pour les compréhensions orales
+    if (this.comprehensionText?.type === 'oral' && this.comprehensionText?.text) {
+      this.generateAudio();
+    }
+    
     setTimeout(() => this.attachSelectionListener(), 0);
   }
 
@@ -95,6 +101,11 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     // Générer automatiquement les questions si le texte existe mais pas de questions
     if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
       this.autoGenerateQuestions();
+    }
+    
+    // Générer l'audio pour les compréhensions orales
+    if (this.comprehensionText?.type === 'oral' && this.comprehensionText?.text) {
+      this.generateAudio();
     }
   }
 
@@ -623,5 +634,25 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     this.complete.emit();
     // Ajouter la navigation vers la page de vocabulaire
     this.router.navigate(['/vocabulary']);
+  }
+
+  /**
+   * Génère l'audio pour les compréhensions orales
+   */
+  private generateAudio() {
+    if (!this.comprehensionText?.text) return;
+    
+    console.log('🔍 ComprehensionExercise - Génération audio pour:', this.comprehensionText.text.substring(0, 50) + '...');
+    
+    this.speechService.generateSpeech(this.comprehensionText.text, 'nova', 0.9).subscribe({
+      next: (audioUrl) => {
+        console.log('🔍 ComprehensionExercise - Audio généré avec succès:', audioUrl);
+        this.audioUrl = audioUrl;
+      },
+      error: (error) => {
+        console.error('🔍 ComprehensionExercise - Erreur lors de la génération audio:', error);
+        this.showErrorToast('Erreur lors de la génération de l\'audio');
+      }
+    });
   }
 }
