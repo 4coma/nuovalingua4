@@ -45,6 +45,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
   
   // Pour l'audio
   audioUrl: string | null = null;
+  isAudioLoading: boolean = false;
 
   // Pour la génération de questions
   isGeneratingQuestions: boolean = false;
@@ -632,8 +633,22 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
 
   finishExercise() {
     this.complete.emit();
-    // Ajouter la navigation vers la page de vocabulaire
-    this.router.navigate(['/vocabulary']);
+    
+    // Vérifier d'où vient l'utilisateur pour le rediriger vers le bon endroit
+    const fromWordPairs = localStorage.getItem('fromWordPairs');
+    const fromFocusMode = localStorage.getItem('isFocusMode');
+    
+    if (fromWordPairs === 'true') {
+      // Si l'utilisateur vient d'une session d'association, retourner à l'écran de fin de session
+      localStorage.removeItem('fromWordPairs'); // Nettoyer le flag
+      this.router.navigate(['/word-pairs-game']);
+    } else if (fromFocusMode === 'true') {
+      // Si l'utilisateur est en mode focus, retourner à l'écran de fin de session focus
+      this.router.navigate(['/word-pairs-game']);
+    } else {
+      // Sinon, retourner aux catégories
+      this.router.navigate(['/category']);
+    }
   }
 
   /**
@@ -644,14 +659,18 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     
     console.log('🔍 ComprehensionExercise - Génération audio pour:', this.comprehensionText.text.substring(0, 50) + '...');
     
+    this.isAudioLoading = true;
+    
     this.speechService.generateSpeech(this.comprehensionText.text, 'nova', 0.9).subscribe({
       next: (audioUrl) => {
         console.log('🔍 ComprehensionExercise - Audio généré avec succès:', audioUrl);
         this.audioUrl = audioUrl;
+        this.isAudioLoading = false;
       },
       error: (error) => {
         console.error('🔍 ComprehensionExercise - Erreur lors de la génération audio:', error);
         this.showErrorToast('Erreur lors de la génération de l\'audio');
+        this.isAudioLoading = false;
       }
     });
   }

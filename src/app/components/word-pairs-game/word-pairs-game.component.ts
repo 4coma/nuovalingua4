@@ -626,6 +626,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     
     this.isGenerating = true;
     
+    // Définir le flag pour indiquer que l'utilisateur vient d'une session d'association
+    localStorage.setItem('fromWordPairs', 'true');
+    
     // Générer le texte de compréhension via le service avec les thèmes sélectionnés
     this.textGeneratorService.generateComprehensionText(this.wordPairs, 'written', selectedThemes).subscribe({
       next: (result: ComprehensionText) => {
@@ -677,6 +680,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       translation: pair.fr,
       context: pair.context
     }));
+    
+    // Définir le flag pour indiquer que l'utilisateur vient d'une session d'association
+    localStorage.setItem('fromWordPairs', 'true');
     
     // Générer le texte de compréhension via le service avec les thèmes sélectionnés
     this.textGeneratorService.generateComprehensionText(this.wordPairs, 'oral', selectedThemes).subscribe({

@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { ToastController } from '@ionic/angular';
+import { StorageService } from './storage.service';
 
 export interface TranscriptionResult {
   text: string;
@@ -16,18 +17,27 @@ export interface TranscriptionResult {
 })
 export class SpeechRecognitionService {
   private apiUrl = 'https://api.openai.com/v1/audio/transcriptions';
-  private apiKey = environment.openaiApiKey;
 
   constructor(
     private http: HttpClient,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private storageService: StorageService
   ) {}
+
+  /**
+   * Obtient la clé API OpenAI de l'utilisateur
+   */
+  private getApiKey(): string | null {
+    return this.storageService.get('userOpenaiApiKey') || environment.openaiApiKey;
+  }
 
   /**
    * Transcrit un fichier audio en texte
    */
   transcribeAudio(audioBlob: Blob, language: string = 'it'): Observable<TranscriptionResult> {
-    if (!this.apiKey) {
+    const apiKey = this.getApiKey();
+    if (!apiKey) {
+      this.showErrorToast('Clé API OpenAI non configurée. Veuillez configurer votre clé API dans les paramètres.');
       return throwError(() => new Error('Clé API OpenAI non configurée'));
     }
 
@@ -38,7 +48,7 @@ export class SpeechRecognitionService {
     formData.append('response_format', 'json');
 
     const headers = new HttpHeaders()
-      .set('Authorization', `Bearer ${this.apiKey}`);
+      .set('Authorization', `Bearer ${apiKey}`);
 
     return this.http.post<any>(this.apiUrl, formData, { headers }).pipe(
       map(response => ({
@@ -48,7 +58,11 @@ export class SpeechRecognitionService {
       })),
       catchError(error => {
         console.error('Erreur lors de la transcription:', error);
-        this.showErrorToast('Erreur lors de la transcription audio');
+        if (error.status === 401) {
+          this.showErrorToast('Clé API OpenAI invalide. Veuillez vérifier votre clé API dans les paramètres.');
+        } else {
+          this.showErrorToast('Erreur lors de la transcription audio');
+        }
         return throwError(() => error);
       })
     );
@@ -58,7 +72,9 @@ export class SpeechRecognitionService {
    * Transcrit un fichier audio avec détection automatique de la langue
    */
   transcribeAudioAutoLanguage(audioBlob: Blob): Observable<TranscriptionResult> {
-    if (!this.apiKey) {
+    const apiKey = this.getApiKey();
+    if (!apiKey) {
+      this.showErrorToast('Clé API OpenAI non configurée. Veuillez configurer votre clé API dans les paramètres.');
       return throwError(() => new Error('Clé API OpenAI non configurée'));
     }
 
@@ -68,7 +84,7 @@ export class SpeechRecognitionService {
     formData.append('response_format', 'json');
 
     const headers = new HttpHeaders()
-      .set('Authorization', `Bearer ${this.apiKey}`);
+      .set('Authorization', `Bearer ${apiKey}`);
 
     return this.http.post<any>(this.apiUrl, formData, { headers }).pipe(
       map(response => ({
@@ -78,7 +94,11 @@ export class SpeechRecognitionService {
       })),
       catchError(error => {
         console.error('Erreur lors de la transcription:', error);
-        this.showErrorToast('Erreur lors de la transcription audio');
+        if (error.status === 401) {
+          this.showErrorToast('Clé API OpenAI invalide. Veuillez vérifier votre clé API dans les paramètres.');
+        } else {
+          this.showErrorToast('Erreur lors de la transcription audio');
+        }
         return throwError(() => error);
       })
     );
@@ -88,7 +108,8 @@ export class SpeechRecognitionService {
    * Vérifie si la clé API est configurée
    */
   isApiKeyConfigured(): boolean {
-    return !!this.apiKey;
+    const apiKey = this.getApiKey();
+    return !!apiKey;
   }
 
   /**

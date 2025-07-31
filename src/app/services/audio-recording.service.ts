@@ -72,14 +72,7 @@ export class AudioRecordingService {
         }
       };
       
-      this.mediaRecorder.onstop = () => {
-        console.log('🔍 AudioRecordingService - mediaRecorder.onstop déclenché');
-        this.audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-        this.audioUrl = URL.createObjectURL(this.audioBlob);
-        console.log('🔍 AudioRecordingService - audioBlob créé', this.audioBlob);
-        this.updateState({ hasRecording: true });
-        this.showToast('Enregistrement terminé');
-      };
+      // Note: onstop sera défini dans stopRecording() pour éviter les conflits
       
       this.mediaRecorder.start();
       this.updateState({ isRecording: true });
@@ -117,20 +110,33 @@ export class AudioRecordingService {
       const recorder = this.mediaRecorder;
       return new Promise<void>((resolve) => {
         if (recorder) {
+          // Sauvegarder l'événement onstop existant
+          const originalOnStop = recorder.onstop;
+          
           recorder.onstop = () => {
             console.log('🔍 AudioRecordingService - mediaRecorder.onstop déclenché');
             this.audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
             this.audioUrl = URL.createObjectURL(this.audioBlob);
             console.log('🔍 AudioRecordingService - audioBlob créé', this.audioBlob);
-            this.updateState({ hasRecording: true });
+            this.updateState({ hasRecording: true, isRecording: false });
+            this.stopStream();
             this.showToast('Enregistrement terminé');
+            
+            // Restaurer l'événement original si il existait
+            if (originalOnStop) {
+              recorder.onstop = originalOnStop;
+            }
+            
             resolve();
           };
+          
           recorder.stop();
           console.log('🔍 AudioRecordingService - mediaRecorder.stop() appelé');
+        } else {
+          this.updateState({ isRecording: false });
+          this.stopStream();
+          resolve();
         }
-        this.stopStream();
-        this.updateState({ isRecording: false });
       });
     } else {
       console.warn('🔍 AudioRecordingService - stopRecording ignoré (pas d\'enregistrement en cours)');
