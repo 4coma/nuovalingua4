@@ -80,11 +80,19 @@
   .answer-input {
     margin: 16px 0;
     --border-radius: 12px;
-    
+
     ion-input {
       font-size: 18px;
       font-weight: 500;
     }
+  }
+
+  .voice-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    justify-content: center;
   }
 
   .submit-button {

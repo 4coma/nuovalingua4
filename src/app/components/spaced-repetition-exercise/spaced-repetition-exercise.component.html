@@ -47,14 +47,24 @@
         <ion-label position="stacked">
           {{ exerciseItems[currentIndex].direction === 'fr2it' ? 'Écrivez le mot en italien' : 'Écrivez le mot en français' }}
         </ion-label>
-        <ion-input 
-          [(ngModel)]="currentAnswer" 
+        <ion-input
+          [(ngModel)]="currentAnswer"
           (keyup.enter)="submitAnswer()"
           [disabled]="answerSubmitted"
           [placeholder]="exerciseItems[currentIndex].direction === 'fr2it' ? 'Traduisez en italien...' : 'Traduisez en français...'"
           type="text">
         </ion-input>
       </ion-item>
+
+      <div class="voice-controls" *ngIf="!answerSubmitted">
+        <ion-button size="small" color="secondary" (click)="startRecording()" [disabled]="recordingState.isRecording || isTranscribing">
+          <ion-icon name="mic-outline"></ion-icon>
+        </ion-button>
+        <ion-button size="small" color="danger" (click)="stopRecording()" [disabled]="!recordingState.isRecording">
+          <ion-icon name="square"></ion-icon>
+        </ion-button>
+        <ion-spinner name="crescent" *ngIf="isTranscribing"></ion-spinner>
+      </div>
 
       <ion-button 
         expand="block" 
