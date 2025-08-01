@@ -132,6 +132,13 @@ export class NotificationService {
       // Annuler d'abord la notification existante
       await this.cancelDailyNotification();
 
+      // Vérifier qu'elle a bien été supprimée
+      const pendingAfterCancel = await LocalNotifications.getPending();
+      if (pendingAfterCancel.notifications.some(n => n.id === this.NOTIFICATION_ID)) {
+        console.warn('Ancienne notification toujours présente, nouvelle tentative d\'annulation');
+        await LocalNotifications.cancel({ notifications: [{ id: this.NOTIFICATION_ID }] });
+      }
+
       // Parser l'heure (format "HH:MM")
       const [hours, minutes] = time.split(':').map(Number);
       
