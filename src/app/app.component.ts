@@ -13,6 +13,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { PersonalDictionaryService } from './services/personal-dictionary.service';
 import { StorageService } from './services/storage.service';
 import { ToastController } from '@ionic/angular';
+import { TextGeneratorService } from './services/text-generator.service';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -76,7 +77,8 @@ export class AppComponent {
     private notificationService: NotificationService,
     private personalDictionaryService: PersonalDictionaryService,
     private storageService: StorageService,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private textGeneratorService: TextGeneratorService
   ) {
     this.setupRouteListener();
     this.initializeApp();
@@ -299,16 +301,17 @@ export class AppComponent {
     LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
       console.log('🔔 [Notification] Action effectuée:', notificationAction);
       
-      // Vérifier si c'est notre notification quotidienne
-      if (notificationAction.notification.id === 1001 || notificationAction.notification.id === 9999) {
-        const extra = notificationAction.notification.extra;
-        
-        if (extra && extra.action === 'start_revision') {
-          console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
-          
-          // Lancer directement la révision du dictionnaire personnel
-          this.startPersonalDictionaryRevision();
-        }
+      // Vérifier l'action associée
+      const extra = notificationAction.notification.extra;
+
+      if (extra && extra.action === 'start_revision') {
+        console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
+        this.startPersonalDictionaryRevision();
+      }
+
+      if (extra && extra.action === 'start_comprehension') {
+        console.log('🔔 [Notification] Lancement de la compréhension quotidienne');
+        this.startDailyComprehension();
       }
     });
 
@@ -316,16 +319,16 @@ export class AppComponent {
     LocalNotifications.addListener('localNotificationReceived', (notification) => {
       console.log('🔔 [Notification] Notification reçue:', notification);
       
-      // Vérifier si c'est notre notification quotidienne
-      if (notification.id === 1001 || notification.id === 9999) {
-        const extra = notification.extra;
-        
-        if (extra && extra.action === 'start_revision') {
-          console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
-          
-          // Lancer directement la révision du dictionnaire personnel
-          this.startPersonalDictionaryRevision();
-        }
+      const extra = notification.extra;
+
+      if (extra && extra.action === 'start_revision') {
+        console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
+        this.startPersonalDictionaryRevision();
+      }
+
+      if (extra && extra.action === 'start_comprehension') {
+        console.log('🔔 [Notification] Lancement de la compréhension quotidienne');
+        this.startDailyComprehension();
       }
     });
   }
@@ -404,6 +407,59 @@ export class AppComponent {
         color: 'danger'
       });
       await toast.present();
+    }
+  }
+
+  /**
+   * Génère et lance une courte compréhension orale quotidienne
+   */
+  private async startDailyComprehension() {
+    try {
+      const allWords = this.personalDictionaryService.getAllWords();
+      if (allWords.length === 0) {
+        const toast = await this.toastController.create({
+          message: 'Ajoutez des mots à votre dictionnaire pour générer une compréhension.',
+          duration: 3000,
+          position: 'bottom',
+          color: 'warning'
+        });
+        await toast.present();
+        return;
+      }
+
+      const selected = this.shuffleArray(allWords).slice(0, 5);
+      const wordPairs = selected.map(w => ({
+        it: w.sourceLang === 'it' ? w.sourceWord : w.targetWord,
+        fr: w.sourceLang === 'fr' ? w.sourceWord : w.targetWord,
+        context: w.contextualMeaning
+      }));
+
+      const sessionInfo = {
+        category: 'Compréhension quotidienne',
+        topic: 'Notification',
+        date: new Date().toISOString(),
+        translationDirection: 'fr2it' as const
+      };
+
+      this.storageService.set('sessionInfo', sessionInfo);
+
+      this.textGeneratorService.generateComprehensionText(wordPairs, 'oral').subscribe({
+        next: (result) => {
+          localStorage.setItem('comprehensionText', JSON.stringify(result));
+          this.router.navigate(['/comprehension']);
+        },
+        error: async () => {
+          const toast = await this.toastController.create({
+            message: 'Erreur lors de la génération du texte',
+            duration: 3000,
+            position: 'bottom',
+            color: 'danger'
+          });
+          await toast.present();
+        }
+      });
+    } catch (error) {
+      console.error('Erreur lors de la génération de la compréhension:', error);
     }
   }
 

@@ -37,6 +37,8 @@ export class PreferencesComponent implements OnInit {
   notificationsEnabled: boolean = false;
   notificationTime: string = '18:30';
   notificationMessage: string = 'Il est temps de pratiquer votre italien ! 🇮🇹';
+  comprehensionNotificationsEnabled: boolean = false;
+  comprehensionNotificationTime: string = '19:00';
   
   constructor(
     private storageService: StorageService,
@@ -101,6 +103,10 @@ export class PreferencesComponent implements OnInit {
     this.notificationsEnabled = notificationSettings.enabled;
     this.notificationTime = notificationSettings.time;
     this.notificationMessage = notificationSettings.message;
+
+    const compSettings = this.notificationService.getComprehensionSettings();
+    this.comprehensionNotificationsEnabled = compSettings.enabled;
+    this.comprehensionNotificationTime = compSettings.time;
   }
 
   /**
@@ -685,6 +691,41 @@ export class PreferencesComponent implements OnInit {
     if (this.notificationsEnabled) {
       try {
         await this.notificationService.updateNotificationTime(this.notificationTime);
+        this.showToast('Heure de notification mise à jour !');
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour de l\'heure:', error);
+        this.showToast('Erreur lors de la mise à jour de l\'heure.');
+      }
+    }
+  }
+
+  /**
+   * Gère le changement d'état du toggle des notifications de compréhension orale
+   */
+  async onComprehensionNotificationToggleChange() {
+    try {
+      await this.notificationService.toggleComprehensionNotifications(
+        this.comprehensionNotificationsEnabled,
+        this.comprehensionNotificationTime
+      );
+      if (this.comprehensionNotificationsEnabled) {
+        this.showToast('Notification quotidienne de compréhension activée !');
+      } else {
+        this.showToast('Notification quotidienne de compréhension désactivée.');
+      }
+    } catch (error) {
+      console.error('Erreur lors du changement de notification compréhension:', error);
+      this.showToast('Erreur lors de la configuration des notifications.');
+    }
+  }
+
+  /**
+   * Gère le changement d'heure de la notification de compréhension
+   */
+  async onComprehensionNotificationTimeChange() {
+    if (this.comprehensionNotificationsEnabled) {
+      try {
+        await this.notificationService.updateComprehensionNotificationTime(this.comprehensionNotificationTime);
         this.showToast('Heure de notification mise à jour !');
       } catch (error) {
         console.error('Erreur lors de la mise à jour de l\'heure:', error);

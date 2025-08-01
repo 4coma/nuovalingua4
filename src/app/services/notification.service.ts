@@ -8,12 +8,19 @@ export interface NotificationSettings {
   message: string;
 }
 
+export interface ComprehensionNotificationSettings {
+  enabled: boolean;
+  time: string; // Format "HH:MM"
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
   private readonly NOTIFICATION_ID = 1001; // ID unique pour la notification quotidienne
   private readonly SETTINGS_KEY = 'notificationSettings';
+  private readonly COMPREHENSION_NOTIFICATION_ID = 2001; // Notification quotidienne pour la compréhension orale
+  private readonly COMPREHENSION_SETTINGS_KEY = 'comprehensionNotificationSettings';
 
   constructor(private storageService: StorageService) {}
 
@@ -32,6 +39,11 @@ export class NotificationService {
       const settings = this.getSettings();
       if (settings.enabled) {
         await this.scheduleDailyNotification(settings.time, settings.message);
+      }
+
+      const compSettings = this.getComprehensionSettings();
+      if (compSettings.enabled) {
+        await this.scheduleDailyComprehensionNotification(compSettings.time);
       }
     } catch (error) {
       console.error('Erreur lors de l\'initialisation des notifications:', error);
@@ -74,6 +86,15 @@ export class NotificationService {
                 title: 'Commencer la révision'
               }
             ]
+          },
+          {
+            id: 'DAILY_COMPREHENSION',
+            actions: [
+              {
+                id: 'start_comprehension',
+                title: 'Ouvrir la compréhension'
+              }
+            ]
           }
         ]
       });
@@ -106,6 +127,25 @@ export class NotificationService {
   }
 
   /**
+   * Récupère les paramètres de notification de compréhension orale
+   */
+  getComprehensionSettings(): ComprehensionNotificationSettings {
+    const defaultSettings: ComprehensionNotificationSettings = {
+      enabled: false,
+      time: '19:00'
+    };
+    const saved = this.storageService.get(this.COMPREHENSION_SETTINGS_KEY);
+    return saved ? { ...defaultSettings, ...saved } : defaultSettings;
+  }
+
+  /**
+   * Sauvegarde les paramètres de notification de compréhension orale
+   */
+  saveComprehensionSettings(settings: ComprehensionNotificationSettings): void {
+    this.storageService.set(this.COMPREHENSION_SETTINGS_KEY, settings);
+  }
+
+  /**
    * Active/désactive les notifications quotidiennes
    */
   async toggleNotifications(enabled: boolean, time?: string, message?: string): Promise<void> {
@@ -121,6 +161,21 @@ export class NotificationService {
       await this.scheduleDailyNotification(settings.time, settings.message);
     } else {
       await this.cancelDailyNotification();
+    }
+  }
+
+  /**
+   * Active ou désactive les notifications quotidiennes de compréhension orale
+   */
+  async toggleComprehensionNotifications(enabled: boolean, time?: string): Promise<void> {
+    const settings = this.getComprehensionSettings();
+    settings.enabled = enabled;
+    if (time) settings.time = time;
+    this.saveComprehensionSettings(settings);
+    if (enabled) {
+      await this.scheduleDailyComprehensionNotification(settings.time);
+    } else {
+      await this.cancelDailyComprehensionNotification();
     }
   }
 
@@ -190,6 +245,59 @@ export class NotificationService {
       console.log('Notification quotidienne annulée');
     } catch (error) {
       console.error('Erreur lors de l\'annulation de la notification:', error);
+    }
+  }
+
+  /**
+   * Programme la notification quotidienne de compréhension orale
+   */
+  async scheduleDailyComprehensionNotification(time: string): Promise<void> {
+    try {
+      await this.cancelDailyComprehensionNotification();
+
+      const [hours, minutes] = time.split(':').map(Number);
+
+      const now = new Date();
+      const next = new Date();
+      next.setHours(hours, minutes, 0, 0);
+
+      if (next <= now) {
+        next.setDate(next.getDate() + 1);
+      }
+
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: this.COMPREHENSION_NOTIFICATION_ID,
+            title: 'NuovaLingua',
+            body: 'Votre exercice d\'écoute du jour est prêt !',
+            schedule: {
+              at: next,
+              repeats: true,
+              every: 'day'
+            },
+            sound: 'default',
+            actionTypeId: 'DAILY_COMPREHENSION',
+            extra: { type: 'daily_comprehension', action: 'start_comprehension' }
+          }
+        ]
+      });
+
+      console.log('Notification de compréhension programmée pour:', next.toLocaleString());
+    } catch (error) {
+      console.error('Erreur lors de la programmation de la notification de compréhension:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Annule la notification quotidienne de compréhension orale
+   */
+  async cancelDailyComprehensionNotification(): Promise<void> {
+    try {
+      await LocalNotifications.cancel({ notifications: [{ id: this.COMPREHENSION_NOTIFICATION_ID }] });
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation de la notification de compréhension:', error);
     }
   }
 
@@ -274,6 +382,18 @@ export class NotificationService {
     }
     settings.time = newTime;
     this.saveSettings(settings);
+  }
+
+  /**
+   * Met à jour l'heure de la notification quotidienne de compréhension orale
+   */
+  async updateComprehensionNotificationTime(newTime: string): Promise<void> {
+    const settings = this.getComprehensionSettings();
+    if (settings.enabled) {
+      await this.scheduleDailyComprehensionNotification(newTime);
+    }
+    settings.time = newTime;
+    this.saveComprehensionSettings(settings);
   }
 
   /**
