@@ -9,6 +9,9 @@ import { VocabularyTrackingService } from '../../services/vocabulary-tracking.se
 import { WordListModalComponent } from '../word-list-modal/word-list-modal.component';
 import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-selection-modal.component';
 import { TextGeneratorService } from '../../services/text-generator.service';
+import { AudioRecordingService, AudioRecordingState } from '../../services/audio-recording.service';
+import { SpeechRecognitionService } from '../../services/speech-recognition.service';
+import { PermissionsService } from '../../services/permissions.service';
 
 interface QualityOption {
   value: number;
@@ -50,6 +53,18 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
   currentAnswer: string = '';
   answerSubmitted: boolean = false;
   isCorrect: boolean = false;
+
+  // Enregistrement vocal
+  recordingState: AudioRecordingState = {
+    isRecording: false,
+    isPlaying: false,
+    hasRecording: false,
+    duration: 0,
+    currentTime: 0
+  };
+  isTranscribing: boolean = false;
+
+  private stateSubscription: any = null;
   
   // Pour l'évaluation de qualité
   showQualityOptions = false;
@@ -92,12 +107,18 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
     private toastController: ToastController,
     private alertController: AlertController,
     private modalController: ModalController,
-    private textGeneratorService: TextGeneratorService
+    private textGeneratorService: TextGeneratorService,
+    private audioRecordingService: AudioRecordingService,
+    private speechRecognitionService: SpeechRecognitionService,
+    private permissionsService: PermissionsService
   ) { }
   
   ngOnInit() {
     this.loadSession();
     this.loadStats();
+    this.stateSubscription = this.audioRecordingService.state$.subscribe(state => {
+      this.recordingState = state;
+    });
   }
   
   /**
@@ -161,6 +182,10 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.autoSaveSession();
+    if (this.stateSubscription) {
+      this.stateSubscription.unsubscribe();
+    }
+    this.audioRecordingService.cleanup();
   }
 
   /**
@@ -177,6 +202,53 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
     }
 
     this.autoSaved = true;
+  }
+
+  /**
+   * Démarre l'enregistrement de la réponse orale
+   */
+  async startRecording() {
+    const hasPermission = await this.permissionsService.checkAndRequestAudioPermission();
+    if (!hasPermission) {
+      this.permissionsService.showAndroidInstructions();
+      return;
+    }
+
+    if (this.permissionsService.isAndroid()) {
+      this.permissionsService.showAndroidInstructions();
+    } else if (this.permissionsService.isIOS()) {
+      this.permissionsService.showIOSInstructions();
+    }
+
+    await this.audioRecordingService.startRecording();
+  }
+
+  /**
+   * Arrête l'enregistrement et lance la transcription
+   */
+  async stopRecording() {
+    await this.audioRecordingService.stopRecording();
+
+    const audioBlob = this.audioRecordingService.getAudioBlob();
+    if (!audioBlob) {
+      return;
+    }
+
+    const currentItem = this.exerciseItems[this.currentIndex];
+    const language = currentItem.direction === 'fr2it' ? 'it' : 'fr';
+
+    this.isTranscribing = true;
+
+    this.speechRecognitionService.transcribeAudio(audioBlob, language).subscribe({
+      next: (result) => {
+        this.currentAnswer = result.text;
+        this.isTranscribing = false;
+      },
+      error: () => {
+        this.isTranscribing = false;
+        this.showToast('Erreur lors de la transcription');
+      }
+    });
   }
   
   /**
