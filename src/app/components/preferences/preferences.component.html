@@ -52,6 +52,30 @@
   <ion-card>
     <ion-card-header>
       <ion-card-title>
+        <ion-icon name="ear-outline" slot="start"></ion-icon>
+        Notification compréhension orale
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>Recevez chaque jour un court exercice de compréhension orale.</p>
+      </ion-text>
+
+      <ion-item>
+        <ion-label>Activer</ion-label>
+        <ion-toggle [(ngModel)]="comprehensionNotificationsEnabled" (ionChange)="onComprehensionNotificationToggleChange()"></ion-toggle>
+      </ion-item>
+
+      <ion-item *ngIf="comprehensionNotificationsEnabled">
+        <ion-label position="stacked">Heure</ion-label>
+        <ion-input type="time" [(ngModel)]="comprehensionNotificationTime" (ionChange)="onComprehensionNotificationTimeChange()"></ion-input>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
         <ion-icon name="volume-high-outline" slot="start"></ion-icon>
         Clé API Google Text-to-Speech
       </ion-card-title>
