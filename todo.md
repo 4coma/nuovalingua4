@@ -46,13 +46,13 @@ révision du système de POM (implémenter les principes de mémorisation espac�
 ~~à la fin des session de révision classique d'apprentissage de nouveaux mots, les mots qui sont déjà dans le dico ça doit être impossible de les jouter on doit voir s'ils y sont déjà~~
 
 ~~ajouter une détection dans session si clé api non configutée pour lecture des sons~~
-REGLER LES PROBS LIES AU SON ET ENREGISTREMENT : prob dans compréhension orale et discussion...
+~~REGLER LES PROBS LIES AU SON ET ENREGISTREMENT : prob dans compréhension orale et discussion...~~
 
-corrections du POM révisions espacées
+~~corrections du POM révisions espacées~~
 
-notifications particulière si mots ajoutés pendant la journée, pour la notification quotidienne
+~~notifications particulière si mots ajoutés pendant la journée, pour la notification quotidienne~~
 
-ajout d'une notification supplémentaire le matin par exemple avec génération d'une compréhension à l'audition (s/b mots mémorisation espacée ou dico perso) et proposition d'ajouter les mots qui ne sont pas encore dans le dico
+~~jout d'une notification supplémentaire le matin par exemple avec génération d'une compréhension à l'audition (s/b mots mémorisation espacée ou dico perso) et proposition d'ajouter les mots qui ne sont pas encore dans le dico~~
 
 procédure d'import et d'export ou sauvegarde avec firebase ou supabase
 

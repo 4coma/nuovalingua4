@@ -205,9 +205,22 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Démarre l'enregistrement de la réponse orale
+   * Démarre ou arrête l'enregistrement selon l'état actuel
    */
-  async startRecording() {
+  async toggleRecording() {
+    if (this.recordingState.isRecording) {
+      // Si on enregistre, on arrête
+      await this.stopRecording();
+    } else {
+      // Si on n'enregistre pas, on démarre
+      await this.startRecording();
+    }
+  }
+
+  /**
+   * Démarre l'enregistrement
+   */
+  private async startRecording() {
     const hasPermission = await this.permissionsService.checkAndRequestAudioPermission();
     if (!hasPermission) {
       this.permissionsService.showAndroidInstructions();
@@ -226,7 +239,7 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
   /**
    * Arrête l'enregistrement et lance la transcription
    */
-  async stopRecording() {
+  private async stopRecording() {
     await this.audioRecordingService.stopRecording();
 
     const audioBlob = this.audioRecordingService.getAudioBlob();
@@ -249,6 +262,26 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
         this.showToast('Erreur lors de la transcription');
       }
     });
+  }
+
+  /**
+   * Retourne l'icône appropriée pour le bouton d'enregistrement
+   */
+  getRecordingIcon(): string {
+    if (this.recordingState.isRecording) {
+      return 'square'; // Icône stop quand on enregistre
+    }
+    return 'mic-outline'; // Icône micro quand on n'enregistre pas
+  }
+
+  /**
+   * Retourne la couleur appropriée pour le bouton d'enregistrement
+   */
+  getRecordingColor(): string {
+    if (this.recordingState.isRecording) {
+      return 'danger'; // Rouge quand on enregistre
+    }
+    return 'secondary'; // Couleur normale quand on n'enregistre pas
   }
   
   /**

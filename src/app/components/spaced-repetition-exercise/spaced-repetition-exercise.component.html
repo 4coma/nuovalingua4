@@ -57,11 +57,8 @@
       </ion-item>
 
       <div class="voice-controls" *ngIf="!answerSubmitted">
-        <ion-button size="small" color="secondary" (click)="startRecording()" [disabled]="recordingState.isRecording || isTranscribing">
-          <ion-icon name="mic-outline"></ion-icon>
-        </ion-button>
-        <ion-button size="small" color="danger" (click)="stopRecording()" [disabled]="!recordingState.isRecording">
-          <ion-icon name="square"></ion-icon>
+        <ion-button size="small" [color]="getRecordingColor()" (click)="toggleRecording()" [disabled]="isTranscribing">
+          <ion-icon [name]="getRecordingIcon()"></ion-icon>
         </ion-button>
         <ion-spinner name="crescent" *ngIf="isTranscribing"></ion-spinner>
       </div>
