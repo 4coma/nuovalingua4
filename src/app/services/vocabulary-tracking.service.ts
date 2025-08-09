@@ -138,6 +138,41 @@ export class VocabularyTrackingService {
       return `${Date.now()}`;
     }
   }
+
+  /**
+   * Met à jour un mot existant dans le dictionnaire suivi
+   */
+  updateTrackedWord(oldId: string, newWord: string, newTranslation: string): boolean {
+    try {
+      const words = this.getAllTrackedWords();
+      const index = words.findIndex(w => w.id === oldId);
+      if (index === -1) {
+        return false;
+      }
+
+      const newId = this.generateWordId(newWord, newTranslation);
+
+      // Vérifier les conflits d'ID
+      const conflict = words.some((w, i) => w.id === newId && i !== index);
+      if (conflict) {
+        console.warn('Conflit d\'ID lors de la mise à jour du mot');
+        return false;
+      }
+
+      words[index] = {
+        ...words[index],
+        id: newId,
+        word: newWord,
+        translation: newTranslation
+      };
+
+      this.saveAllWords(words);
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du mot:', error);
+      return false;
+    }
+  }
   
   /**
    * Sauvegarde tous les mots (utilisé pour les mises à jour SM-2)
