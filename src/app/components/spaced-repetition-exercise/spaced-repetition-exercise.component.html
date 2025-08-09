@@ -40,6 +40,9 @@
           <p *ngIf="exerciseItems[currentIndex].wordPair.context" class="context compact">
             {{ exerciseItems[currentIndex].wordPair.context }}
           </p>
+          <p *ngIf="exerciseItems[currentIndex].wordPair.category || exerciseItems[currentIndex].wordPair.topic" class="meta compact">
+            {{ exerciseItems[currentIndex].wordPair.category }}<ng-container *ngIf="exerciseItems[currentIndex].wordPair.topic"> - {{ exerciseItems[currentIndex].wordPair.topic }}</ng-container>
+          </p>
         </ion-card-content>
       </ion-card>
 
