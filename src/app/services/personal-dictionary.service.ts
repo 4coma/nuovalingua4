@@ -42,6 +42,10 @@ export class PersonalDictionaryService {
   private apiKey = environment.openaiApiKey;
   private model = environment.openaiModel;
   private loading: HTMLIonLoadingElement | null = null;
+  /**
+   * File d'attente pour séquencer les mises à jour de notification et éviter les doublons
+   */
+  private notificationUpdateQueue: Promise<void> = Promise.resolve();
 
   constructor(
     private http: HttpClient,
@@ -487,13 +491,23 @@ export class PersonalDictionaryService {
    */
   private updateDailyNotification(): void {
     const wordsAddedToday = this.countWordsAddedToday();
-    this.notificationService.updateNotificationMessageWithTodayWords(wordsAddedToday);
+    this.notificationUpdateQueue = this.notificationUpdateQueue
+      .then(() =>
+        this.notificationService.updateNotificationMessageWithTodayWords(wordsAddedToday)
+      )
+      .catch(error =>
+        console.error('Erreur lors de la mise à jour de la notification quotidienne:', error)
+      );
   }
 
   /**
    * Réinitialise la notification au message par défaut (appelé au début de chaque jour)
    */
   resetDailyNotification(): void {
-    this.notificationService.resetNotificationMessage();
+    this.notificationUpdateQueue = this.notificationUpdateQueue
+      .then(() => this.notificationService.resetNotificationMessage())
+      .catch(error =>
+        console.error('Erreur lors de la réinitialisation de la notification quotidienne:', error)
+      );
   }
-} 
+}
