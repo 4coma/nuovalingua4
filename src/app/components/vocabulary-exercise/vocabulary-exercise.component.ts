@@ -149,16 +149,29 @@ export class VocabularyExerciseComponent implements OnInit {
     });
   }
 
+  /**
+   * Normalise une chaîne pour la comparaison des réponses
+   * - Ignore la casse
+   * - Supprime les espaces en début et fin
+   * - Retire la ponctuation et les caractères spéciaux aux extrémités
+   */
+  private normalizeText(text: string): string {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/^[\p{P}\p{S}]+|[\p{P}\p{S}]+$/gu, '');
+  }
+
   submitAnswer() {
     if (this.quizCompleted) return;
-    
+
     const currentItem = this.quizItems[this.currentIndex];
     currentItem.userAnswer = this.currentAnswer;
-    
-    // Vérifier la réponse (en ignorant la casse et les espaces supplémentaires)
-    const normalizedUserAnswer = this.currentAnswer.trim().toLowerCase();
-    const normalizedCorrectAnswer = currentItem.targetWord.trim().toLowerCase();
-    
+
+    // Vérifier la réponse en ignorant la casse et la ponctuation aux extrémités
+    const normalizedUserAnswer = this.normalizeText(this.currentAnswer);
+    const normalizedCorrectAnswer = this.normalizeText(currentItem.targetWord);
+
     currentItem.isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
     
     // Si la réponse est incorrecte, ajouter à la liste des erreurs

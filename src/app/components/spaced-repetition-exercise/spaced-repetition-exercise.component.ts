@@ -283,6 +283,19 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
     }
     return 'secondary'; // Couleur normale quand on n'enregistre pas
   }
+
+  /**
+   * Normalise une chaîne pour la comparaison des réponses
+   * - Ignore la casse
+   * - Supprime les espaces en début et fin
+   * - Retire la ponctuation et les caractères spéciaux aux extrémités
+   */
+  private normalizeText(text: string): string {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/^[\p{P}\p{S}]+|[\p{P}\p{S}]+$/gu, '');
+  }
   
   /**
    * Soumet la réponse de l'utilisateur
@@ -291,10 +304,12 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
     if (!this.currentAnswer.trim() || this.answerSubmitted) return;
     
     const currentItem = this.exerciseItems[this.currentIndex];
-    
-    // Vérifier si la réponse est correcte (comparaison insensible à la casse)
-    this.isCorrect = this.currentAnswer.trim().toLowerCase() === currentItem.expectedAnswer.toLowerCase();
-    
+
+    // Vérifier si la réponse est correcte en ignorant la casse et la ponctuation aux extrémités
+    this.isCorrect =
+      this.normalizeText(this.currentAnswer) ===
+      this.normalizeText(currentItem.expectedAnswer);
+
     // Mettre à jour l'item actuel
     currentItem.userAnswer = this.currentAnswer.trim();
     currentItem.isCorrect = this.isCorrect;
