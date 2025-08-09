@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController, ModalController } from '@ionic/angular';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 import { AddWordComponent } from '../add-word/add-word.component';
 import { EditWordModalComponent } from './edit-word-modal.component';
+import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-personal-dictionary-list',
@@ -27,6 +28,9 @@ export class PersonalDictionaryListComponent implements OnInit {
   isLoading: boolean = true;
   searchTerm: string = '';
   filteredWords: DictionaryWord[] = [];
+
+  // Mots planifiés pour aujourd'hui
+  dueTodayWords: DictionaryWord[] = [];
   
   // Statistiques du dictionnaire
   totalWords: number = 0;
@@ -46,7 +50,9 @@ export class PersonalDictionaryListComponent implements OnInit {
     private dictionaryService: PersonalDictionaryService,
     private alertController: AlertController,
     private toastController: ToastController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private router: Router,
+    private storageService: StorageService
   ) { }
 
   ngOnInit() {
@@ -66,10 +72,11 @@ export class PersonalDictionaryListComponent implements OnInit {
         word.revisionDelay = this.calculateDelayFromTimestamp(word.minRevisionDate);
       }
     });
-    
+
     this.sortWords();
     this.filterWords();
     this.calculateStatistics();
+    this.updateDueTodayWords();
     this.isLoading = false;
   }
 
@@ -80,6 +87,18 @@ export class PersonalDictionaryListComponent implements OnInit {
     this.totalWords = this.dictionaryWords.length;
     this.knownWords = this.dictionaryWords.filter(word => word.isKnown).length;
     this.unknownWords = this.totalWords - this.knownWords;
+  }
+
+  /**
+   * Met à jour la liste des mots à réviser aujourd'hui
+   */
+  updateDueTodayWords() {
+    const now = Date.now();
+    this.dueTodayWords = this.dictionaryWords.filter(word =>
+      !word.isKnown &&
+      word.minRevisionDate !== undefined &&
+      word.minRevisionDate <= now
+    );
   }
 
   /**
@@ -232,6 +251,45 @@ export class PersonalDictionaryListComponent implements OnInit {
   }
 
   /**
+   * Lance une session d'association avec tous les mots à réviser aujourd'hui
+   */
+  startTodayRevision() {
+    if (this.dueTodayWords.length === 0) {
+      this.showToast('Aucun mot à réviser aujourd\'hui', 'warning');
+      return;
+    }
+
+    const wordPairs = this.dueTodayWords.map(word => ({
+      it: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
+      fr: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
+      context: word.contextualMeaning
+    }));
+
+    const revisedWords = this.dueTodayWords.map(word => ({
+      id: word.id,
+      sourceWord: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
+      targetWord: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
+      context: word.contextualMeaning,
+      revisionDelay: undefined,
+      isKnown: word.isKnown || false
+    }));
+
+    const sessionInfo = {
+      category: 'Dictionnaire personnel',
+      topic: 'Révision du jour',
+      date: new Date().toISOString(),
+      translationDirection: 'fr2it' as const
+    };
+
+    this.storageService.set('sessionInfo', sessionInfo);
+    this.storageService.set('wordPairs', wordPairs);
+    this.storageService.set('isPersonalDictionaryRevision', true);
+    this.storageService.set('revisedWords', revisedWords);
+
+    this.router.navigate(['/word-pairs-game']);
+  }
+
+  /**
    * Gère le changement de délai de révision pour un mot
    */
   onRevisionDelayChange(word: DictionaryWord) {
@@ -253,6 +311,7 @@ export class PersonalDictionaryListComponent implements OnInit {
     if (success) {
       console.log(`Délai de révision mis à jour pour ${word.sourceWord}: ${word.revisionDelay}`);
       this.calculateStatistics(); // Recalculer les statistiques
+      this.updateDueTodayWords();
     }
   }
 
@@ -267,6 +326,7 @@ export class PersonalDictionaryListComponent implements OnInit {
     if (success) {
       console.log(`Statut 'connu' mis à jour pour ${word.sourceWord}: ${word.isKnown}`);
       this.calculateStatistics(); // Recalculer les statistiques
+      this.updateDueTodayWords();
     }
   }
 
