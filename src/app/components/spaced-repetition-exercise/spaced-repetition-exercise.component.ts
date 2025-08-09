@@ -327,6 +327,37 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Passe la question actuelle en la marquant comme correcte
+   * et attribue automatiquement la meilleure qualité.
+   */
+  passQuestion() {
+    const currentItem = this.exerciseItems[this.currentIndex];
+
+    // Marquer l'item courant comme correctement répondu
+    currentItem.userAnswer = currentItem.expectedAnswer;
+    currentItem.isCorrect = true;
+    currentItem.completed = true;
+
+    // Marquer également l'item dans l'autre sens comme correct et complété
+    const counterpart = this.exerciseItems.find(
+      item =>
+        !item.completed &&
+        item.wordPair.fr === currentItem.wordPair.fr &&
+        item.wordPair.it === currentItem.wordPair.it &&
+        item.direction !== currentItem.direction
+    );
+
+    if (counterpart) {
+      counterpart.userAnswer = counterpart.expectedAnswer;
+      counterpart.isCorrect = true;
+      counterpart.completed = true;
+    }
+
+    // Passer directement à la question suivante
+    this.nextQuestion();
+  }
+
+  /**
    * Passe au mot suivant après clic sur "Suivant"
    */
   nextQuestion() {
@@ -334,6 +365,10 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
     this.answerSubmitted = false;
     this.isCorrect = false;
     this.currentIndex++;
+    // Sauter les items déjà complétés (utile après un passage)
+    while (this.currentIndex < this.exerciseItems.length && this.exerciseItems[this.currentIndex].completed) {
+      this.currentIndex++;
+    }
     // Vérifier si on a terminé tous les items
     if (this.currentIndex >= this.exerciseItems.length) {
       this.prepareReviewSummary();

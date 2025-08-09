@@ -63,14 +63,23 @@
         <ion-spinner name="crescent" *ngIf="isTranscribing"></ion-spinner>
       </div>
 
-      <ion-button 
-        expand="block" 
-        color="primary" 
+      <ion-button
+        *ngIf="!answerSubmitted && currentAnswer.trim()"
+        expand="block"
+        color="primary"
         (click)="submitAnswer()"
-        [disabled]="!currentAnswer || answerSubmitted"
         class="submit-button compact">
         <ion-icon name="checkmark-outline" slot="start"></ion-icon>
         Valider ma réponse
+      </ion-button>
+      <ion-button
+        *ngIf="!answerSubmitted && !currentAnswer.trim()"
+        expand="block"
+        color="medium"
+        (click)="passQuestion()"
+        class="submit-button compact">
+        <ion-icon name="play-skip-forward-outline" slot="start"></ion-icon>
+        Passer
       </ion-button>
 
       <!-- Affichage de la réponse correcte -->
