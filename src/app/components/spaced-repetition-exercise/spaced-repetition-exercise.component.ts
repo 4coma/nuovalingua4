@@ -456,7 +456,9 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
     const wordPairs: WordPair[] = words.map(word => ({
       it: word.word,
       fr: word.translation,
-      context: word.context
+      context: word.context,
+      category: word.category,
+      topic: word.topic
     }));
     
     // Créer les items d'exercice avec les deux directions pour chaque mot

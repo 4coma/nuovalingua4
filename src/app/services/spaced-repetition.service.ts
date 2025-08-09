@@ -72,7 +72,9 @@ export class SpacedRepetitionService {
     const wordPairs: WordPair[] = selectedWords.map(word => ({
       it: word.word,
       fr: word.translation,
-      context: word.context
+      context: word.context,
+      category: word.category,
+      topic: word.topic
     }));
 
     return of(wordPairs);

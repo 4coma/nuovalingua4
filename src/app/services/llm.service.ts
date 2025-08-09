@@ -11,6 +11,8 @@ export interface WordPair {
   it: string;
   fr: string;
   context?: string;
+  category?: string;
+  topic?: string;
 }
 
 export interface OpenAIResponse {
