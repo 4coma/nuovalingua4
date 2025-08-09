@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
+import { WordPair } from './llm.service';
 
 export interface FocusSession {
   focus: string;
   dateCreated: number;
   lastUsed?: number;
+  words?: WordPair[];
 }
 
 @Injectable({
@@ -23,10 +25,30 @@ export class FocusModeService {
     const focusSession: FocusSession = {
       focus,
       dateCreated: Date.now(),
-      lastUsed: Date.now()
+      lastUsed: Date.now(),
+      words: []
     };
     
     this.storageService.set(this.FOCUS_STORAGE_KEY, focusSession);
+  }
+
+  /**
+   * Ajoute des mots à la session de focus actuelle
+   */
+  addWordsToCurrentFocus(wordPairs: WordPair[]): void {
+    const focusSession = this.getCurrentFocusSession();
+    if (focusSession) {
+      focusSession.words = [...(focusSession.words || []), ...wordPairs];
+      this.storageService.set(this.FOCUS_STORAGE_KEY, focusSession);
+    }
+  }
+
+  /**
+   * Récupère les mots associés au focus actuel
+   */
+  getCurrentFocusWords(): WordPair[] {
+    const focusSession = this.getCurrentFocusSession();
+    return focusSession?.words || [];
   }
 
   /**

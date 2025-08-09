@@ -3,11 +3,12 @@ import { IonicModule, ToastController, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { LlmService, WordPair, TranslationDirection } from '../../services/llm.service';
-import { PersonalDictionaryService } from '../../services/personal-dictionary.service';
+import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 import { FormsModule } from '@angular/forms';
 import { CustomPromptModalComponent } from '../custom-prompt-modal/custom-prompt-modal.component';
 import { CustomInstructionModalComponent } from '../custom-instruction-modal/custom-instruction-modal.component';
 import { StorageService } from '../../services/storage.service';
+import { FocusModeService } from '../../services/focus-mode.service';
 
 interface Category {
   id: string;
@@ -90,7 +91,8 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     private personalDictionaryService: PersonalDictionaryService,
     private toastController: ToastController,
     private modalController: ModalController,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private focusModeService: FocusModeService
   ) { }
 
   ngOnInit() {
@@ -135,9 +137,10 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     }
 
     try {
-      this.isLoading = true;
-      
-      // Créer une session avec l'instruction de focus
+      // Vérifier si des mots existent déjà pour ce focus
+      const existingWords = this.focusModeService.getCurrentFocusWords();
+
+      // Créer les informations de session
       const sessionInfo = {
         category: 'Focus Mode',
         topic: this.focusInstruction,
@@ -146,24 +149,50 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
         customInstruction: this.focusInstruction
       };
 
-      // Sauvegarder les informations de session
+      // Sauvegarder les informations communes
       this.storageService.set('sessionInfo', sessionInfo);
       this.storageService.set('isFocusMode', true);
       this.storageService.set('focusInstruction', this.focusInstruction);
 
-      // Générer les mots avec l'instruction de focus
+      // S'il y a déjà des mots, les utiliser directement
+      if (existingWords.length > 0) {
+        this.storageService.set('wordPairs', existingWords);
+        this.router.navigate(['/word-pairs-game']);
+        return;
+      }
+
+      this.isLoading = true;
+
+      // Générer les mots avec l'instruction de focus en excluant ceux déjà générés
       const wordPairs = await this.llmService.generateWordPairs(
         this.focusInstruction,
-        this.translationDirection
+        undefined,
+        this.translationDirection,
+        existingWords.map(w => w.it)
       ).toPromise();
 
       if (!wordPairs || wordPairs.length === 0) {
         throw new Error('Aucun mot généré');
       }
 
-      // Sauvegarder les paires de mots
+      // Sauvegarder les paires de mots pour la session
       this.storageService.set('wordPairs', wordPairs);
       this.storageService.set('isFocusMode', true);
+
+      // Ajouter les mots au focus et au dictionnaire personnel
+      this.focusModeService.addWordsToCurrentFocus(wordPairs);
+      wordPairs.forEach(pair => {
+        const dictWord: DictionaryWord = {
+          id: '',
+          sourceWord: this.translationDirection === 'fr2it' ? pair.fr : pair.it,
+          sourceLang: this.translationDirection === 'fr2it' ? 'fr' : 'it',
+          targetWord: this.translationDirection === 'fr2it' ? pair.it : pair.fr,
+          targetLang: this.translationDirection === 'fr2it' ? 'it' : 'fr',
+          contextualMeaning: pair.context,
+          dateAdded: Date.now()
+        };
+        this.personalDictionaryService.addWord(dictWord);
+      });
 
       // Naviguer vers l'exercice
       this.router.navigate(['/word-pairs-game']);

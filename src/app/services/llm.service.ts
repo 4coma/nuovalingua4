@@ -89,13 +89,13 @@ export class LlmService {
     return this.callOpenAI<ComprehensionText>(prompt);
   }
 
-  generateWordPairs(topic: string, category?: string, direction?: TranslationDirection): Observable<WordPair[]> {
+  generateWordPairs(topic: string, category?: string, direction?: TranslationDirection, excludeWords: string[] = []): Observable<WordPair[]> {
     // Utiliser la direction spécifiée ou celle par défaut
     const translationDirection = direction || this._translationDirection;
-    
+
     // Récupérer le nombre d'associations défini par l'utilisateur
     const userAssociationsCount = this.storageService.get('wordAssociationsCount') || 10;
-    
+
     // Récupérer les mots suivis pour cette catégorie et ce sujet
     return this.getReviewWords(category || '', topic).pipe(
       switchMap(wordsToReview => {
@@ -106,18 +106,18 @@ export class LlmService {
           fr: w.translation,
           context: w.context || undefined
         }));
-        
+
         const numReviewWords = reviewWords.length;
         const maxReviewWords = Math.min(6, Math.floor(userAssociationsCount / 2)); // Max 50% de mots de révision
         const numNewWords = userAssociationsCount - Math.min(numReviewWords, maxReviewWords);
-        
+
         // S'il n'y a pas de mots à réviser, générer tous les nouveaux mots
         if (numReviewWords === 0) {
-          return this.generateNewWordPairs(topic, category, userAssociationsCount, [], translationDirection);
+          return this.generateNewWordPairs(topic, category, userAssociationsCount, [], translationDirection, excludeWords);
         }
-        
+
         // Sinon, générer des nouveaux mots pour compléter
-        return this.generateNewWordPairs(topic, category, numNewWords, reviewWords.slice(0, maxReviewWords), translationDirection)
+        return this.generateNewWordPairs(topic, category, numNewWords, reviewWords.slice(0, maxReviewWords), translationDirection, excludeWords)
           .pipe(
             map(newWords => {
               // Combiner les mots à réviser avec les nouveaux mots
@@ -132,17 +132,22 @@ export class LlmService {
    * Génère de nouveaux mots de vocabulaire
    */
   private generateNewWordPairs(
-    topic: string, 
-    category?: string, 
+    topic: string,
+    category?: string,
     count: number = 12,
     wordsToReview: WordPair[] = [],
-    direction: TranslationDirection = 'fr2it'
+    direction: TranslationDirection = 'fr2it',
+    excludeWords: string[] = []
   ): Observable<WordPair[]> {
     let prompt: string;
-    
+
     // Liste des mots à réviser pour le contexte
-    const reviewWordsContext = wordsToReview.length > 0 
-      ? `Inclure ces mots dans les 12 mots générés pour révision: ${wordsToReview.map(w => w.it).join(', ')}. ` 
+    const reviewWordsContext = wordsToReview.length > 0
+      ? `Inclure ces mots dans les 12 mots générés pour révision: ${wordsToReview.map(w => w.it).join(', ')}. `
+      : '';
+
+    const exclusionPrompt = excludeWords.length > 0
+      ? `Les mots suivants ont déjà été étudiés et ne doivent PAS être inclus: ${excludeWords.join(', ')}. `
       : '';
     
     // Adapter le prompt en fonction de la direction de traduction
@@ -151,8 +156,8 @@ export class LlmService {
       : 'de l\'italien vers le français';
       
     if (category === 'conjugation') {
-      prompt = `Génère ${count} verbes en italien avec leur traduction en français pour pratiquer la conjugaison au temps "${topic}". 
-      ${reviewWordsContext}
+      prompt = `Génère ${count} verbes en italien avec leur traduction en français pour pratiquer la conjugaison au temps "${topic}".
+      ${reviewWordsContext}${exclusionPrompt}
       
       IMPORTANT : Les verbes italiens DOIVENT être conjugués au temps "${topic}", pas à l'infinitif.
       
@@ -176,7 +181,7 @@ export class LlmService {
       N'inclus aucun texte avant ou après le JSON.`;
     } else {
       prompt = `Génère ${count} paires de mots en italien avec leur traduction en français sur le thème: "${topic}".
-      ${reviewWordsContext}
+      ${reviewWordsContext}${exclusionPrompt}
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
