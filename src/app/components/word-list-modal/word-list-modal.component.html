@@ -22,6 +22,9 @@
           <span>À revoir: {{ word.nextReview ? (word.nextReview | date:'dd/MM/yyyy HH:mm') : 'N/A' }}</span>
         </div>
       </ion-label>
+      <ion-button slot="end" fill="clear" size="small" (click)="editWord(word)">
+        <ion-icon name="create-outline"></ion-icon>
+      </ion-button>
     </ion-item>
   </ion-list>
   <ng-template #emptyList>
