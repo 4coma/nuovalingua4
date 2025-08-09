@@ -12,7 +12,7 @@ import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-sel
 import { SpeechService } from 'src/app/services/speech.service';
 import { StorageService } from '../../services/storage.service';
 import { DictionaryModalComponent } from './dictionary-modal.component';
-import { PersonalDictionaryService } from '../../services/personal-dictionary.service';
+import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 import { FocusModeService } from '../../services/focus-mode.service';
 import { FocusModalComponent } from '../focus-modal/focus-modal.component';
 import { Injector } from '@angular/core';
@@ -104,6 +104,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     private modalController: ModalController,
     private speechService: SpeechService,
     private storageService: StorageService,
+    private personalDictionaryService: PersonalDictionaryService,
     private focusModeService: FocusModeService,
     private injector: Injector,
     private alertController: AlertController
@@ -270,6 +271,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Si pas de paires, le jeu est terminé
     if (pairsForRound.length === 0) {
       this.gameComplete = true;
+      this.onGameComplete();
       return;
     }
     
@@ -385,6 +387,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         } else {
           // Terminer le jeu
           this.gameComplete = true;
+          this.onGameComplete();
         }
       }
     } else {
@@ -406,6 +409,77 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         this.selectedPair = null;
         this.errorShown = false;
       }, 1000);
+    }
+  }
+
+  /**
+   * Appelé lorsque le jeu est terminé
+   */
+  private async onGameComplete() {
+    if (this.isFocusMode) {
+      const alert = await this.alertController.create({
+        header: 'Session terminée',
+        message: 'Générer de nouveaux mots pour ce focus ?',
+        buttons: [
+          {
+            text: 'Non',
+            role: 'cancel'
+          },
+          {
+            text: 'Oui',
+            handler: () => {
+              this.generateNewFocusWords();
+            }
+          }
+        ]
+      });
+      await alert.present();
+    }
+  }
+
+  /**
+   * Génère de nouveaux mots pour le focus actuel
+   */
+  private async generateNewFocusWords() {
+    const focusInstruction = this.storageService.get('focusInstruction');
+    if (!focusInstruction) {
+      return;
+    }
+
+    const existingWords = this.focusModeService.getCurrentFocusWords();
+
+    try {
+      const newPairs = await this.llmService.generateWordPairs(
+        focusInstruction,
+        undefined,
+        this.sessionInfo?.translationDirection,
+        existingWords.map(w => w.it)
+      ).toPromise();
+
+      if (newPairs && newPairs.length > 0) {
+        // Ajouter les nouveaux mots au focus
+        this.focusModeService.addWordsToCurrentFocus(newPairs);
+
+        // Enregistrer automatiquement dans le dictionnaire personnel
+        newPairs.forEach(pair => {
+          const direction = this.sessionInfo?.translationDirection || 'fr2it';
+          const dictWord: DictionaryWord = {
+            id: '',
+            sourceWord: direction === 'fr2it' ? pair.fr : pair.it,
+            sourceLang: direction === 'fr2it' ? 'fr' : 'it',
+            targetWord: direction === 'fr2it' ? pair.it : pair.fr,
+            targetLang: direction === 'fr2it' ? 'it' : 'fr',
+            contextualMeaning: pair.context,
+            dateAdded: Date.now()
+          };
+          this.personalDictionaryService.addWord(dictWord);
+        });
+
+        this.showToast('Nouveaux mots ajoutés au focus');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la génération de nouveaux mots focus:', error);
+      this.showToast('Erreur lors de la génération de nouveaux mots');
     }
   }
   
