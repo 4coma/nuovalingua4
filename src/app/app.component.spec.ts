@@ -1,14 +1,21 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-
+import { RouterTestingModule } from '@angular/router/testing';
+import { IonicModule } from '@ionic/angular';
 import { AppComponent } from './app.component';
+import { provideHttpClient } from '@angular/common/http';
 
 describe('AppComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AppComponent],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        AppComponent
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      providers: [provideHttpClient()]
     }).compileComponents();
   });
 

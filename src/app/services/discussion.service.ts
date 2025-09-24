@@ -146,6 +146,26 @@ export class DiscussionService {
   }
 
   /**
+   * Reprend une session de discussion sauvegardée
+   */
+  resumeSession(session: DiscussionSession): void {
+    console.log('🔍 DiscussionService - Reprise de session:', session.id);
+    
+    // Déterminer le dernier tour pour l'affichage
+    const lastTurn = session.turns.length > 0 ? session.turns[session.turns.length - 1] : undefined;
+    
+    this.updateState({
+      isActive: true,
+      isRecording: false,
+      isProcessing: false,
+      currentSession: session,
+      currentTurn: lastTurn
+    });
+    
+    console.log('🔍 DiscussionService - État mis à jour pour la reprise de session');
+  }
+
+  /**
    * Démarre une nouvelle session de discussion
    */
   async startDiscussion(context: DiscussionContext): Promise<boolean> {

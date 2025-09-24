@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
@@ -13,7 +13,7 @@ import { PersonalDictionaryService } from '../../services/personal-dictionary.se
   standalone: true,
   imports: [CommonModule, IonicModule]
 })
-export class CategorySelectionComponent implements OnInit {
+export class CategorySelectionComponent {
   @Output() categorySelected = new EventEmitter<{ category: string; topic: string }>();
 
   // Liste des catégories disponibles
@@ -58,8 +58,6 @@ export class CategorySelectionComponent implements OnInit {
     private router: Router,
     private personalDictionaryService: PersonalDictionaryService
   ) {}
-
-  ngOnInit() {}
 
   /**
    * Gère la sélection d'une catégorie et d'un sujet

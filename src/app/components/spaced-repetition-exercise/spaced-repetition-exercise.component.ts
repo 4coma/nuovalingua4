@@ -12,6 +12,7 @@ import { TextGeneratorService } from '../../services/text-generator.service';
 import { AudioRecordingService, AudioRecordingState } from '../../services/audio-recording.service';
 import { SpeechRecognitionService } from '../../services/speech-recognition.service';
 import { PermissionsService } from '../../services/permissions.service';
+import { ModeSelectionModalComponent, SpacedRepetitionMode } from '../mode-selection-modal/mode-selection-modal.component';
 
 interface QualityOption {
   value: number;
@@ -28,6 +29,14 @@ interface ExerciseItem {
   userAnswer: string;
   isCorrect: boolean;
   completed: boolean;
+}
+
+interface GamePair {
+  id: number;
+  word: string;
+  isSource: boolean;
+  isSelected: boolean;
+  isMatched: boolean;
 }
 
 @Component({
@@ -48,6 +57,22 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
   exerciseItems: ExerciseItem[] = [];
   currentIndex = 0;
   exerciseCompleted = false;
+  
+  // Mode de révision
+  selectedMode: SpacedRepetitionMode | null = null;
+  showModeSelection = true;
+  
+  // Pour le mode association
+  currentPairs: GamePair[] = [];
+  currentPairsSet: number = 1;
+  selectedPair: GamePair | null = null;
+  selectedWordId: number | null = null;
+  errorShown: boolean = false;
+  matchedPairs: number = 0;
+  totalPairs: number = 0;
+  attempts: number = 0;
+  failedWords: number[] = [];
+  hasFailedWords: boolean = false;
   
   // Pour l'encodage
   currentAnswer: string = '';
@@ -114,13 +139,36 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
   ) { }
   
   ngOnInit() {
-    this.loadSession();
     this.loadStats();
     this.stateSubscription = this.audioRecordingService.state$.subscribe(state => {
       this.recordingState = state;
     });
+    this.showModeSelectionModal();
   }
   
+  /**
+   * Affiche le modal de sélection de mode
+   */
+  async showModeSelectionModal() {
+    const modal = await this.modalController.create({
+      component: ModeSelectionModalComponent,
+      cssClass: 'mode-selection-modal'
+    });
+    
+    await modal.present();
+    
+    const { data } = await modal.onDidDismiss();
+    
+    if (data && data.mode) {
+      this.selectedMode = data.mode;
+      this.showModeSelection = false;
+      this.loadSession();
+    } else {
+      // Si l'utilisateur annule, retourner à l'accueil
+      this.router.navigate(['/home']);
+    }
+  }
+
   /**
    * Charge la session de mémorisation espacée
    */
@@ -134,36 +182,42 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
           return;
         }
         
-        // Créer les items d'exercice avec les deux directions pour chaque mot
-        this.exerciseItems = [];
-        wordPairs.forEach(pair => {
-          // Item fr → it
-          this.exerciseItems.push({
-            wordPair: pair,
-            direction: 'fr2it',
-            question: pair.fr,
-            expectedAnswer: pair.it,
-            userAnswer: '',
-            isCorrect: false,
-            completed: false
+        if (this.selectedMode === 'writing') {
+          // Mode écriture - créer les items d'exercice avec les deux directions pour chaque mot
+          this.exerciseItems = [];
+          wordPairs.forEach(pair => {
+            // Item fr → it
+            this.exerciseItems.push({
+              wordPair: pair,
+              direction: 'fr2it',
+              question: pair.fr,
+              expectedAnswer: pair.it,
+              userAnswer: '',
+              isCorrect: false,
+              completed: false
+            });
+
+            // Item it → fr
+            this.exerciseItems.push({
+              wordPair: pair,
+              direction: 'it2fr',
+              question: pair.it,
+              expectedAnswer: pair.fr,
+              userAnswer: '',
+              isCorrect: false,
+              completed: false
+            });
           });
 
-          // Item it → fr
-          this.exerciseItems.push({
-            wordPair: pair,
-            direction: 'it2fr',
-            question: pair.it,
-            expectedAnswer: pair.fr,
-            userAnswer: '',
-            isCorrect: false,
-            completed: false
-          });
-        });
-
-        // Mélanger les items pour éviter d'avoir les deux sens d'un même mot à la suite
-        this.exerciseItems = this.shuffleExerciseItems(this.exerciseItems);
-        
-        console.log('🔍 [SpacedRepetition] Items d\'exercice créés:', this.exerciseItems.length);
+          // Mélanger les items pour éviter d'avoir les deux sens d'un même mot à la suite
+          this.exerciseItems = this.shuffleExerciseItems(this.exerciseItems);
+          console.log('🔍 [SpacedRepetition] Items d\'exercice créés:', this.exerciseItems.length);
+        } else if (this.selectedMode === 'association') {
+          // Mode association - préparer le jeu d'association
+          this.totalPairs = wordPairs.length;
+          this.setupCurrentGameRound();
+          console.log('🔍 [SpacedRepetition] Jeu d\'association préparé:', this.totalPairs, 'paires');
+        }
       },
       error: (error) => {
         console.error('Erreur lors du chargement de la session:', error);
@@ -662,6 +716,225 @@ export class SpacedRepetitionExerciseComponent implements OnInit, OnDestroy {
     const remaining = dueWords.filter(w => !alreadyDone.has(w.id));
     if (remaining.length > 0) {
       this.startNewSessionWithWords(remaining);
+    }
+  }
+
+  /**
+   * Prépare un round du jeu avec 6 paires (mode association)
+   */
+  setupCurrentGameRound() {
+    // Début (0) ou milieu (6) de la liste selon le set
+    const startIndex = (this.currentPairsSet - 1) * 6;
+    // Récupérer 6 paires ou moins si pas assez
+    const endIndex = Math.min(startIndex + 6, this.wordPairs.length);
+    const pairsForRound = this.wordPairs.slice(startIndex, endIndex);
+    
+    // Si pas de paires, le jeu est terminé
+    if (pairsForRound.length === 0) {
+      this.exerciseCompleted = true;
+      this.prepareReviewSummaryForAssociation();
+      return;
+    }
+    
+    this.currentPairs = [];
+    
+    // Créer les objets de jeu pour les mots source et cible
+    pairsForRound.forEach((pair, index) => {
+      const wordId = startIndex + index;
+      
+      // Ajouter le mot français
+      this.currentPairs.push({
+        id: wordId,
+        word: pair.fr,
+        isSource: true,
+        isSelected: false,
+        isMatched: false
+      });
+      
+      // Ajouter le mot italien
+      this.currentPairs.push({
+        id: wordId,
+        word: pair.it,
+        isSource: false,
+        isSelected: false,
+        isMatched: false
+      });
+    });
+    
+    // Mélanger uniquement les mots cible
+    this.shuffleTargetWords();
+  }
+  
+  /**
+   * Mélange les mots cible dans le tableau des paires actuelles
+   */
+  shuffleTargetWords() {
+    // Séparer les mots source et cible
+    const sourceWords = this.currentPairs.filter(pair => pair.isSource);
+    let targetWords = this.currentPairs.filter(pair => !pair.isSource);
+    
+    // Mélanger les mots cible
+    for (let i = targetWords.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [targetWords[i], targetWords[j]] = [targetWords[j], targetWords[i]];
+    }
+    
+    // Recombiner les mots source et cible
+    this.currentPairs = [...sourceWords, ...targetWords];
+  }
+  
+  /**
+   * Gère la sélection d'un mot (mode association)
+   */
+  selectWord(pair: GamePair) {
+    // Si la paire est déjà associée, ne rien faire
+    if (pair.isMatched) return;
+    
+    // Si erreur actuellement affichée, ne rien faire
+    if (this.errorShown) return;
+    
+    // Si c'est le premier mot sélectionné
+    if (!this.selectedPair) {
+      this.selectedPair = pair;
+      pair.isSelected = true;
+      return;
+    }
+    
+    // Si on clique sur le même mot, le désélectionner
+    if (this.selectedPair === pair) {
+      if (this.selectedPair) {
+        this.selectedPair.isSelected = false;
+      }
+      this.selectedPair = null;
+      return;
+    }
+    
+    this.attempts++;
+    
+    // Vérifier si les deux mots forment une paire
+    if (this.selectedPair && this.selectedPair.id === pair.id) {
+      // Match trouvé
+      this.selectedPair.isMatched = true;
+      pair.isMatched = true;
+      
+      // Tracker ce mot comme réussi
+      if (this.selectedPair) {
+        this.trackWordMatch(this.selectedPair.id, true);
+      }
+      
+      this.matchedPairs++;
+      
+      // Réinitialiser la sélection
+      this.selectedPair.isSelected = false;
+      this.selectedPair = null;
+      
+      // Si toutes les paires sont trouvées, passer au set suivant ou terminer
+      if (this.matchedPairs === this.currentPairs.length / 2) {
+        if (this.currentPairsSet === 1 && this.wordPairs.length > 6) {
+          // Passer au deuxième set si plus de 6 paires
+          setTimeout(() => {
+            this.currentPairsSet = 2;
+            this.matchedPairs = 0;
+            this.setupCurrentGameRound();
+          }, 1000);
+        } else {
+          // Terminer le jeu
+          this.exerciseCompleted = true;
+          this.prepareReviewSummaryForAssociation();
+        }
+      }
+    } else {
+      // Erreur
+      pair.isSelected = true;
+      this.errorShown = true;
+      
+      // Tracker ce mot comme raté
+      if (this.selectedPair) {
+        this.trackWordMatch(this.selectedPair.id, false);
+      }
+      
+      // Réinitialiser après un court délai
+      setTimeout(() => {
+        if (this.selectedPair) {
+          this.selectedPair.isSelected = false;
+        }
+        pair.isSelected = false;
+        this.selectedPair = null;
+        this.errorShown = false;
+      }, 1000);
+    }
+  }
+  
+  
+  /**
+   * Prépare le récapitulatif pour le mode association
+   */
+  prepareReviewSummaryForAssociation() {
+    this.reviewedWords = [];
+    
+    // Créer le récapitulatif pour chaque mot
+    this.wordPairs.forEach((pair, index) => {
+      // Calculer une qualité basée sur les performances
+      let quality = 3; // Par défaut
+      
+      // Vérifier si le mot a été raté
+      if (this.failedWords.includes(index)) {
+        quality = 1; // Difficile
+      } else {
+        quality = 4; // Facile
+      }
+      
+      this.reviewedWords.push({
+        fr: pair.fr,
+        it: pair.it,
+        userAnswers: {
+          fr2it: pair.it, // Dans le mode association, on considère que l'utilisateur a "répondu" correctement
+          it2fr: pair.fr
+        },
+        isCorrectFr2It: !this.failedWords.includes(index),
+        isCorrectIt2Fr: !this.failedWords.includes(index),
+        context: pair.context,
+        quality: quality
+      });
+    });
+    
+    console.log('🔍 [SpacedRepetition] Récapitulatif mode association préparé:', this.reviewedWords);
+  }
+  
+  /**
+   * Suit les performances de l'utilisateur sur un mot (mode association)
+   */
+  trackWordMatch(wordId: number, isCorrect: boolean) {
+    const pair = this.wordPairs[wordId];
+    
+    if (pair) {
+      this.vocabularyTrackingService.trackWord(
+        pair.it,
+        pair.fr,
+        'Mémorisation espacée',
+        'Association',
+        isCorrect,
+        pair.context
+      );
+      
+      // Ajouter aux mots ratés si incorrect
+      if (!isCorrect && !this.failedWords.includes(wordId)) {
+        this.failedWords.push(wordId);
+        this.hasFailedWords = true;
+      }
+    }
+  }
+  
+  /**
+   * Retourne une classe CSS en fonction de l'état de la paire (mode association)
+   */
+  getCardClass(pair: GamePair): string {
+    if (pair.isMatched) {
+      return 'matched';
+    } else if (pair.isSelected) {
+      return 'selected';
+    } else {
+      return '';
     }
   }
 

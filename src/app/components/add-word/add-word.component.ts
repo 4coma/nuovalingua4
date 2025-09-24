@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +15,7 @@ import { PersonalDictionaryService, TranslationResponse, DictionaryWord } from '
     FormsModule
   ]
 })
-export class AddWordComponent implements OnInit {
+export class AddWordComponent {
   sourceWord: string = '';
   targetWord: string = '';
   sourceLang: string = 'fr';
@@ -36,8 +36,6 @@ export class AddWordComponent implements OnInit {
     private modalController: ModalController,
     private toastController: ToastController
   ) { }
-
-  ngOnInit() {}
 
   /**
    * Ferme le modal

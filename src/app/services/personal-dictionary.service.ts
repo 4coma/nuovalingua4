@@ -501,6 +501,37 @@ export class PersonalDictionaryService {
   }
 
   /**
+   * Récupère un mot du dictionnaire par son ID
+   */
+  getWordById(wordId: string): DictionaryWord | null {
+    const allWords = this.getAllWords();
+    return allWords.find(word => word.id === wordId) || null;
+  }
+
+  /**
+   * Récupère les mots suivis (WordMastery) pour un mot du dictionnaire personnel
+   */
+  getTrackedWordsForDictionaryWord(dictionaryWordId: string): WordMastery[] {
+    const allTrackedWords = this.vocabularyTrackingService.getAllTrackedWords();
+    const dictionaryWord = this.getWordById(dictionaryWordId);
+    
+    if (!dictionaryWord) {
+      return [];
+    }
+    
+    // Chercher les mots suivis qui correspondent à ce mot du dictionnaire
+    return allTrackedWords.filter(trackedWord => {
+      const trackedWordText = trackedWord.word.toLowerCase();
+      const trackedTranslation = trackedWord.translation.toLowerCase();
+      const dictSourceWord = dictionaryWord.sourceWord.toLowerCase();
+      const dictTargetWord = dictionaryWord.targetWord.toLowerCase();
+      
+      return (trackedWordText === dictSourceWord && trackedTranslation === dictTargetWord) ||
+             (trackedWordText === dictTargetWord && trackedTranslation === dictSourceWord);
+    });
+  }
+
+  /**
    * Réinitialise la notification au message par défaut (appelé au début de chaque jour)
    */
   resetDailyNotification(): void {

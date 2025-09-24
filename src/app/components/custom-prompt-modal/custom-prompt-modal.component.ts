@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
@@ -58,12 +58,10 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, IonicModule, FormsModule]
 })
-export class CustomPromptModalComponent implements OnInit {
+export class CustomPromptModalComponent {
   customPrompt: string = '';
 
   constructor(private modalController: ModalController) { }
-
-  ngOnInit() {}
 
   submitPrompt() {
     if (this.customPrompt && this.customPrompt.trim().length >= 3) {

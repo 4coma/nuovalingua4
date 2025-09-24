@@ -1,7 +1,31 @@
 <ion-content>
   <div class="container">
+    <!-- Mode association -->
+    <div *ngIf="selectedMode === 'association' && !exerciseCompleted && currentPairs.length > 0" class="association-container">
+      <!-- Progression pour le mode association -->
+      <ion-card class="progress-card compact">
+        <ion-card-content>
+          <ion-progress-bar [value]="matchedPairs / (currentPairs.length / 2)"></ion-progress-bar>
+          <p class="progress-text">Paires trouvées {{ matchedPairs }} / {{ currentPairs.length / 2 }}</p>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Jeu d'association -->
+      <div class="game-grid">
+        <ion-card 
+          *ngFor="let pair of currentPairs" 
+          [class]="getCardClass(pair)"
+          (click)="selectWord(pair)"
+          class="word-card game-card">
+          <ion-card-content>
+            <span class="word-text">{{ pair.word }}</span>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+
     <!-- En-tête avec statistiques (plus compact, sans titre principal) -->
-    <ion-card *ngIf="!exerciseCompleted" class="stats-card compact">
+    <ion-card *ngIf="selectedMode === 'writing' && !exerciseCompleted" class="stats-card compact">
       <ion-card-content>
         <div class="stats-grid">
           <div class="stat-item clickable" (click)="showAllTrackedWords()">
@@ -20,8 +44,8 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- Progression -->
-    <ion-card *ngIf="!exerciseCompleted && exerciseItems.length > 0" class="progress-card compact">
+    <!-- Progression (mode écriture) -->
+    <ion-card *ngIf="selectedMode === 'writing' && !exerciseCompleted && exerciseItems.length > 0" class="progress-card compact">
       <ion-card-content>
         <ion-progress-bar [value]="(currentIndex + 1) / exerciseItems.length"></ion-progress-bar>
         <p class="progress-text">Question {{ currentIndex + 1 }} / {{ exerciseItems.length }}</p>
@@ -32,8 +56,8 @@
       </ion-card-content>
     </ion-card>
 
-    <!-- Exercice en cours -->
-    <div *ngIf="!exerciseCompleted && currentIndex < exerciseItems.length && exerciseItems.length > 0" class="exercise-container compact">
+    <!-- Exercice en cours (mode écriture) -->
+    <div *ngIf="selectedMode === 'writing' && !exerciseCompleted && currentIndex < exerciseItems.length && exerciseItems.length > 0" class="exercise-container compact">
       <ion-card class="word-card compact">
         <ion-card-content>
           <h2 class="word-display compact">{{ exerciseItems[currentIndex].question }}</h2>

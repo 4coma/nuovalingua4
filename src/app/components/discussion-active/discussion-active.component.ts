@@ -62,7 +62,10 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
           this.currentContext = savedSession.context;
           this.currentSession = savedSession;
           console.log('🔍 [CTX] Session sauvegardée chargée:', savedSession);
-          // Pas de startDiscussion, on reprend l'existant
+          
+          // Synchroniser l'état du service avec la session chargée
+          this.discussionService.resumeSession(savedSession);
+          console.log('🔍 [CTX] État du service synchronisé avec la session chargée');
           return;
         } else {
           alert('Erreur : la conversation sauvegardée est introuvable.');

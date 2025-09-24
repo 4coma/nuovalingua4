@@ -11,7 +11,9 @@ export class SavedConversationsService {
     const stored = localStorage.getItem(this.storageKey);
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const conversations = JSON.parse(stored);
+        // Reconvertir les timestamps en objets Date
+        return conversations.map((conv: any) => this.deserializeConversation(conv));
       } catch (e) {
         console.error('Erreur lors de la récupération des conversations sauvegardées:', e);
         return [];
@@ -38,5 +40,20 @@ export class SavedConversationsService {
 
   getConversationById(sessionId: string): DiscussionSession | undefined {
     return this.getAllConversations().find(s => s.id === sessionId);
+  }
+
+  /**
+   * Désérialise une conversation en reconvertissant les timestamps en objets Date
+   */
+  private deserializeConversation(conv: any): DiscussionSession {
+    return {
+      ...conv,
+      startTime: new Date(conv.startTime),
+      endTime: conv.endTime ? new Date(conv.endTime) : undefined,
+      turns: conv.turns.map((turn: any) => ({
+        ...turn,
+        timestamp: new Date(turn.timestamp)
+      }))
+    };
   }
 } 

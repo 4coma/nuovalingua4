@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
-
+import { provideHttpClient } from '@angular/common/http';
+import { RouterTestingModule } from '@angular/router/testing';
 import { CategorySelectionComponent } from './category-selection.component';
 
 describe('CategorySelectionComponent', () => {
@@ -9,8 +10,12 @@ describe('CategorySelectionComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ CategorySelectionComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        CategorySelectionComponent
+      ],
+      providers: [provideHttpClient()]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CategorySelectionComponent);

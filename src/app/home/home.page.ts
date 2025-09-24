@@ -2,8 +2,10 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, MenuController, ToastController, ModalController } from '@ionic/angular';
 import { RouterModule, Router } from '@angular/router';
-import { PersonalDictionaryService } from '../services/personal-dictionary.service';
+import { PersonalDictionaryService, DictionaryWord } from '../services/personal-dictionary.service';
 import { StorageService } from '../services/storage.service';
+import { SM2AlgorithmService } from '../services/sm2-algorithm.service';
+import { WordMastery } from '../services/vocabulary-tracking.service';
 import { FocusModeService } from '../services/focus-mode.service';
 import { FocusModalComponent } from '../components/focus-modal/focus-modal.component';
 
@@ -27,6 +29,7 @@ export class HomePage {
     private menuController: MenuController,
     private personalDictionaryService: PersonalDictionaryService,
     private storageService: StorageService,
+    private sm2Service: SM2AlgorithmService,
     private toastController: ToastController,
     private focusModeService: FocusModeService,
     private modalController: ModalController
@@ -138,9 +141,18 @@ export class HomePage {
       const savedCount = this.storageService.get('personalDictionaryWordsCount');
       const maxWords = savedCount ? parseInt(savedCount) : 8; // Valeur par défaut si pas configurée
       
-      // Sélectionner aléatoirement des mots (entre 3 et 20, ou tous si moins de 3)
-      const actualMaxWords = Math.min(20, Math.max(3, Math.min(maxWords, availableWords.length)));
-      const selectedWords = this.shuffleArray(availableWords).slice(0, actualMaxWords);
+      // Convertir les mots du dictionnaire en WordMastery pour utiliser l'algorithme SM-2
+      const wordMasteryList = this.convertDictionaryWordsToWordMastery(availableWords);
+      
+      // Utiliser l'algorithme SM-2 pour trier par priorité de révision
+      const sortedWords = this.sm2Service.sortWordsByPriority(wordMasteryList);
+      
+      // Sélectionner les mots les plus prioritaires (entre 3 et 20, ou tous si moins de 3)
+      const actualMaxWords = Math.min(20, Math.max(3, Math.min(maxWords, sortedWords.length)));
+      const selectedWordMastery = sortedWords.slice(0, actualMaxWords);
+      
+      // Convertir back en DictionaryWord pour la suite du processus
+      const selectedWords = this.convertWordMasteryToDictionaryWords(selectedWordMastery, availableWords);
 
       // Créer les paires de mots pour l'exercice d'association
       const wordPairs = selectedWords.map(word => ({
@@ -198,7 +210,55 @@ export class HomePage {
   }
 
   /**
-   * Mélange un tableau d'éléments
+   * Convertit les mots du dictionnaire personnel en WordMastery pour utiliser l'algorithme SM-2
+   */
+  private convertDictionaryWordsToWordMastery(dictionaryWords: DictionaryWord[]): WordMastery[] {
+    return dictionaryWords.map(word => {
+      // Récupérer les données de suivi existantes pour ce mot
+      const trackedWords = this.personalDictionaryService.getTrackedWordsForDictionaryWord(word.id);
+      
+      if (trackedWords.length > 0) {
+        // Utiliser les données de suivi existantes
+        return trackedWords[0];
+      } else {
+        // Créer un nouveau WordMastery avec des valeurs par défaut
+        return {
+          id: word.id,
+          word: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
+          translation: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
+          category: 'Dictionnaire personnel',
+          topic: 'Révision personnalisée',
+          repetitions: 0,
+          eFactor: 2.5,
+          interval: 0,
+          nextReview: word.minRevisionDate || Date.now(), // Utiliser minRevisionDate si disponible
+          lastReviewed: word.dateAdded,
+          masteryLevel: 0,
+          timesReviewed: 0,
+          timesCorrect: 0
+        };
+      }
+    });
+  }
+
+  /**
+   * Convertit les WordMastery triés back en DictionaryWord pour la suite du processus
+   */
+  private convertWordMasteryToDictionaryWords(wordMasteryList: WordMastery[], originalWords: DictionaryWord[]): DictionaryWord[] {
+    return wordMasteryList.map(wordMastery => {
+      // Trouver le mot original correspondant
+      return originalWords.find(originalWord => {
+        const originalWordText = originalWord.sourceLang === 'it' ? originalWord.sourceWord : originalWord.targetWord;
+        const originalTranslation = originalWord.sourceLang === 'fr' ? originalWord.sourceWord : originalWord.targetWord;
+        
+        return (originalWordText === wordMastery.word && originalTranslation === wordMastery.translation) ||
+               (originalWordText === wordMastery.translation && originalTranslation === wordMastery.word);
+      })!;
+    }).filter(word => word !== undefined);
+  }
+
+  /**
+   * Mélange un tableau d'éléments (conservé pour compatibilité)
    */
   private shuffleArray<T>(array: T[]): T[] {
     const shuffled = [...array];
