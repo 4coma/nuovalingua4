@@ -460,20 +460,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         // Ajouter les nouveaux mots au focus
         this.focusModeService.addWordsToCurrentFocus(newPairs);
 
-        // Enregistrer automatiquement dans le dictionnaire personnel
-        newPairs.forEach(pair => {
-          const direction = this.sessionInfo?.translationDirection || 'fr2it';
-          const dictWord: DictionaryWord = {
-            id: '',
-            sourceWord: direction === 'fr2it' ? pair.fr : pair.it,
-            sourceLang: direction === 'fr2it' ? 'fr' : 'it',
-            targetWord: direction === 'fr2it' ? pair.it : pair.fr,
-            targetLang: direction === 'fr2it' ? 'it' : 'fr',
-            contextualMeaning: pair.context,
-            dateAdded: Date.now()
-          };
-          this.personalDictionaryService.addWord(dictWord);
-        });
+        // Les mots sont ajoutés au focus uniquement, pas automatiquement au dictionnaire personnel
 
         this.showToast('Nouveaux mots ajoutés au focus');
       }

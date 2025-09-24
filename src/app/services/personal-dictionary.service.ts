@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, BehaviorSubject } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
@@ -46,6 +46,12 @@ export class PersonalDictionaryService {
    * File d'attente pour séquencer les mises à jour de notification et éviter les doublons
    */
   private notificationUpdateQueue: Promise<void> = Promise.resolve();
+  
+  /**
+   * BehaviorSubject pour notifier les changements du dictionnaire en temps réel
+   */
+  private dictionaryWordsSubject = new BehaviorSubject<DictionaryWord[]>([]);
+  public dictionaryWords$ = this.dictionaryWordsSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -54,7 +60,18 @@ export class PersonalDictionaryService {
     private vocabularyTrackingService: VocabularyTrackingService,
     private notificationService: NotificationService,
     private storageService: StorageService
-  ) {}
+  ) {
+    // Initialiser le BehaviorSubject avec les mots existants
+    this.initializeDictionarySubject();
+  }
+
+  /**
+   * Initialise le BehaviorSubject avec les mots du dictionnaire existants
+   */
+  private initializeDictionarySubject(): void {
+    const words = this.getAllWords();
+    this.dictionaryWordsSubject.next(words);
+  }
 
   /**
    * Récupère tous les mots du dictionnaire personnel
@@ -97,6 +114,9 @@ export class PersonalDictionaryService {
     words.push(word);
     localStorage.setItem(this.storageKey, JSON.stringify(words));
     
+    // Émettre la mise à jour via le BehaviorSubject
+    this.dictionaryWordsSubject.next(words);
+    
     // Ajouter automatiquement le mot au système de tracking SM-2
     this.addWordToSM2Tracking(word);
     
@@ -115,6 +135,8 @@ export class PersonalDictionaryService {
     
     if (filteredWords.length < words.length) {
       localStorage.setItem(this.storageKey, JSON.stringify(filteredWords));
+      // Émettre la mise à jour via le BehaviorSubject
+      this.dictionaryWordsSubject.next(filteredWords);
       return true;
     }
     
@@ -140,6 +162,9 @@ export class PersonalDictionaryService {
       
       // Sauvegarder dans le localStorage
       localStorage.setItem(this.storageKey, JSON.stringify(words));
+      
+      // Émettre la mise à jour via le BehaviorSubject
+      this.dictionaryWordsSubject.next(words);
       
       console.log('Mot mis à jour avec succès');
       
@@ -540,5 +565,55 @@ export class PersonalDictionaryService {
       .catch(error =>
         console.error('Erreur lors de la réinitialisation de la notification quotidienne:', error)
       );
+  }
+
+  /**
+   * Ajoute plusieurs mots au dictionnaire personnel en une seule fois
+   * Utile pour ajouter automatiquement les mots générés par l'IA
+   */
+  addMultipleWords(words: DictionaryWord[]): { added: number; duplicates: number } {
+    const existingWords = this.getAllWords();
+    let addedCount = 0;
+    let duplicatesCount = 0;
+    
+    const newWords = [...existingWords];
+    
+    words.forEach(word => {
+      // Vérifier si le mot existe déjà
+      const exists = existingWords.some(w => 
+        w.sourceWord.toLowerCase() === word.sourceWord.toLowerCase() && 
+        w.sourceLang === word.sourceLang &&
+        w.targetLang === word.targetLang
+      );
+      
+      if (!exists) {
+        // Générer un ID unique
+        word.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        word.dateAdded = Date.now();
+        
+        newWords.push(word);
+        addedCount++;
+        
+        // Ajouter automatiquement au système de tracking SM-2
+        this.addWordToSM2Tracking(word);
+      } else {
+        duplicatesCount++;
+      }
+    });
+    
+    // Sauvegarder tous les nouveaux mots
+    if (addedCount > 0) {
+      localStorage.setItem(this.storageKey, JSON.stringify(newWords));
+      
+      // Émettre la mise à jour via le BehaviorSubject
+      this.dictionaryWordsSubject.next(newWords);
+      
+      // Mettre à jour la notification quotidienne
+      this.updateDailyNotification();
+    }
+    
+    console.log(`Mots ajoutés: ${addedCount}, Doublons ignorés: ${duplicatesCount}`);
+    
+    return { added: addedCount, duplicates: duplicatesCount };
   }
 }

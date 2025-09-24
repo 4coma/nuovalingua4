@@ -179,20 +179,8 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       this.storageService.set('wordPairs', wordPairs);
       this.storageService.set('isFocusMode', true);
 
-      // Ajouter les mots au focus et au dictionnaire personnel
+      // Ajouter les mots au focus
       this.focusModeService.addWordsToCurrentFocus(wordPairs);
-      wordPairs.forEach(pair => {
-        const dictWord: DictionaryWord = {
-          id: '',
-          sourceWord: this.translationDirection === 'fr2it' ? pair.fr : pair.it,
-          sourceLang: this.translationDirection === 'fr2it' ? 'fr' : 'it',
-          targetWord: this.translationDirection === 'fr2it' ? pair.it : pair.fr,
-          targetLang: this.translationDirection === 'fr2it' ? 'it' : 'fr',
-          contextualMeaning: pair.context,
-          dateAdded: Date.now()
-        };
-        this.personalDictionaryService.addWord(dictWord);
-      });
 
       // Naviguer vers l'exercice
       this.router.navigate(['/word-pairs-game']);
@@ -282,6 +270,7 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       this.llmService.generateWordPairs(this.selectedTopic, this.selectedCategory).subscribe({
         next: (wordPairs) => {
           console.log('Paires de mots générées:', wordPairs);
+          
           // Stocker les paires de mots dans le localStorage pour la session
           localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
           // Stocker les informations sur la session
@@ -520,6 +509,7 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       ).subscribe({
         next: (wordPairs: WordPair[]) => {
           console.log('Paires de mots générées avec consigne personnalisée:', wordPairs);
+          
           // Stocker les paires de mots dans le localStorage pour la session
           localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
           // Stocker les informations sur la session

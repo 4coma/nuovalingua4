@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController, ModalController } from '@ionic/angular';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 import { AddWordComponent } from '../add-word/add-word.component';
 import { EditWordModalComponent } from './edit-word-modal.component';
@@ -20,7 +21,7 @@ import { StorageService } from '../../services/storage.service';
     FormsModule
   ]
 })
-export class PersonalDictionaryListComponent implements OnInit {
+export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
   // Titre de la page pour le header global
   pageTitle: string = 'Mon dictionnaire personnel';
   
@@ -46,6 +47,9 @@ export class PersonalDictionaryListComponent implements OnInit {
     'de': 'Allemand'
   };
 
+  // Subscription pour le BehaviorSubject
+  private dictionarySubscription?: Subscription;
+
   constructor(
     private dictionaryService: PersonalDictionaryService,
     private alertController: AlertController,
@@ -57,6 +61,19 @@ export class PersonalDictionaryListComponent implements OnInit {
 
   ngOnInit() {
     this.loadDictionary();
+    
+    // S'abonner aux changements du dictionnaire en temps réel
+    this.dictionarySubscription = this.dictionaryService.dictionaryWords$.subscribe(words => {
+      this.dictionaryWords = words;
+      this.processDictionaryData();
+    });
+  }
+
+  ngOnDestroy() {
+    // Nettoyer la subscription
+    if (this.dictionarySubscription) {
+      this.dictionarySubscription.unsubscribe();
+    }
   }
 
   /**
@@ -65,7 +82,14 @@ export class PersonalDictionaryListComponent implements OnInit {
   loadDictionary() {
     this.isLoading = true;
     this.dictionaryWords = this.dictionaryService.getAllWords();
-    
+    this.processDictionaryData();
+    this.isLoading = false;
+  }
+
+  /**
+   * Traite les données du dictionnaire (calculs, tris, filtres)
+   */
+  private processDictionaryData() {
     // Calculer les délais de révision pour l'affichage
     this.dictionaryWords.forEach(word => {
       if (word.minRevisionDate) {
@@ -77,7 +101,6 @@ export class PersonalDictionaryListComponent implements OnInit {
     this.filterWords();
     this.calculateStatistics();
     this.updateDueTodayWords();
-    this.isLoading = false;
   }
 
   /**

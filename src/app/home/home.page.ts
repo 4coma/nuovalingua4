@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, MenuController, ToastController, ModalController } from '@ionic/angular';
 import { RouterModule, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { PersonalDictionaryService, DictionaryWord } from '../services/personal-dictionary.service';
 import { StorageService } from '../services/storage.service';
 import { SM2AlgorithmService } from '../services/sm2-algorithm.service';
@@ -20,9 +21,12 @@ import { FocusModalComponent } from '../components/focus-modal/focus-modal.compo
     RouterModule
   ]
 })
-export class HomePage {
+export class HomePage implements OnInit, OnDestroy {
   pageTitle: string = 'Accueil';
   currentFocus: string | null = null;
+  
+  // Subscription pour le BehaviorSubject
+  private dictionarySubscription?: Subscription;
 
   constructor(
     private router: Router,
@@ -35,6 +39,21 @@ export class HomePage {
     private modalController: ModalController
   ) {
     this.loadCurrentFocus();
+  }
+
+  ngOnInit() {
+    // S'abonner aux changements du dictionnaire pour mettre à jour les statistiques
+    this.dictionarySubscription = this.personalDictionaryService.dictionaryWords$.subscribe(() => {
+      // Les statistiques peuvent être mises à jour ici si nécessaire
+      console.log('Dictionnaire mis à jour - statistiques actualisées');
+    });
+  }
+
+  ngOnDestroy() {
+    // Nettoyer la subscription
+    if (this.dictionarySubscription) {
+      this.dictionarySubscription.unsubscribe();
+    }
   }
 
   /**
