@@ -35,28 +35,35 @@
 
     <!-- Messages de la discussion -->
     <div *ngIf="currentSession && currentSession.turns.length > 0">
-      <ion-card *ngFor="let turn of currentSession.turns; let i = index" 
-                [class]="turn.speaker === 'ai' ? 'ai-message' : 'user-message'">
-        <ion-card-content>
-          <!-- Utilisation du composant TranslatableMessageComponent -->
-          <app-translatable-message
-            [message]="turn.message"
-            [speaker]="turn.speaker"
-            [speakerName]="turn.speaker === 'ai' ? (currentContext?.aiRole || 'IA') : 'Vous'"
-            [timestamp]="turn.timestamp"
-            [showTimestamp]="true">
-          </app-translatable-message>
-          
-          <!-- Lecteur audio pour les messages IA -->
-          <app-audio-player 
-            *ngIf="turn.speaker === 'ai'" 
-            [audioUrl]="turn.audioUrl || null" 
-            [showControls]="true" 
-            [isLoading]="isAudioGenerating(i, turn)"
-            style="margin-top: 8px; background: transparent; box-shadow: none;">
-          </app-audio-player>
-        </ion-card-content>
-      </ion-card>
+      <div *ngFor="let turn of currentSession.turns; let i = index">
+        <ion-card [class]="turn.speaker === 'ai' ? 'ai-message' : 'user-message'">
+          <ion-card-content>
+            <!-- Utilisation du composant TranslatableMessageComponent -->
+            <app-translatable-message
+              [message]="turn.message"
+              [speaker]="turn.speaker"
+              [speakerName]="turn.speaker === 'ai' ? (currentContext?.aiRole || 'IA') : 'Vous'"
+              [timestamp]="turn.timestamp"
+              [showTimestamp]="true">
+            </app-translatable-message>
+            
+            <!-- Lecteur audio pour les messages IA -->
+            <app-audio-player 
+              *ngIf="turn.speaker === 'ai'" 
+              [audioUrl]="turn.audioUrl || null" 
+              [showControls]="true" 
+              [isLoading]="isAudioGenerating(i, turn)"
+              style="margin-top: 8px; background: transparent; box-shadow: none;">
+            </app-audio-player>
+          </ion-card-content>
+        </ion-card>
+        
+        <!-- Feedback pour les messages utilisateur -->
+        <app-message-feedback 
+          *ngIf="turn.speaker === 'user' && turn.feedback" 
+          [feedback]="turn.feedback">
+        </app-message-feedback>
+      </div>
     </div>
 
     <!-- Sélecteur de mode de réponse -->

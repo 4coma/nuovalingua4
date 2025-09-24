@@ -17,12 +17,33 @@ export interface DiscussionContext {
   description: string;
 }
 
+export interface ErrorCorrection {
+  erreur: string;
+  correction: string;
+  type: string;
+}
+
+export interface MessageFeedback {
+  erreurs?: ErrorCorrection[];
+  // Propriétés de l'ancien format pour la compatibilité
+  grammaire?: string;
+  vocabulaire?: string;
+  prononciation?: string;
+  suggestion?: string;
+}
+
+export interface AIResponse {
+  reponse: string;
+  feedback: MessageFeedback;
+}
+
 export interface DiscussionTurn {
   speaker: 'user' | 'ai';
   message: string;
   timestamp: Date;
   audioUrl?: string;
   transcription?: string;
+  feedback?: MessageFeedback;
 }
 
 export interface DiscussionSession {
@@ -179,11 +200,11 @@ export class DiscussionService {
       };
 
       // Générer la première réplique de l'IA
-      const aiFirstMessage = await this.generateAIResponse(context, '');
+      const aiFirstResponse = await this.generateAIResponse(context, '');
       
       const aiTurn: DiscussionTurn = {
         speaker: 'ai',
-        message: aiFirstMessage,
+        message: aiFirstResponse.reponse,
         timestamp: new Date()
       };
 
@@ -291,16 +312,21 @@ export class DiscussionService {
 
       // Générer la réponse de l'IA
       console.log('🔍 DiscussionService - Début génération réponse IA...');
-      const aiResponse = await this.generateAIResponse(
+      const aiResponseData = await this.generateAIResponse(
         currentState.currentSession.context,
         transcription.text,
         currentState.currentSession.turns
       );
-      console.log('🔍 DiscussionService - Réponse IA générée', aiResponse);
+      console.log('🔍 DiscussionService - Réponse IA générée', aiResponseData);
+
+      // Ajouter le feedback au message utilisateur précédent
+      if (userTurn && aiResponseData.feedback) {
+        userTurn.feedback = aiResponseData.feedback;
+      }
 
       const aiTurn: DiscussionTurn = {
         speaker: 'ai',
-        message: aiResponse,
+        message: aiResponseData.reponse,
         timestamp: new Date()
       };
       currentState.currentSession.turns.push(aiTurn);
@@ -355,16 +381,21 @@ export class DiscussionService {
 
       // Générer la réponse de l'IA
       console.log('🔍 DiscussionService - Début génération réponse IA...');
-      const aiResponse = await this.generateAIResponse(
+      const aiResponseData = await this.generateAIResponse(
         currentState.currentSession.context,
         userMessage,
         currentState.currentSession.turns
       );
-      console.log('🔍 DiscussionService - Réponse IA générée', aiResponse);
+      console.log('🔍 DiscussionService - Réponse IA générée', aiResponseData);
+
+      // Ajouter le feedback au message utilisateur précédent
+      if (userTurn && aiResponseData.feedback) {
+        userTurn.feedback = aiResponseData.feedback;
+      }
 
       const aiTurn: DiscussionTurn = {
         speaker: 'ai',
-        message: aiResponse,
+        message: aiResponseData.reponse,
         timestamp: new Date()
       };
       currentState.currentSession.turns.push(aiTurn);
@@ -427,16 +458,19 @@ export class DiscussionService {
     context: DiscussionContext,
     userMessage: string,
     previousTurns: DiscussionTurn[] = []
-  ): Promise<string> {
+  ): Promise<AIResponse> {
     const prompt = this.buildDiscussionPrompt(context, userMessage, previousTurns);
     console.log('🔍 Prompt envoyé au modèle IA :\n', prompt);
     try {
       const response: any = await this.llmService.generateDiscussionResponse(prompt).toPromise();
       console.log('LA REPONSE EST :', response);
       let text = '';
-      // Cas 1 : la propriété 'reponse' est déjà présente dans l'objet retourné
-      if (response && typeof response === 'object' && typeof response.reponse === 'string') {
-        return response.reponse;
+      // Cas 1 : la réponse est déjà un objet avec reponse et feedback
+      if (response && typeof response === 'object' && response.reponse && response.feedback) {
+        return {
+          reponse: response.reponse,
+          feedback: response.feedback
+        };
       }
       // Cas 2 : string JSON ou texte brut
       if (typeof response === 'string') {
@@ -444,23 +478,46 @@ export class DiscussionService {
       } else if (response?.conversation?.[0]?.messaggio) {
         text = response.conversation[0].messaggio;
       } else {
-        return 'Je ne comprends pas, pouvez-vous répéter ?';
+        return {
+          reponse: 'Je ne comprends pas, pouvez-vous répéter ?',
+          feedback: {
+            erreurs: []
+          }
+        };
       }
       // Essayer d'extraire la propriété 'reponse' du JSON
       try {
         const json = JSON.parse(text);
-        if (json && typeof json.reponse === 'string') {
-          return json.reponse;
+        if (json && typeof json.reponse === 'string' && json.feedback) {
+          return {
+            reponse: json.reponse,
+            feedback: json.feedback
+          };
         } else {
-          return 'Erreur : le modèle n\'a pas répondu au format JSON attendu.';
+          return {
+            reponse: 'Erreur : le modèle n\'a pas répondu au format JSON attendu.',
+            feedback: {
+              erreurs: []
+            }
+          };
         }
       } catch (e) {
         console.error('Erreur lors du parsing de la réponse JSON:', e, text);
-        return 'Erreur : la réponse du modèle n\'est pas un JSON valide.';
+        return {
+          reponse: 'Erreur : la réponse du modèle n\'est pas un JSON valide.',
+          feedback: {
+            erreurs: []
+          }
+        };
       }
     } catch (error) {
       console.error('Erreur lors de la génération de la réponse IA:', error);
-      return 'Désolé, je n\'ai pas pu traiter votre message.';
+      return {
+        reponse: 'Désolé, je n\'ai pas pu traiter votre message.',
+        feedback: {
+          erreurs: []
+        }
+      };
     }
   }
 
@@ -491,6 +548,12 @@ export class DiscussionService {
       prompt += `- Si c'est le tout premier tour, démarre la conversation EN ITALIEN, de façon naturelle et adaptée au contexte ci-dessus.\n`;
     }
     prompt += `- Si tu réponds dans une autre langue que l'italien, recommence en italien.\n`;
+    prompt += `\nIMPORTANT pour le feedback :\n`;
+    prompt += `- Analyse le message de l'utilisateur et identifie UNIQUEMENT les erreurs spécifiques\n`;
+    prompt += `- Pour chaque erreur, indique le texte incorrect, la correction exacte, et le type d'erreur\n`;
+    prompt += `- Si aucune erreur n'est détectée, retourne un tableau vide : "erreurs": []\n`;
+    prompt += `- Ne donne AUCUN commentaire général, évaluation ou suggestion\n`;
+    prompt += `- Concentre-toi uniquement sur les corrections précises\n`;
     prompt += `\n`;
 
     // Limiter l'historique à MAX_TURNS_HISTORY (garder le premier + les N derniers)
@@ -514,7 +577,18 @@ export class DiscussionService {
     if (userMessage) {
       prompt += `\nDernier message de l'utilisateur : "${userMessage}"\n`;
     }
-    prompt += `\nRéponds uniquement avec un objet JSON de la forme : { \"reponse\": \"<ta réponse en italien>\" }\n`;
+    prompt += `\nRéponds uniquement avec un objet JSON de la forme : { 
+      "reponse": "<ta réponse en italien>",
+      "feedback": {
+        "erreurs": [
+          {
+            "erreur": "<texte incorrect de l'utilisateur>",
+            "correction": "<texte corrigé>",
+            "type": "<type d'erreur: grammaire/vocabulaire/orthographe/conjugaison>"
+          }
+        ]
+      }
+    }\n`;
     prompt += `\nTa réponse :`;
     return prompt;
   }

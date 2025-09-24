@@ -1,0 +1,42 @@
+<div *ngIf="feedback" class="feedback-container">
+  <!-- Chevron discret pour afficher/masquer le feedback -->
+  <div class="feedback-toggle" (click)="toggleFeedback()">
+    <ion-icon 
+      [name]="showFeedback ? 'chevron-up' : 'chevron-down'" 
+      [color]="getFeedbackColor(feedback)"
+      size="small">
+    </ion-icon>
+    <ion-icon 
+      [name]="getFeedbackIcon(feedback)" 
+      [color]="getFeedbackColor(feedback)"
+      size="small">
+    </ion-icon>
+  </div>
+
+  <!-- Contenu du feedback (affiché/masqué) -->
+  <div class="feedback-content" [class.show]="showFeedback">
+    <ion-card class="feedback-card">
+      <ion-card-content>
+        <!-- Message si aucune erreur -->
+        <div *ngIf="!hasErrors()" class="no-errors">
+          <ion-icon name="checkmark-circle" color="success"></ion-icon>
+          <p *ngIf="feedback?.erreurs !== undefined">Aucune erreur détectée ! Votre message est correct.</p>
+          <p *ngIf="feedback?.erreurs === undefined">Feedback de l'ancien format - pas de corrections spécifiques disponibles.</p>
+        </div>
+        
+        <!-- Liste des erreurs -->
+        <div *ngIf="hasErrors()" class="errors-list">
+          <h4>Corrections :</h4>
+          <div *ngFor="let erreur of feedback?.erreurs" class="error-item">
+            <div class="error-content">
+              <span class="error-text">{{ erreur.erreur }}</span>
+              <ion-icon name="arrow-forward" class="arrow-icon"></ion-icon>
+              <span class="correction-text">{{ erreur.correction }}</span>
+            </div>
+            <div class="error-type">{{ erreur.type }}</div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</div>

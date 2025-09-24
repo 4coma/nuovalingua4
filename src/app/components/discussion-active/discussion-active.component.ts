@@ -9,6 +9,7 @@ import { SpeechService } from '../../services/speech.service';
 import { AudioPlayerComponent } from '../audio-player/audio-player.component';
 import { SavedConversationsService } from '../../services/saved-conversations.service';
 import { TranslatableMessageComponent } from '../translatable-message/translatable-message.component';
+import { MessageFeedbackComponent } from '../message-feedback/message-feedback.component';
 
 @Component({
   selector: 'app-discussion-active',
@@ -20,7 +21,8 @@ import { TranslatableMessageComponent } from '../translatable-message/translatab
     IonicModule,
     FormsModule,
     AudioPlayerComponent,
-    TranslatableMessageComponent
+    TranslatableMessageComponent,
+    MessageFeedbackComponent
   ]
 })
 export class DiscussionActiveComponent implements OnInit, OnDestroy {
