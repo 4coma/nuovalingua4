@@ -416,19 +416,17 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    * Appelé lorsque le jeu est terminé
    */
   private async onGameComplete() {
+    // En mode focus, ne pas proposer de générer de nouveaux mots
+    // L'utilisateur peut simplement retourner au menu principal
     if (this.isFocusMode) {
       const alert = await this.alertController.create({
         header: 'Session terminée',
-        message: 'Générer de nouveaux mots pour ce focus ?',
+        message: 'Session de révision terminée. Retour au menu principal.',
         buttons: [
           {
-            text: 'Non',
-            role: 'cancel'
-          },
-          {
-            text: 'Oui',
+            text: 'OK',
             handler: () => {
-              this.generateNewFocusWords();
+              this.router.navigate(['/home']);
             }
           }
         ]
@@ -437,38 +435,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Génère de nouveaux mots pour le focus actuel
-   */
-  private async generateNewFocusWords() {
-    const focusInstruction = this.storageService.get('focusInstruction');
-    if (!focusInstruction) {
-      return;
-    }
-
-    const existingWords = this.focusModeService.getCurrentFocusWords();
-
-    try {
-      const newPairs = await this.llmService.generateWordPairs(
-        focusInstruction,
-        undefined,
-        this.sessionInfo?.translationDirection,
-        existingWords.map(w => w.it)
-      ).toPromise();
-
-      if (newPairs && newPairs.length > 0) {
-        // Ajouter les nouveaux mots au focus
-        this.focusModeService.addWordsToCurrentFocus(newPairs);
-
-        // Les mots sont ajoutés au focus uniquement, pas automatiquement au dictionnaire personnel
-
-        this.showToast('Nouveaux mots ajoutés au focus');
-      }
-    } catch (error) {
-      console.error('Erreur lors de la génération de nouveaux mots focus:', error);
-      this.showToast('Erreur lors de la génération de nouveaux mots');
-    }
-  }
   
   /**
    * Joue la prononciation d'un mot italien
