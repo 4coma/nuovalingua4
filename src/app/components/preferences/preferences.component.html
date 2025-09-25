@@ -115,6 +115,107 @@
   <ion-card>
     <ion-card-header>
       <ion-card-title>
+        <ion-icon name="cloud-outline" slot="start"></ion-icon>
+        Synchronisation Firebase
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>Configurez Firebase pour synchroniser vos données (dictionnaire personnel, statistiques) entre vos appareils.</p>
+      </ion-text>
+      
+      <ion-item>
+        <ion-label>Activer la synchronisation Firebase</ion-label>
+        <ion-toggle [(ngModel)]="firebaseEnabled"></ion-toggle>
+      </ion-item>
+      
+      <div *ngIf="firebaseEnabled">
+        <ion-item>
+          <ion-label position="stacked">API Key</ion-label>
+          <ion-input 
+            [(ngModel)]="firebaseApiKey" 
+            [type]="showFirebaseConfig ? 'text' : 'password'"
+            placeholder="AIza..."
+            class="api-key-input">
+          </ion-input>
+          <ion-button 
+            fill="clear" 
+            slot="end" 
+            (click)="toggleFirebaseConfigVisibility()">
+            <ion-icon [name]="showFirebaseConfig ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </ion-button>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label position="stacked">Auth Domain</ion-label>
+          <ion-input 
+            [(ngModel)]="firebaseAuthDomain" 
+            [type]="showFirebaseConfig ? 'text' : 'password'"
+            placeholder="votre-projet.firebaseapp.com">
+          </ion-input>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label position="stacked">Project ID</ion-label>
+          <ion-input 
+            [(ngModel)]="firebaseProjectId" 
+            [type]="showFirebaseConfig ? 'text' : 'password'"
+            placeholder="votre-projet-id">
+          </ion-input>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label position="stacked">Storage Bucket</ion-label>
+          <ion-input 
+            [(ngModel)]="firebaseStorageBucket" 
+            [type]="showFirebaseConfig ? 'text' : 'password'"
+            placeholder="votre-projet.appspot.com">
+          </ion-input>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label position="stacked">Messaging Sender ID</ion-label>
+          <ion-input 
+            [(ngModel)]="firebaseMessagingSenderId" 
+            [type]="showFirebaseConfig ? 'text' : 'password'"
+            placeholder="123456789">
+          </ion-input>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label position="stacked">App ID</ion-label>
+          <ion-input 
+            [(ngModel)]="firebaseAppId" 
+            [type]="showFirebaseConfig ? 'text' : 'password'"
+            placeholder="1:123456789:web:abcdef">
+          </ion-input>
+        </ion-item>
+        
+        <ion-text color="medium" class="ion-padding-top">
+          <p><small>Votre configuration Firebase est stockée localement sur votre appareil.</small></p>
+        </ion-text>
+        
+        <ion-button fill="clear" color="primary" size="small" (click)="showFirebaseInfo()" class="ion-margin-top">
+          <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+          Comment obtenir ma configuration Firebase ?
+        </ion-button>
+        
+        <ion-button 
+          expand="block" 
+          color="success" 
+          fill="outline"
+          (click)="testFirebaseConnection()"
+          class="ion-margin-top">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Tester la connexion Firebase
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
         <ion-icon name="game-controller-outline" slot="start"></ion-icon>
         Nombre d'associations de mots
       </ion-card-title>

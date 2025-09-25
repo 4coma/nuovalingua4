@@ -33,6 +33,16 @@ export class PreferencesComponent implements OnInit {
   showApiKey: boolean = false;
   showGoogleApiKey: boolean = false;
   
+  // Configuration Firebase
+  firebaseEnabled: boolean = false;
+  firebaseApiKey: string = '';
+  firebaseAuthDomain: string = '';
+  firebaseProjectId: string = '';
+  firebaseStorageBucket: string = '';
+  firebaseMessagingSenderId: string = '';
+  firebaseAppId: string = '';
+  showFirebaseConfig: boolean = false;
+  
   // Propriétés pour les notifications
   notificationsEnabled: boolean = false;
   notificationTime: string = '18:30';
@@ -98,6 +108,15 @@ export class PreferencesComponent implements OnInit {
       console.log('🔍 [Preferences] Valeur convertie:', this.personalDictionaryWordsCount);
     }
 
+    // Charger la configuration Firebase
+    this.firebaseEnabled = this.storageService.get('firebaseEnabled') === 'true';
+    this.firebaseApiKey = this.storageService.get('firebaseApiKey') || '';
+    this.firebaseAuthDomain = this.storageService.get('firebaseAuthDomain') || '';
+    this.firebaseProjectId = this.storageService.get('firebaseProjectId') || '';
+    this.firebaseStorageBucket = this.storageService.get('firebaseStorageBucket') || '';
+    this.firebaseMessagingSenderId = this.storageService.get('firebaseMessagingSenderId') || '';
+    this.firebaseAppId = this.storageService.get('firebaseAppId') || '';
+
     // Charger les paramètres de notification
     const notificationSettings = this.notificationService.getSettings();
     this.notificationsEnabled = notificationSettings.enabled;
@@ -152,6 +171,33 @@ export class PreferencesComponent implements OnInit {
       this.storageService.set('userGoogleTtsApiKey', this.googleTtsApiKey.trim());
     } else {
       this.storageService.remove('userGoogleTtsApiKey');
+    }
+
+    // Sauvegarder la configuration Firebase
+    this.storageService.set('firebaseEnabled', this.firebaseEnabled.toString());
+    if (this.firebaseEnabled) {
+      // Valider que tous les champs Firebase sont remplis
+      if (!this.firebaseApiKey.trim() || !this.firebaseAuthDomain.trim() || 
+          !this.firebaseProjectId.trim() || !this.firebaseStorageBucket.trim() || 
+          !this.firebaseMessagingSenderId.trim() || !this.firebaseAppId.trim()) {
+        this.showToast('Tous les champs de configuration Firebase doivent être remplis.');
+        return;
+      }
+      
+      this.storageService.set('firebaseApiKey', this.firebaseApiKey.trim());
+      this.storageService.set('firebaseAuthDomain', this.firebaseAuthDomain.trim());
+      this.storageService.set('firebaseProjectId', this.firebaseProjectId.trim());
+      this.storageService.set('firebaseStorageBucket', this.firebaseStorageBucket.trim());
+      this.storageService.set('firebaseMessagingSenderId', this.firebaseMessagingSenderId.trim());
+      this.storageService.set('firebaseAppId', this.firebaseAppId.trim());
+    } else {
+      // Supprimer la configuration Firebase si désactivée
+      this.storageService.remove('firebaseApiKey');
+      this.storageService.remove('firebaseAuthDomain');
+      this.storageService.remove('firebaseProjectId');
+      this.storageService.remove('firebaseStorageBucket');
+      this.storageService.remove('firebaseMessagingSenderId');
+      this.storageService.remove('firebaseAppId');
     }
 
     // Sauvegarder le nombre d'associations
@@ -759,6 +805,66 @@ export class PreferencesComponent implements OnInit {
     } catch (error) {
       console.error('Erreur lors de l\'envoi de la notification de test:', error);
       this.showToast('Erreur lors de l\'envoi de la notification de test.');
+    }
+  }
+
+  /**
+   * Bascule la visibilité de la configuration Firebase
+   */
+  toggleFirebaseConfigVisibility() {
+    this.showFirebaseConfig = !this.showFirebaseConfig;
+  }
+
+  /**
+   * Affiche les informations sur Firebase
+   */
+  async showFirebaseInfo() {
+    const alert = await this.alertController.create({
+      header: 'Configuration Firebase',
+      message: `
+        <p>Firebase permet de synchroniser vos données (dictionnaire personnel, statistiques) entre vos appareils.</p>
+        <p><strong>Avantages :</strong></p>
+        <ul>
+          <li>• Sauvegarde automatique dans le cloud</li>
+          <li>• Synchronisation entre appareils</li>
+          <li>• Plus de perte de données</li>
+          <li>• Accès depuis n'importe où</li>
+        </ul>
+        <p><strong>Comment obtenir ces informations :</strong></p>
+        <ol>
+          <li>1. Allez sur <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
+          <li>2. Créez un nouveau projet ou sélectionnez un projet existant</li>
+          <li>3. Allez dans "Paramètres du projet" → "Vos applications"</li>
+          <li>4. Ajoutez une application Web</li>
+          <li>5. Copiez la configuration Firebase</li>
+        </ol>
+        <p><strong>Sécurité :</strong> Vos données sont stockées de manière sécurisée et privée.</p>
+      `,
+      buttons: ['Compris']
+    });
+    await alert.present();
+  }
+
+  /**
+   * Teste la connexion Firebase
+   */
+  async testFirebaseConnection() {
+    if (!this.firebaseEnabled) {
+      this.showToast('Firebase n\'est pas activé.');
+      return;
+    }
+
+    if (!this.firebaseApiKey.trim() || !this.firebaseProjectId.trim()) {
+      this.showToast('Configuration Firebase incomplète.');
+      return;
+    }
+
+    try {
+      // TODO: Implémenter le test de connexion Firebase
+      this.showToast('Test de connexion Firebase - À implémenter');
+    } catch (error) {
+      console.error('Erreur lors du test Firebase:', error);
+      this.showToast('Erreur de connexion Firebase.');
     }
   }
 
