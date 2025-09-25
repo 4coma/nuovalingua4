@@ -335,15 +335,16 @@ export class AppComponent {
 
   /**
    * Lance directement une session de révision du dictionnaire personnel
+   * Utilise un algorithme simple basé sur minRevisionDate (pas SM-2)
    */
   private async startPersonalDictionaryRevision() {
     try {
-      // Récupérer les mots disponibles pour la révision (filtrés par minRevisionDate)
-      const availableWords = this.personalDictionaryService.getAvailableWordsForRevision();
+      // Récupérer les mots à réviser aujourd'hui (algorithme simple)
+      const wordsToReviewToday = this.personalDictionaryService.getWordsToReviewToday();
       
-      if (availableWords.length === 0) {
+      if (wordsToReviewToday.length === 0) {
         const toast = await this.toastController.create({
-          message: 'Aucun mot disponible pour la révision à ce moment. Vérifiez les dates de révision de vos mots !',
+          message: 'Aucun mot à réviser aujourd\'hui. Vérifiez les dates de révision de vos mots !',
           duration: 3000,
           position: 'bottom',
           color: 'warning'
@@ -352,13 +353,8 @@ export class AppComponent {
         return;
       }
 
-      // Récupérer le nombre de mots configuré dans les préférences
-      const savedCount = this.storageService.get('personalDictionaryWordsCount');
-      const maxWords = savedCount ? parseInt(savedCount) : 8; // Valeur par défaut si pas configurée
-      
-      // Sélectionner aléatoirement des mots (entre 3 et 20, ou tous si moins de 3)
-      const actualMaxWords = Math.min(20, Math.max(3, Math.min(maxWords, availableWords.length)));
-      const selectedWords = this.shuffleArray(availableWords).slice(0, actualMaxWords);
+      // Utiliser tous les mots à réviser aujourd'hui (pas de limite arbitraire)
+      const selectedWords = wordsToReviewToday;
 
       // Créer les paires de mots pour l'exercice d'association
       const wordPairs = selectedWords.map(word => ({

@@ -237,6 +237,34 @@ export class PersonalDictionaryService {
   }
 
   /**
+   * Obtient les mots à réviser aujourd'hui (algorithme simple basé sur minRevisionDate)
+   * Cette méthode est utilisée pour "Réviser mes mots" et ne utilise PAS l'algorithme SM-2
+   */
+  getWordsToReviewToday(): DictionaryWord[] {
+    const allWords = this.getAllWords();
+    const currentTimestamp = Date.now();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+    
+    return allWords.filter(word => {
+      // Exclure les mots marqués comme connus
+      if (word.isKnown) {
+        return false;
+      }
+      
+      // Si minRevisionDate n'est pas définie, le mot n'est pas à réviser aujourd'hui
+      if (!word.minRevisionDate) {
+        return false;
+      }
+      
+      // Le mot est à réviser aujourd'hui si sa minRevisionDate est entre aujourd'hui 00:00 et 23:59
+      return word.minRevisionDate >= todayStart.getTime() && word.minRevisionDate <= todayEnd.getTime();
+    });
+  }
+
+  /**
    * Traduit un mot d'une langue à une autre
    */
   translateWord(word: string, sourceLang: string, targetLang: string): Observable<TranslationResponse> {

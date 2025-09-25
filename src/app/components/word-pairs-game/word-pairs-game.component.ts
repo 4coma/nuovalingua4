@@ -433,6 +433,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       });
       await alert.present();
     }
+    
+    // Pour la révision du dictionnaire personnel, sauvegarder automatiquement les délais
+    if (this.isPersonalDictionaryRevision) {
+      await this.saveRevisionDelays();
+    }
   }
 
   
