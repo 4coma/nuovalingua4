@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 import { VocabularyTrackingService, WordMastery } from './vocabulary-tracking.service';
 import { NotificationService } from './notification.service';
 import { StorageService } from './storage.service';
+import { FirebaseSyncService } from './firebase-sync.service';
 
 export interface DictionaryWord {
   id: string;
@@ -59,10 +60,18 @@ export class PersonalDictionaryService {
     private toastCtrl: ToastController,
     private vocabularyTrackingService: VocabularyTrackingService,
     private notificationService: NotificationService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private firebaseSync: FirebaseSyncService
   ) {
     // Initialiser le BehaviorSubject avec les mots existants
     this.initializeDictionarySubject();
+    
+    // Écouter les changements de statut Firebase
+    this.firebaseSync.syncStatus$.subscribe(status => {
+      if (status.isConnected && this.firebaseSync.isFirebaseEnabled()) {
+        this.syncFromFirebase();
+      }
+    });
   }
 
   /**
@@ -123,6 +132,9 @@ export class PersonalDictionaryService {
     // Mettre à jour la notification quotidienne avec le nombre de mots ajoutés aujourd'hui
     this.updateDailyNotification();
     
+    // Synchroniser avec Firebase si activé
+    this.syncToFirebase();
+    
     return true;
   }
 
@@ -137,6 +149,10 @@ export class PersonalDictionaryService {
       localStorage.setItem(this.storageKey, JSON.stringify(filteredWords));
       // Émettre la mise à jour via le BehaviorSubject
       this.dictionaryWordsSubject.next(filteredWords);
+      
+      // Synchroniser avec Firebase si activé
+      this.syncToFirebase();
+      
       return true;
     }
     
@@ -170,6 +186,9 @@ export class PersonalDictionaryService {
       
       // Mettre à jour également le tracking SM-2 si nécessaire
       this.updateWordInSM2Tracking(updatedWord);
+      
+      // Synchroniser avec Firebase si activé
+      this.syncToFirebase();
       
       return true;
     }
@@ -638,10 +657,101 @@ export class PersonalDictionaryService {
       
       // Mettre à jour la notification quotidienne
       this.updateDailyNotification();
+      
+      // Synchroniser avec Firebase si activé
+      this.syncToFirebase();
     }
     
     console.log(`Mots ajoutés: ${addedCount}, Doublons ignorés: ${duplicatesCount}`);
     
     return { added: addedCount, duplicates: duplicatesCount };
+  }
+
+  /**
+   * Synchronise le dictionnaire avec Firebase
+   */
+  private async syncToFirebase(): Promise<void> {
+    if (!this.firebaseSync.isFirebaseEnabled()) {
+      return;
+    }
+
+    try {
+      const words = this.getAllWords();
+      await this.firebaseSync.syncPersonalDictionary(words);
+      console.log('🔍 [PersonalDictionary] Synchronisation vers Firebase réussie');
+    } catch (error) {
+      console.error('🔍 [PersonalDictionary] Erreur de synchronisation vers Firebase:', error);
+    }
+  }
+
+  /**
+   * Récupère le dictionnaire depuis Firebase
+   */
+  private async syncFromFirebase(): Promise<void> {
+    if (!this.firebaseSync.isFirebaseEnabled()) {
+      return;
+    }
+
+    try {
+      const firebaseWords = await this.firebaseSync.getPersonalDictionary();
+      if (firebaseWords.length > 0) {
+        // Fusionner avec les mots locaux
+        const localWords = this.getAllWords();
+        const mergedWords = this.mergeWords(localWords, firebaseWords);
+        
+        // Sauvegarder localement
+        localStorage.setItem(this.storageKey, JSON.stringify(mergedWords));
+        this.dictionaryWordsSubject.next(mergedWords);
+        
+        console.log('🔍 [PersonalDictionary] Synchronisation depuis Firebase réussie:', mergedWords.length, 'mots');
+      }
+    } catch (error) {
+      console.error('🔍 [PersonalDictionary] Erreur de synchronisation depuis Firebase:', error);
+    }
+  }
+
+  /**
+   * Fusionne les mots locaux et Firebase
+   */
+  private mergeWords(localWords: DictionaryWord[], firebaseWords: DictionaryWord[]): DictionaryWord[] {
+    const merged = [...localWords];
+    
+    firebaseWords.forEach(firebaseWord => {
+      const exists = merged.some(localWord => localWord.id === firebaseWord.id);
+      if (!exists) {
+        merged.push(firebaseWord);
+      } else {
+        // Mettre à jour le mot existant avec les données Firebase si plus récent
+        const index = merged.findIndex(localWord => localWord.id === firebaseWord.id);
+        if (index !== -1) {
+          // Ici on pourrait comparer les timestamps pour décider quelle version garder
+          merged[index] = firebaseWord;
+        }
+      }
+    });
+    
+    return merged;
+  }
+
+  /**
+   * Force une synchronisation complète avec Firebase
+   */
+  async forceSyncWithFirebase(): Promise<void> {
+    if (!this.firebaseSync.isFirebaseEnabled()) {
+      throw new Error('Firebase n\'est pas activé');
+    }
+
+    try {
+      // Synchroniser vers Firebase
+      await this.syncToFirebase();
+      
+      // Récupérer depuis Firebase
+      await this.syncFromFirebase();
+      
+      console.log('🔍 [PersonalDictionary] Synchronisation complète réussie');
+    } catch (error) {
+      console.error('🔍 [PersonalDictionary] Erreur de synchronisation complète:', error);
+      throw error;
+    }
   }
 }

@@ -7,6 +7,7 @@ import { VocabularyTrackingService, WordMastery } from '../../services/vocabular
 import { SM2AlgorithmService } from '../../services/sm2-algorithm.service';
 import { SpacedRepetitionService } from '../../services/spaced-repetition.service';
 import { NotificationService } from '../../services/notification.service';
+import { FirebaseSyncService } from '../../services/firebase-sync.service';
 
 @Component({
   selector: 'app-preferences',
@@ -57,7 +58,8 @@ export class PreferencesComponent implements OnInit {
     private vocabularyTrackingService: VocabularyTrackingService,
     private sm2Service: SM2AlgorithmService,
     private spacedRepetitionService: SpacedRepetitionService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private firebaseSync: FirebaseSyncService
   ) { }
 
   ngOnInit() {
@@ -860,11 +862,29 @@ export class PreferencesComponent implements OnInit {
     }
 
     try {
-      // TODO: Implémenter le test de connexion Firebase
-      this.showToast('Test de connexion Firebase - À implémenter');
+      // Sauvegarder temporairement la configuration pour le test
+      this.storageService.set('firebaseEnabled', 'true');
+      this.storageService.set('firebaseApiKey', this.firebaseApiKey.trim());
+      this.storageService.set('firebaseAuthDomain', this.firebaseAuthDomain.trim());
+      this.storageService.set('firebaseProjectId', this.firebaseProjectId.trim());
+      this.storageService.set('firebaseStorageBucket', this.firebaseStorageBucket.trim());
+      this.storageService.set('firebaseMessagingSenderId', this.firebaseMessagingSenderId.trim());
+      this.storageService.set('firebaseAppId', this.firebaseAppId.trim());
+
+      // Réinitialiser Firebase avec la nouvelle configuration
+      await this.firebaseSync.reinitialize();
+
+      // Tester la connexion
+      const isConnected = await this.firebaseSync.testConnection();
+      
+      if (isConnected) {
+        this.showToast('✅ Connexion Firebase réussie !');
+      } else {
+        this.showToast('❌ Échec de la connexion Firebase.');
+      }
     } catch (error) {
       console.error('Erreur lors du test Firebase:', error);
-      this.showToast('Erreur de connexion Firebase.');
+      this.showToast('❌ Erreur de connexion Firebase: ' + (error as Error).message);
     }
   }
 
