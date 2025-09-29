@@ -27,6 +27,7 @@ import { BehaviorSubject, Observable, from, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { StorageService } from './storage.service';
 import { DictionaryWord } from './personal-dictionary.service';
+import { DiscussionTurn, DiscussionContext } from './discussion.service';
 
 export interface FirebaseConfig {
   apiKey: string;
@@ -42,6 +43,63 @@ export interface SyncStatus {
   isSyncing: boolean;
   lastSync?: Date;
   error?: string;
+}
+
+export interface Conversation {
+  id: string;
+  context: DiscussionContext;
+  turns: DiscussionTurn[];
+  startTime: Date;
+  endTime?: Date;
+  language: string;
+}
+
+export interface UserStatistics {
+  totalWordsLearned: number;
+  totalConversations: number;
+  totalStudyTime: number; // en millisecondes
+  streakDays: number;
+  lastActivity: Date;
+  wordsAddedToday: number;
+  conversationsToday: number;
+}
+
+export interface UserSettings {
+  notificationsEnabled: boolean;
+  notificationTime: string;
+  notificationMessage: string;
+  comprehensionNotificationsEnabled: boolean;
+  comprehensionNotificationTime: string;
+  wordAssociationsCount: number;
+  oralComprehensionLength: number;
+  spacedRepetitionWordsCount: number;
+  personalDictionaryWordsCount: number;
+  openaiApiKey?: string;
+  googleTtsApiKey?: string;
+}
+
+export interface SavedText {
+  id: string;
+  title: string;
+  content: string;
+  language: string;
+  difficulty: string;
+  dateSaved: Date;
+  wordCount: number;
+}
+
+export interface UserData {
+  personalDictionary: DictionaryWord[];
+  conversations: Conversation[];
+  statistics: UserStatistics;
+  settings: UserSettings;
+  savedTexts: SavedText[];
+  metadata: {
+    createdAt: Date;
+    lastSync: Date;
+    syncVersion: number;
+    appVersion: string;
+  };
 }
 
 @Injectable({
@@ -192,7 +250,45 @@ export class FirebaseSyncService {
   }
 
   /**
-   * Synchronise le dictionnaire personnel vers Firebase
+   * Synchronise toutes les données utilisateur vers Firebase
+   */
+  async syncAllUserData(userData: UserData): Promise<void> {
+    if (!this.db || !this.currentUser) {
+      throw new Error('Firebase non initialisé ou utilisateur non connecté');
+    }
+
+    this.updateSyncStatus({ isSyncing: true });
+
+    try {
+      const userDocRef = doc(this.db, 'users', this.currentUser.uid);
+      await setDoc(userDocRef, {
+        ...userData,
+        lastSync: serverTimestamp(),
+        syncVersion: 1
+      }, { merge: true });
+
+      console.log('🔍 [FirebaseSync] Toutes les données synchronisées:', {
+        words: userData.personalDictionary.length,
+        conversations: userData.conversations.length,
+        savedTexts: userData.savedTexts.length
+      });
+      
+      this.updateSyncStatus({ 
+        isSyncing: false, 
+        lastSync: new Date() 
+      });
+    } catch (error) {
+      console.error('🔍 [FirebaseSync] Erreur de synchronisation:', error);
+      this.updateSyncStatus({ 
+        isSyncing: false, 
+        error: 'Erreur de synchronisation' 
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Synchronise le dictionnaire personnel vers Firebase (compatibilité)
    */
   async syncPersonalDictionary(words: DictionaryWord[]): Promise<void> {
     if (!this.db || !this.currentUser) {
@@ -225,7 +321,52 @@ export class FirebaseSyncService {
   }
 
   /**
-   * Récupère le dictionnaire personnel depuis Firebase
+   * Récupère toutes les données utilisateur depuis Firebase
+   */
+  async getAllUserData(): Promise<UserData | null> {
+    if (!this.db || !this.currentUser) {
+      throw new Error('Firebase non initialisé ou utilisateur non connecté');
+    }
+
+    try {
+      const userDocRef = doc(this.db, 'users', this.currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const userData: UserData = {
+          personalDictionary: data['personalDictionary'] || [],
+          conversations: data['conversations'] || [],
+          statistics: data['statistics'] || this.getDefaultStatistics(),
+          settings: data['settings'] || this.getDefaultSettings(),
+          savedTexts: data['savedTexts'] || [],
+          metadata: {
+            createdAt: data['metadata']?.createdAt || new Date(),
+            lastSync: new Date(),
+            syncVersion: data['metadata']?.syncVersion || 1,
+            appVersion: data['metadata']?.appVersion || '1.0.0'
+          }
+        };
+        
+        console.log('🔍 [FirebaseSync] Toutes les données récupérées:', {
+          words: userData.personalDictionary.length,
+          conversations: userData.conversations.length,
+          savedTexts: userData.savedTexts.length
+        });
+        
+        return userData;
+      } else {
+        console.log('🔍 [FirebaseSync] Aucune donnée utilisateur trouvée sur Firebase');
+        return null;
+      }
+    } catch (error) {
+      console.error('🔍 [FirebaseSync] Erreur de récupération:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère le dictionnaire personnel depuis Firebase (compatibilité)
    */
   async getPersonalDictionary(): Promise<DictionaryWord[]> {
     if (!this.db || !this.currentUser) {
@@ -249,6 +390,38 @@ export class FirebaseSyncService {
       console.error('🔍 [FirebaseSync] Erreur de récupération:', error);
       throw error;
     }
+  }
+
+  /**
+   * Retourne les statistiques par défaut
+   */
+  private getDefaultStatistics(): UserStatistics {
+    return {
+      totalWordsLearned: 0,
+      totalConversations: 0,
+      totalStudyTime: 0,
+      streakDays: 0,
+      lastActivity: new Date(),
+      wordsAddedToday: 0,
+      conversationsToday: 0
+    };
+  }
+
+  /**
+   * Retourne les paramètres par défaut
+   */
+  private getDefaultSettings(): UserSettings {
+    return {
+      notificationsEnabled: false,
+      notificationTime: '18:30',
+      notificationMessage: 'Il est temps de pratiquer votre italien ! 🇮🇹',
+      comprehensionNotificationsEnabled: false,
+      comprehensionNotificationTime: '19:00',
+      wordAssociationsCount: 10,
+      oralComprehensionLength: 150,
+      spacedRepetitionWordsCount: 10,
+      personalDictionaryWordsCount: 8
+    };
   }
 
   /**

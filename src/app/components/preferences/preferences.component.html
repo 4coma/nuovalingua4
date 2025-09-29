@@ -209,6 +209,26 @@
           <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
           Tester la connexion Firebase
         </ion-button>
+        
+        <ion-button 
+          expand="block" 
+          color="primary" 
+          fill="outline"
+          (click)="migrateDataToFirebase()"
+          class="ion-margin-top">
+          <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+          Migrer mes données vers Firebase
+        </ion-button>
+        
+        <ion-button 
+          expand="block" 
+          color="medium" 
+          fill="clear"
+          (click)="showMigrationInfo()"
+          class="ion-margin-top">
+          <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+          À propos de la migration
+        </ion-button>
       </div>
     </ion-card-content>
   </ion-card>

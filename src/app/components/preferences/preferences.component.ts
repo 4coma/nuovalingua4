@@ -8,6 +8,7 @@ import { SM2AlgorithmService } from '../../services/sm2-algorithm.service';
 import { SpacedRepetitionService } from '../../services/spaced-repetition.service';
 import { NotificationService } from '../../services/notification.service';
 import { FirebaseSyncService } from '../../services/firebase-sync.service';
+import { DataMigrationService } from '../../services/data-migration.service';
 
 @Component({
   selector: 'app-preferences',
@@ -59,7 +60,8 @@ export class PreferencesComponent implements OnInit {
     private sm2Service: SM2AlgorithmService,
     private spacedRepetitionService: SpacedRepetitionService,
     private notificationService: NotificationService,
-    private firebaseSync: FirebaseSyncService
+    private firebaseSync: FirebaseSyncService,
+    private dataMigration: DataMigrationService
   ) { }
 
   ngOnInit() {
@@ -886,6 +888,100 @@ export class PreferencesComponent implements OnInit {
       console.error('Erreur lors du test Firebase:', error);
       this.showToast('❌ Erreur de connexion Firebase: ' + (error as Error).message);
     }
+  }
+
+  /**
+   * Migre les données locales vers Firebase
+   */
+  async migrateDataToFirebase() {
+    if (!this.firebaseEnabled) {
+      this.showToast('Firebase n\'est pas activé.');
+      return;
+    }
+
+    if (!this.dataMigration.hasLocalData()) {
+      this.showToast('Aucune donnée locale à migrer.');
+      return;
+    }
+
+    const summary = this.dataMigration.getLocalDataSummary();
+    
+    const alert = await this.alertController.create({
+      header: 'Migration des données',
+      message: `
+        <p>Voulez-vous migrer vos données locales vers Firebase ?</p>
+        <p><strong>Données à migrer :</strong></p>
+        <ul>
+          <li>• ${summary.words} mots du dictionnaire personnel</li>
+          <li>• ${summary.conversations} conversations</li>
+          <li>• ${summary.texts} textes sauvegardés</li>
+          <li>• Paramètres et statistiques</li>
+        </ul>
+        <p><strong>Note :</strong> Vos données locales seront conservées.</p>
+      `,
+      buttons: [
+        {
+          text: 'Annuler',
+          role: 'cancel'
+        },
+        {
+          text: 'Migrer',
+          handler: async () => {
+            await this.performMigration();
+          }
+        }
+      ]
+    });
+    
+    await alert.present();
+  }
+
+  /**
+   * Effectue la migration des données
+   */
+  private async performMigration() {
+    try {
+      this.showToast('🔄 Migration en cours...');
+      
+      await this.dataMigration.migrateAllDataToFirebase();
+      
+      this.showToast('✅ Migration terminée avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la migration:', error);
+      this.showToast('❌ Erreur lors de la migration: ' + (error as Error).message);
+    }
+  }
+
+  /**
+   * Affiche les informations sur la migration
+   */
+  async showMigrationInfo() {
+    const summary = this.dataMigration.getLocalDataSummary();
+    
+    const alert = await this.alertController.create({
+      header: 'Migration des données',
+      message: `
+        <p>La migration transfère toutes vos données locales vers Firebase :</p>
+        <p><strong>Données disponibles :</strong></p>
+        <ul>
+          <li>• ${summary.words} mots du dictionnaire personnel</li>
+          <li>• ${summary.conversations} conversations</li>
+          <li>• ${summary.texts} textes sauvegardés</li>
+          <li>• Paramètres et préférences</li>
+          <li>• Statistiques d'utilisation</li>
+        </ul>
+        <p><strong>Avantages :</strong></p>
+        <ul>
+          <li>• Sauvegarde automatique dans le cloud</li>
+          <li>• Synchronisation entre appareils</li>
+          <li>• Plus de perte de données</li>
+        </ul>
+        <p><strong>Sécurité :</strong> Vos données restent privées et sécurisées.</p>
+      `,
+      buttons: ['Compris']
+    });
+    
+    await alert.present();
   }
 
   /**
