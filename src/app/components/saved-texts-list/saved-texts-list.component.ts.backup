@@ -1,7 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController } from '@ionic/angular';
-import { ViewWillEnter } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { SavedTextsService } from '../../services/saved-texts.service';
 import { SavedText } from '../../models/vocabulary';
@@ -24,7 +23,7 @@ import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
   ],
   providers: [SavedTextsService, TextGeneratorService, PersonalDictionaryService]
 })
-export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter {
+export class SavedTextsListComponent implements OnInit {
   searchTerm = '';
   filterType: 'all' | 'favorite' = 'all';
   texts: SavedText[] = [];
@@ -44,9 +43,6 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
 
   // Ajoute une propriété pour stocker les sessions générées
   public generatedSessions: any[] = [];
-  
-  // Référence à l'écouteur d'événement
-  private textSavedListener: any;
 
   constructor(
     private savedTextsService: SavedTextsService,
@@ -58,25 +54,6 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
   ngOnInit() {
     this.loadTexts();
     this.loadGeneratedSessions();
-    
-    // Écouter l'événement de sauvegarde de texte
-    this.textSavedListener = () => {
-      console.log('🔍 [SavedTextsList] Événement text-saved reçu, rechargement de la liste');
-      this.loadTexts();
-    };
-    window.addEventListener('text-saved', this.textSavedListener);
-  }
-  
-  ngOnDestroy() {
-    // Nettoyer l'écouteur d'événement
-    if (this.textSavedListener) {
-      window.removeEventListener('text-saved', this.textSavedListener);
-    }
-  }
-
-  ionViewWillEnter() {
-    // Recharger les textes à chaque fois que la vue devient visible
-    this.loadTexts();
   }
 
   loadTexts() {

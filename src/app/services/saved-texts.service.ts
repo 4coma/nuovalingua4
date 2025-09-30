@@ -12,11 +12,12 @@ export class SavedTextsService {
   /**
    * Sauvegarde un texte de compréhension
    */
-  saveText(comprehensionText: ComprehensionText, category: string, topic: string): boolean {
+  saveText(comprehensionText: ComprehensionText, category: string, topic: string, customTitle?: string): boolean {
     console.log('SavedTextsService.saveText() appelé');
     console.log('comprehensionText:', comprehensionText);
     console.log('category:', category);
     console.log('topic:', topic);
+    console.log('customTitle:', customTitle);
     
     try {
       const savedTexts = this.getAllTexts();
@@ -24,7 +25,7 @@ export class SavedTextsService {
       
       const newSavedText: SavedText = {
         id: this.generateId(),
-        title: this.generateTitle(category, topic, comprehensionText.type),
+        title: customTitle || this.generateTitle(category, topic, comprehensionText.type),
         text: comprehensionText.text,
         type: comprehensionText.type,
         category: category,

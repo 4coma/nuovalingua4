@@ -1,0 +1,101 @@
+.text-preview-section {
+  .title-section {
+    margin-bottom: 20px;
+    
+    ion-item {
+      --padding-start: 0;
+      --padding-end: 0;
+      
+      ion-label {
+        font-weight: 500;
+        color: var(--ion-color-dark);
+      }
+      
+      ion-input {
+        --background: var(--ion-color-light);
+        --border-radius: 8px;
+        --padding: 12px;
+        border: 1px solid var(--ion-color-light-shade);
+        margin-top: 8px;
+      }
+    }
+  }
+  
+  .text-content {
+    margin-bottom: 24px;
+    
+    .text-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      
+      h3 {
+        color: var(--ion-color-dark);
+        margin: 0;
+        flex: 1;
+      }
+      
+      .edit-button {
+        --color: var(--ion-color-medium);
+        --background: transparent;
+        --padding-start: 8px;
+        --padding-end: 8px;
+        --padding-top: 4px;
+        --padding-bottom: 4px;
+        margin: 0;
+        height: auto;
+        min-height: 32px;
+        
+        ion-icon {
+          font-size: 18px;
+        }
+        
+        &:hover {
+          --color: var(--ion-color-primary);
+        }
+      }
+    }
+    
+    .text-display {
+      background: var(--ion-color-light);
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--ion-color-light-shade);
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--ion-color-dark);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+  }
+  
+  .save-section {
+    ion-item {
+      --padding-start: 0;
+      --padding-end: 0;
+      margin-bottom: 16px;
+      
+      ion-label {
+        font-weight: 500;
+        color: var(--ion-color-dark);
+      }
+      
+      ion-input, ion-textarea {
+        --background: var(--ion-color-light);
+        --border-radius: 8px;
+        --padding: 12px;
+        border: 1px solid var(--ion-color-light-shade);
+        margin-top: 8px;
+      }
+    }
+  }
+}
+
+.save-button {
+  --background: var(--ion-color-primary);
+  --color: white;
+  margin: 0 16px;
+}

@@ -262,20 +262,23 @@ export class TextGeneratorService {
       Voici un texte en italien:
       "${text}"
       
-      À partir de ce texte, je veux que tu extraies 8-12 paires de mots français-italien qui sont importantes pour la compréhension du texte.
-      Ces mots doivent être de niveau intermédiaire et utiles pour l'apprentissage.
+      OBLIGATOIRE: Tu dois extraire EXACTEMENT 8-12 paires de mots français-italien qui apparaissent LITTÉRALEMENT dans ce texte.
       
-      Important:
-      - Choisis des mots qui apparaissent dans le texte
-      - Inclus des mots de vocabulaire variés (noms, verbes, adjectifs)
-      - Assure-toi que les traductions sont précises
+      Règles strictes:
+      - Les mots italiens doivent être EXACTEMENT ceux qui sont dans le texte (pas de variantes)
+      - Choisis des mots de vocabulaire importants pour comprendre le texte
+      - Inclus des mots variés (noms, verbes, adjectifs, adverbes)
+      - Les traductions doivent être précises et contextuelles
+      - Les mots doivent être de niveau intermédiaire
+      
+      EXEMPLE: Si le texte contient "casa", "mangiare", "bello", tu dois utiliser ces mots exacts, pas "abitazione", "consumare", "carino"
       
       TRES IMPORTANT:
       - RETOURNE TA RÉPONSE SOUS FORME D'OBJET JSON AVEC LA STRUCTURE SUIVANTE:
       {
         "wordPairs": [
-          {"it": "mot italien", "fr": "traduction française", "context": "contexte d'utilisation optionnel"},
-          {"it": "mot italien", "fr": "traduction française", "context": "contexte d'utilisation optionnel"},
+          {"it": "mot italien du texte", "fr": "traduction française", "context": "contexte d'utilisation optionnel"},
+          {"it": "mot italien du texte", "fr": "traduction française", "context": "contexte d'utilisation optionnel"},
           ...
         ],
         "title": "${title}",

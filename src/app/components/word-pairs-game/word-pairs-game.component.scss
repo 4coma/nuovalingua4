@@ -336,4 +336,72 @@
       }
     }
   }
+}
+
+// Menu principal simplifié
+.main-actions {
+  margin-top: 20px;
+  
+  .more-button {
+    --border-color: var(--ion-color-medium);
+    --color: var(--ion-color-dark);
+    margin-bottom: 16px;
+    font-weight: 500;
+    
+    ion-icon {
+      transition: transform 0.2s ease;
+    }
+  }
+  
+  .additional-options {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--ion-color-light);
+    border-radius: 12px;
+    border: 1px solid var(--ion-color-light-shade);
+    
+    .option-button {
+      --border-color: var(--ion-color-medium);
+      --color: var(--ion-color-dark);
+      margin-bottom: 8px;
+      font-weight: 400;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      &[disabled] {
+        --color: var(--ion-color-medium);
+        --border-color: var(--ion-color-light-shade);
+        opacity: 0.5;
+      }
+    }
+  }
+  
+  .main-button {
+    --border-color: var(--ion-color-medium);
+    --color: var(--ion-color-dark);
+    margin-bottom: 12px;
+    font-weight: 500;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Animation pour l'affichage des options
+.additional-options {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 } 

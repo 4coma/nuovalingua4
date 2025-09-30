@@ -1,0 +1,9 @@
+  /**
+   * Recharge les données quand la page devient visible
+   * Cela permet de voir les nouveaux textes ajoutés
+   */
+  ionViewWillEnter() {
+    console.log('🔍 [SavedTextsList] Page devient visible, rechargement des données');
+    this.loadTexts();
+    this.loadGeneratedSessions();
+  }

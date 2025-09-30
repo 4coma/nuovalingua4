@@ -14,6 +14,8 @@ import { StorageService } from '../../services/storage.service';
 import { DictionaryModalComponent } from './dictionary-modal.component';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 import { Injector } from '@angular/core';
+import { AddTextModalComponent } from '../add-text-modal/add-text-modal.component';
+import { TextPreviewModalComponent } from '../text-preview-modal/text-preview-modal.component';
 
 interface GamePair {
   id: number;
@@ -75,6 +77,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   // Pour les mots révisés
   revisedWords: RevisedWord[] = [];
   
+  // Pour l'affichage conditionnel des options
+  showMoreOptions: boolean = false;
+  
   // Informations de session
   sessionInfo: { 
     category: string; 
@@ -109,6 +114,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.loadSessionData();
     this.loadAudioPreference();
     this.loadGeneratedSessions();
+    this.checkForGeneratedSession();
   }
 
   /**
@@ -192,6 +198,19 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.generatedSessions = sessions;
     if (sessions.length > 0) {
       console.log('Sessions générées disponibles:', sessions.length);
+    }
+  }
+
+  /**
+   * Vérifie s'il y a une session générée récente à charger
+   */
+  checkForGeneratedSession() {
+    const lastSessionId = localStorage.getItem('lastAssociationSessionId');
+    if (lastSessionId) {
+      console.log('🔍 [WordPairsGame] Session générée détectée:', lastSessionId);
+      this.loadGeneratedSession(lastSessionId);
+      // Nettoyer l'ID pour éviter de recharger la même session
+      localStorage.removeItem('lastAssociationSessionId');
     }
   }
 
@@ -861,6 +880,48 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Bascule l'affichage des options supplémentaires
+   */
+  toggleMoreOptions() {
+    this.showMoreOptions = !this.showMoreOptions;
+  }
+
+
+  /**
+   * Ouvre le modal d'ajout de texte
+   */
+  async openAddTextModal() {
+    const modal = await this.modalController.create({
+      component: AddTextModalComponent,
+      cssClass: 'add-text-modal'
+    });
+
+    const { data } = await modal.onDidDismiss();
+    
+    if (data && data.action === 'preview') {
+      this.openTextPreviewModal(data.text);
+    }
+  }
+
+  /**
+   * Ouvre le modal de prévisualisation du texte
+   */
+  async openTextPreviewModal(text: string) {
+    const modal = await this.modalController.create({
+      component: TextPreviewModalComponent,
+      cssClass: 'text-preview-modal',
+      componentProps: {
+        text: text
+      }
+    });
+
+    const { data } = await modal.onDidDismiss();
+    
+    if (data && data.action === 'edit') {
+      this.openAddTextModal();
+    }
+  }
 
   ngOnDestroy() {
     this.saveRevisionDelays();

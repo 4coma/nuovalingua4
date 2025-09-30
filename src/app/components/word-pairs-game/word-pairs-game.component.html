@@ -130,65 +130,79 @@
         </p>
       </div>
 
-      <h3 class="ion-text-center">Exercices disponibles</h3>
-      
-      <!-- Bouton pour ajouter au dictionnaire personnel (masqué si révision du dictionnaire personnel) -->
-      <ion-button 
-        (click)="openDictionaryModal()" 
-        expand="block" 
-        color="medium" 
-        class="ion-margin-vertical">
-        <ion-icon name="bookmark-outline" slot="start"></ion-icon>
-        Ajouter au dictionnaire personnel
-      </ion-button>
-      
-      <!-- Boutons de recommencement -->
-      <ion-button (click)="restartExercise()" expand="block" color="warning" class="ion-margin-vertical">
-        <ion-icon name="refresh-outline" slot="start"></ion-icon>
-        Recommencer l'exercice
-      </ion-button>
-      
-      <ion-button 
-        (click)="restartFailedWords()" 
-        expand="block" 
-        color="danger" 
-        class="ion-margin-vertical"
-        [disabled]="!hasFailedWords">
-        <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-        Recommencer les mots ratés ({{ failedWords.length }})
-      </ion-button>
-      
-      <ion-button (click)="generateWrittenComprehension()" expand="block" color="success" class="ion-margin-vertical" [disabled]="isGenerating">
-        <ion-icon name="book-outline" slot="start"></ion-icon>
-        Compréhension écrite
-      </ion-button>
-      
-      <ion-button (click)="generateOralComprehension()" expand="block" color="tertiary" class="ion-margin-vertical" [disabled]="isGenerating">
-        <ion-icon name="mic-outline" slot="start"></ion-icon>
-        Compréhension orale
-      </ion-button>
-      
-      <ion-button (click)="goToVocabularyExercise()" expand="block" color="primary" class="ion-margin-vertical">
-        <ion-icon name="create-outline" slot="start"></ion-icon>
-        Exercice d'encodage
-      </ion-button>
-      
-      <!-- Indicateur de chargement pour la génération -->
-      <div *ngIf="isGenerating" class="loading-container ion-text-center ion-margin-vertical">
-        <ion-spinner></ion-spinner>
-        <p>Génération du texte en cours...</p>
+      <!-- Menu principal simplifié -->
+      <div class="main-actions">
+        <!-- Bouton Plus pour afficher/masquer les options -->
+        <ion-button 
+          (click)="toggleMoreOptions()" 
+          expand="block" 
+          fill="outline" 
+          class="more-button">
+          <ion-icon [name]="showMoreOptions ? 'chevron-up' : 'chevron-down'" slot="end"></ion-icon>
+          {{ showMoreOptions ? 'Moins d\'options' : 'Plus d\'options' }}
+        </ion-button>
+        
+        <!-- Options supplémentaires (affichées conditionnellement) -->
+        <div class="additional-options" *ngIf="showMoreOptions">
+          <!-- Bouton pour ajouter au dictionnaire personnel (masqué si révision du dictionnaire personnel) -->
+          <ion-button 
+            (click)="openDictionaryModal()" 
+            expand="block" 
+            fill="outline" 
+            class="option-button">
+            <ion-icon name="bookmark-outline" slot="start"></ion-icon>
+            Ajouter au dictionnaire personnel
+          </ion-button>
+          
+          <!-- Boutons de recommencement -->
+          <ion-button (click)="restartExercise()" expand="block" fill="outline" class="option-button">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            Recommencer l'exercice
+          </ion-button>
+          
+          <ion-button 
+            (click)="restartFailedWords()" 
+            expand="block" 
+            fill="outline" 
+            class="option-button"
+            [disabled]="!hasFailedWords">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Recommencer les mots ratés ({{ failedWords.length }})
+          </ion-button>
+          
+          <ion-button (click)="generateWrittenComprehension()" expand="block" fill="outline" class="option-button" [disabled]="isGenerating">
+            <ion-icon name="book-outline" slot="start"></ion-icon>
+            Compréhension écrite
+          </ion-button>
+          
+          <ion-button (click)="generateOralComprehension()" expand="block" fill="outline" class="option-button" [disabled]="isGenerating">
+            <ion-icon name="mic-outline" slot="start"></ion-icon>
+            Compréhension orale
+          </ion-button>
+          
+          <ion-button (click)="goToVocabularyExercise()" expand="block" fill="outline" class="option-button">
+            <ion-icon name="create-outline" slot="start"></ion-icon>
+            Exercice d'encodage
+          </ion-button>
+          
+          <!-- Indicateur de chargement pour la génération -->
+          <div *ngIf="isGenerating" class="loading-container ion-text-center ion-margin-vertical">
+            <ion-spinner></ion-spinner>
+            <p>Génération du texte en cours...</p>
+          </div>
+        </div>
+        
+        <!-- Boutons principaux toujours visibles -->
+        <ion-button routerLink="/category" expand="block" fill="outline" class="main-button">
+          <ion-icon name="list-outline" slot="start"></ion-icon>
+          Retour aux catégories
+        </ion-button>
+        
+        <ion-button routerLink="/home" expand="block" fill="outline" class="main-button">
+          <ion-icon name="home-outline" slot="start"></ion-icon>
+          Retour à l'accueil
+        </ion-button>
       </div>
-      
-      <ion-button routerLink="/category" expand="block" color="medium" class="ion-margin-vertical">
-        <ion-icon name="list-outline" slot="start"></ion-icon>
-        Retour aux catégories
-      </ion-button>
-      
-      
-      <ion-button routerLink="/home" expand="block" color="light" class="ion-margin-vertical">
-        <ion-icon name="home-outline" slot="start"></ion-icon>
-        Retour à l'accueil
-      </ion-button>
     </div>
   </div>
 </ion-content> 

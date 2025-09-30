@@ -1,67 +1,61 @@
-<ion-content>
+<ion-content class="category-content">
   <div class="container">
-    <h2 class="ion-text-center ion-padding">Choisissez une catégorie</h2>
-    
-    <!-- Sélection de la direction de traduction -->
-    <div class="ion-padding">
-        <ion-segment [(ngModel)]="translationDirection" (ionChange)="changeTranslationDirection($event.detail.value)">
+    <!-- Header compact -->
+    <div class="header-section">
+      <h1 class="page-title">Choisissez une catégorie</h1>
+      
+      <!-- Sélection de la direction de traduction compacte -->
+      <div class="direction-selector">
+        <ion-segment [(ngModel)]="translationDirection" (ionChange)="changeTranslationDirection($event.detail.value)" class="compact-segment">
           <ion-segment-button value="fr2it">
-            <ion-label>Français → Italien</ion-label>
+            <ion-label>FR → IT</ion-label>
           </ion-segment-button>
           <ion-segment-button value="it2fr">
-            <ion-label>Italien → Français</ion-label>
+            <ion-label>IT → FR</ion-label>
           </ion-segment-button>
         </ion-segment>
-        <p class="ion-text-center ion-padding-top">
-          <ion-text color="medium">
-            Choisissez dans quelle direction vous souhaitez traduire les mots
-          </ion-text>
-        </p>
+      </div>
     </div>
     
     <!-- Étape 1: Affichage des catégories principales -->
-    <div *ngIf="!showTopics">
-    <ion-grid>
-      <ion-row>
-        <ion-col size="12" sizeMd="6" sizeXl="4" *ngFor="let category of categories">
-          <ion-card [class.selected]="selectedCategory === category.id" (click)="selectCategory(category.id)">
-            <ion-card-header>
-              <ion-icon [name]="category.icon" size="large"></ion-icon>
-              <ion-card-title>{{ category.name }}</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              {{ category.description }}
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+    <div *ngIf="!showTopics" class="categories-section">
+      <div class="categories-grid">
+        <div *ngFor="let category of categories" 
+             class="category-card" 
+             [class.selected]="selectedCategory === category.id" 
+             (click)="selectCategory(category.id)">
+          <div class="category-icon">
+            <ion-icon [name]="category.icon"></ion-icon>
+          </div>
+          <div class="category-content">
+            <h3 class="category-title">{{ category.name }}</h3>
+            <p class="category-description">{{ category.description }}</p>
+          </div>
+          <div class="category-arrow">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- Étape 2: Affichage des sous-catégories -->
-    <div *ngIf="showTopics && selectedCategory">
-      <div class="ion-padding-bottom">
-        <ion-button fill="clear" (click)="backToCategories()" color="medium">
+    <div *ngIf="showTopics && selectedCategory" class="topics-section">
+      <div class="topics-header">
+        <ion-button fill="clear" (click)="backToCategories()" class="back-button">
           <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-          Retour aux catégories
+          Retour
         </ion-button>
+        <h2 class="topics-title">Choisissez un sujet</h2>
       </div>
       
-      <h3 class="ion-text-center ion-padding-top">Choisissez un sujet</h3>
-      
-      <ion-list>
-        <ion-item *ngFor="let topic of getTopicsForCategory()" button (click)="confirmStartSession(topic)">
-          <ion-label>{{ topic }}</ion-label>
-          <ion-icon name="chevron-forward" slot="end"></ion-icon>
-        </ion-item>
-      </ion-list>
-    </div>
-    
-    <div class="ion-padding ion-text-center">
-      <ion-button routerLink="/home" expand="block" class="ion-margin-top home-button">
-        <ion-icon name="home-outline" slot="start"></ion-icon>
-        Retour à l'accueil
-      </ion-button>
+      <div class="topics-list">
+        <div *ngFor="let topic of getTopicsForCategory()" 
+             class="topic-item" 
+             (click)="confirmStartSession(topic)">
+          <span class="topic-text">{{ topic }}</span>
+          <ion-icon name="chevron-forward" class="topic-arrow"></ion-icon>
+        </div>
+      </div>
     </div>
   </div>
 </ion-content>

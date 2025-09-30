@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicModule, ModalController, Platform, MenuController } from '@ionic/angular';
+import { IonicModule, ModalController, Platform, MenuController, ActionSheetController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
 import { LlmService } from './services/llm.service';
@@ -14,6 +14,8 @@ import { PersonalDictionaryService } from './services/personal-dictionary.servic
 import { StorageService } from './services/storage.service';
 import { ToastController } from '@ionic/angular';
 import { TextGeneratorService } from './services/text-generator.service';
+import { AddTextModalComponent } from './components/add-text-modal/add-text-modal.component';
+import { TextPreviewModalComponent } from './components/text-preview-modal/text-preview-modal.component';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -31,7 +33,9 @@ enum AppState {
     RouterOutlet,
     RouterLink,
     CommonModule,
-    AddWordComponent
+    AddWordComponent,
+    AddTextModalComponent,
+    TextPreviewModalComponent
   ]
 })
 export class AppComponent {
@@ -79,7 +83,8 @@ export class AppComponent {
     private personalDictionaryService: PersonalDictionaryService,
     private storageService: StorageService,
     private toastController: ToastController,
-    private textGeneratorService: TextGeneratorService
+    private textGeneratorService: TextGeneratorService,
+    private actionSheetController: ActionSheetController
   ) {
     this.setupRouteListener();
     this.initializeApp();
@@ -470,5 +475,101 @@ export class AppComponent {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
+  }
+
+  /**
+   * Ouvre l'action sheet de sélection d'action pour le bouton +
+   */
+  async openActionSelection() {
+    console.log('🔍 [AppComponent] openActionSelection() appelé');
+    
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Que voulez-vous faire ?',
+      buttons: [
+        {
+          text: 'Ajouter un mot',
+          icon: 'add-circle-outline',
+          handler: () => {
+            console.log('🔍 [AppComponent] Ajouter un mot sélectionné');
+            this.openAddWordModal();
+          }
+        },
+        {
+          text: 'Ajouter un texte',
+          icon: 'document-text-outline',
+          handler: () => {
+            console.log('🔍 [AppComponent] Ajouter un texte sélectionné');
+            this.openAddTextModal();
+          }
+        },
+        {
+          text: 'Annuler',
+          icon: 'close',
+          role: 'cancel'
+        }
+      ]
+    });
+
+    await actionSheet.present();
+  }
+
+
+  /**
+   * Ouvre le modal d'ajout de texte
+   */
+  async openAddTextModal() {
+    console.log('🔍 [AppComponent] openAddTextModal() appelé');
+    
+    try {
+      const modal = await this.modalController.create({
+        component: AddTextModalComponent,
+        cssClass: 'add-text-modal'
+      });
+
+      console.log('🔍 [AppComponent] Modal AddTextModal créé');
+      await modal.present();
+      console.log('🔍 [AppComponent] Modal AddTextModal présenté');
+
+      const { data } = await modal.onDidDismiss();
+      console.log('🔍 [AppComponent] Modal AddTextModal fermé avec data:', data);
+      
+      if (data && data.action === 'preview') {
+        console.log('🔍 [AppComponent] Ouverture du modal de prévisualisation');
+        this.openTextPreviewModal(data.text);
+      }
+    } catch (error) {
+      console.error('🔍 [AppComponent] Erreur lors de l\'ouverture du modal AddTextModal:', error);
+    }
+  }
+
+  /**
+   * Ouvre le modal de prévisualisation du texte
+   */
+  async openTextPreviewModal(text: string) {
+    console.log('🔍 [AppComponent] openTextPreviewModal() appelé avec text:', text);
+    
+    try {
+      const modal = await this.modalController.create({
+        component: TextPreviewModalComponent,
+        cssClass: 'text-preview-modal',
+        componentProps: {
+          text: text
+        }
+      });
+
+      console.log('🔍 [AppComponent] Modal TextPreview créé');
+      await modal.present();
+      console.log('🔍 [AppComponent] Modal TextPreview présenté');
+
+      const { data } = await modal.onDidDismiss();
+      console.log('🔍 [AppComponent] Modal TextPreview fermé avec data:', data);
+      
+      if (data && data.action === 'edit') {
+        console.log('🔍 [AppComponent] Retour à l\'édition du texte');
+        this.openAddTextModal();
+      }
+    } catch (error) {
+      console.error('🔍 [AppComponent] Erreur lors de l\'ouverture du modal TextPreview:', error);
+    }
   }
 }
