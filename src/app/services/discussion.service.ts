@@ -20,6 +20,7 @@ export interface DiscussionContext {
 export interface ErrorCorrection {
   erreur: string;
   correction: string;
+  traduction: string;
   type: string;
 }
 
@@ -550,7 +551,7 @@ export class DiscussionService {
     prompt += `- Si tu réponds dans une autre langue que l'italien, recommence en italien.\n`;
     prompt += `\nIMPORTANT pour le feedback :\n`;
     prompt += `- Analyse le message de l'utilisateur et identifie UNIQUEMENT les erreurs spécifiques\n`;
-    prompt += `- Pour chaque erreur, indique le texte incorrect, la correction exacte, et le type d'erreur\n`;
+    prompt += `- Pour chaque erreur, indique le texte incorrect, la correction exacte, la traduction française de la correction, et le type d'erreur\n`;
     prompt += `- Si aucune erreur n'est détectée, retourne un tableau vide : "erreurs": []\n`;
     prompt += `- Ne donne AUCUN commentaire général, évaluation ou suggestion\n`;
     prompt += `- Concentre-toi uniquement sur les corrections précises\n`;
@@ -583,7 +584,8 @@ export class DiscussionService {
         "erreurs": [
           {
             "erreur": "<texte incorrect de l'utilisateur>",
-            "correction": "<texte corrigé>",
+            "correction": "<texte corrigé en italien>",
+            "traduction": "<traduction française de la correction>",
             "type": "<type d'erreur: grammaire/vocabulaire/orthographe/conjugaison>"
           }
         ]

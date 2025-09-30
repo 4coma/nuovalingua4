@@ -32,6 +32,27 @@
               <span class="error-text">{{ erreur.erreur }}</span>
               <ion-icon name="arrow-forward" class="arrow-icon"></ion-icon>
               <span class="correction-text">{{ erreur.correction }}</span>
+              <span class="translation-text" *ngIf="erreur.traduction">({{ erreur.traduction }})</span>
+              <!-- Bouton + pour ajouter au dictionnaire -->
+              <ion-button 
+                *ngIf="!isCorrectionInDictionary(erreur.correction)"
+                fill="clear" 
+                size="small" 
+                color="success"
+                class="add-to-dictionary-btn"
+                (click)="addCorrectionToDictionary(erreur.correction, erreur.traduction, erreur.type)"
+                title="Ajouter au dictionnaire personnel">
+                <ion-icon name="add-circle-outline" size="small"></ion-icon>
+              </ion-button>
+              <!-- Icône de confirmation si déjà dans le dictionnaire -->
+              <ion-icon 
+                *ngIf="isCorrectionInDictionary(erreur.correction)"
+                name="checkmark-circle" 
+                color="success" 
+                size="small"
+                class="already-in-dictionary"
+                title="Déjà dans le dictionnaire">
+              </ion-icon>
             </div>
             <div class="error-type">{{ erreur.type }}</div>
           </div>
