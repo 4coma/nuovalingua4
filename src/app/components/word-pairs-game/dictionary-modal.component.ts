@@ -148,6 +148,8 @@ export class DictionaryModalComponent implements OnInit {
   }
 
   addWordToDictionary(word: WordPair) {
+    console.log('🔍 [DictionaryModal] Tentative d\'ajout du mot:', word);
+    
     const newWord: DictionaryWord = {
       id: '',
       sourceWord: word.it,
@@ -160,12 +162,17 @@ export class DictionaryModalComponent implements OnInit {
       dateAdded: Date.now()
     };
 
+    console.log('🔍 [DictionaryModal] Mot formaté pour le dictionnaire:', newWord);
+    
     const added = this.dictionaryService.addWord(newWord);
+    console.log('🔍 [DictionaryModal] Résultat de l\'ajout:', added);
     
     if (added) {
       this.dictionaryWords = this.dictionaryService.getAllWords();
+      console.log('🔍 [DictionaryModal] Dictionnaire mis à jour, total mots:', this.dictionaryWords.length);
       this.showToast('Mot ajouté au dictionnaire personnel');
     } else {
+      console.log('🔍 [DictionaryModal] Le mot existe déjà dans le dictionnaire');
       this.showToast('Ce mot existe déjà dans votre dictionnaire');
     }
   }

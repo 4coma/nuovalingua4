@@ -75,8 +75,15 @@ export class DataMigrationService {
    */
   private getPersonalDictionary(): DictionaryWord[] {
     try {
-      const words = this.storageService.get('personalDictionary');
-      return words ? JSON.parse(words) : [];
+      const storedWords = localStorage.getItem('personalDictionary');
+      console.log('🔍 [DataMigration] Données brutes du dictionnaire:', storedWords ? 'présentes' : 'absentes');
+      
+      if (storedWords) {
+        const words = JSON.parse(storedWords);
+        console.log('🔍 [DataMigration] Dictionnaire parsé:', words.length, 'mots');
+        return words;
+      }
+      return [];
     } catch (error) {
       console.error('🔍 [DataMigration] Erreur récupération dictionnaire:', error);
       return [];
@@ -88,13 +95,13 @@ export class DataMigrationService {
    */
   private getConversations(): any[] {
     try {
-      const conversations = this.storageService.get('discussionSessions');
-      if (!conversations) return [];
+      const storedConversations = localStorage.getItem('savedConversations');
+      if (!storedConversations) return [];
 
-      const parsedConversations = JSON.parse(conversations);
+      const conversations = JSON.parse(storedConversations);
       
       // Convertir les sessions de discussion en conversations
-      return Object.values(parsedConversations).map((session: any) => ({
+      return conversations.map((session: any) => ({
         id: session.id,
         context: session.context,
         turns: session.turns || [],
@@ -113,12 +120,12 @@ export class DataMigrationService {
    */
   private getSavedTexts(): SavedText[] {
     try {
-      const texts = this.storageService.get('savedTexts');
-      if (!texts) return [];
+      const storedTexts = localStorage.getItem('savedTexts');
+      if (!storedTexts) return [];
 
-      const parsedTexts = JSON.parse(texts);
+      const texts = JSON.parse(storedTexts);
       
-      return parsedTexts.map((text: any) => ({
+      return texts.map((text: any) => ({
         id: text.id,
         title: text.title,
         content: text.content,
@@ -175,17 +182,17 @@ export class DataMigrationService {
    */
   private getSettings(): UserSettings {
     return {
-      notificationsEnabled: this.storageService.get('notificationsEnabled') === 'true',
-      notificationTime: this.storageService.get('notificationTime') || '18:30',
-      notificationMessage: this.storageService.get('notificationMessage') || 'Il est temps de pratiquer votre italien ! 🇮🇹',
-      comprehensionNotificationsEnabled: this.storageService.get('comprehensionNotificationsEnabled') === 'true',
-      comprehensionNotificationTime: this.storageService.get('comprehensionNotificationTime') || '19:00',
-      wordAssociationsCount: parseInt(this.storageService.get('wordAssociationsCount') || '10'),
-      oralComprehensionLength: parseInt(this.storageService.get('oralComprehensionLength') || '150'),
-      spacedRepetitionWordsCount: parseInt(this.storageService.get('spacedRepetitionWordsCount') || '10'),
-      personalDictionaryWordsCount: parseInt(this.storageService.get('personalDictionaryWordsCount') || '8'),
-      openaiApiKey: this.storageService.get('userOpenaiApiKey'),
-      googleTtsApiKey: this.storageService.get('userGoogleTtsApiKey')
+      notificationsEnabled: localStorage.getItem('notificationsEnabled') === 'true',
+      notificationTime: localStorage.getItem('notificationTime') || '18:30',
+      notificationMessage: localStorage.getItem('notificationMessage') || 'Il est temps de pratiquer votre italien ! 🇮🇹',
+      comprehensionNotificationsEnabled: localStorage.getItem('comprehensionNotificationsEnabled') === 'true',
+      comprehensionNotificationTime: localStorage.getItem('comprehensionNotificationTime') || '19:00',
+      wordAssociationsCount: parseInt(localStorage.getItem('wordAssociationsCount') || '10'),
+      oralComprehensionLength: parseInt(localStorage.getItem('oralComprehensionLength') || '150'),
+      spacedRepetitionWordsCount: parseInt(localStorage.getItem('spacedRepetitionWordsCount') || '10'),
+      personalDictionaryWordsCount: parseInt(localStorage.getItem('personalDictionaryWordsCount') || '8'),
+      openaiApiKey: localStorage.getItem('userOpenaiApiKey') || undefined,
+      googleTtsApiKey: localStorage.getItem('userGoogleTtsApiKey') || undefined
     };
   }
 
@@ -250,9 +257,22 @@ export class DataMigrationService {
    * Vérifie si des données locales existent
    */
   hasLocalData(): boolean {
-    const hasWords = this.getPersonalDictionary().length > 0;
-    const hasConversations = this.getConversations().length > 0;
-    const hasTexts = this.getSavedTexts().length > 0;
+    const words = this.getPersonalDictionary();
+    const conversations = this.getConversations();
+    const texts = this.getSavedTexts();
+    
+    const hasWords = words.length > 0;
+    const hasConversations = conversations.length > 0;
+    const hasTexts = texts.length > 0;
+    
+    console.log('🔍 [DataMigration] Vérification des données locales:', {
+      words: words.length,
+      conversations: conversations.length,
+      texts: texts.length,
+      hasWords,
+      hasConversations,
+      hasTexts
+    });
     
     return hasWords || hasConversations || hasTexts;
   }

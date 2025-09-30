@@ -43,6 +43,7 @@ export class PreferencesComponent implements OnInit {
   firebaseStorageBucket: string = '';
   firebaseMessagingSenderId: string = '';
   firebaseAppId: string = '';
+  firebaseCustomUid: string = '';
   showFirebaseConfig: boolean = false;
   
   // Propriétés pour les notifications
@@ -120,6 +121,7 @@ export class PreferencesComponent implements OnInit {
     this.firebaseStorageBucket = this.storageService.get('firebaseStorageBucket') || '';
     this.firebaseMessagingSenderId = this.storageService.get('firebaseMessagingSenderId') || '';
     this.firebaseAppId = this.storageService.get('firebaseAppId') || '';
+    this.firebaseCustomUid = this.storageService.get('firebaseCustomUid') || '';
 
     // Charger les paramètres de notification
     const notificationSettings = this.notificationService.getSettings();
@@ -194,6 +196,7 @@ export class PreferencesComponent implements OnInit {
       this.storageService.set('firebaseStorageBucket', this.firebaseStorageBucket.trim());
       this.storageService.set('firebaseMessagingSenderId', this.firebaseMessagingSenderId.trim());
       this.storageService.set('firebaseAppId', this.firebaseAppId.trim());
+      this.storageService.set('firebaseCustomUid', this.firebaseCustomUid.trim());
     } else {
       // Supprimer la configuration Firebase si désactivée
       this.storageService.remove('firebaseApiKey');
@@ -202,6 +205,7 @@ export class PreferencesComponent implements OnInit {
       this.storageService.remove('firebaseStorageBucket');
       this.storageService.remove('firebaseMessagingSenderId');
       this.storageService.remove('firebaseAppId');
+      this.storageService.remove('firebaseCustomUid');
     }
 
     // Sauvegarder le nombre d'associations
@@ -872,6 +876,7 @@ export class PreferencesComponent implements OnInit {
       this.storageService.set('firebaseStorageBucket', this.firebaseStorageBucket.trim());
       this.storageService.set('firebaseMessagingSenderId', this.firebaseMessagingSenderId.trim());
       this.storageService.set('firebaseAppId', this.firebaseAppId.trim());
+      this.storageService.set('firebaseCustomUid', this.firebaseCustomUid.trim());
 
       // Réinitialiser Firebase avec la nouvelle configuration
       await this.firebaseSync.reinitialize();
@@ -908,17 +913,15 @@ export class PreferencesComponent implements OnInit {
     
     const alert = await this.alertController.create({
       header: 'Migration des données',
-      message: `
-        <p>Voulez-vous migrer vos données locales vers Firebase ?</p>
-        <p><strong>Données à migrer :</strong></p>
-        <ul>
-          <li>• ${summary.words} mots du dictionnaire personnel</li>
-          <li>• ${summary.conversations} conversations</li>
-          <li>• ${summary.texts} textes sauvegardés</li>
-          <li>• Paramètres et statistiques</li>
-        </ul>
-        <p><strong>Note :</strong> Vos données locales seront conservées.</p>
-      `,
+      message: `Voulez-vous migrer vos données locales vers Firebase ?
+
+Données à migrer :
+• ${summary.words} mots du dictionnaire personnel
+• ${summary.conversations} conversations
+• ${summary.texts} textes sauvegardés
+• Paramètres et statistiques
+
+Note : Vos données locales seront conservées.`,
       buttons: [
         {
           text: 'Annuler',

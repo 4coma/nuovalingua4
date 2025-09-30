@@ -13,8 +13,6 @@ import { SpeechService } from 'src/app/services/speech.service';
 import { StorageService } from '../../services/storage.service';
 import { DictionaryModalComponent } from './dictionary-modal.component';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
-import { FocusModeService } from '../../services/focus-mode.service';
-import { FocusModalComponent } from '../focus-modal/focus-modal.component';
 import { Injector } from '@angular/core';
 
 interface GamePair {
@@ -73,8 +71,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   // Pour la révision du dictionnaire personnel
   isPersonalDictionaryRevision: boolean = false;
   
-  // Pour le focus mode
-  isFocusMode: boolean = false;
   
   // Pour les mots révisés
   revisedWords: RevisedWord[] = [];
@@ -105,7 +101,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     private speechService: SpeechService,
     private storageService: StorageService,
     private personalDictionaryService: PersonalDictionaryService,
-    private focusModeService: FocusModeService,
     private injector: Injector,
     private alertController: AlertController
   ) { }
@@ -114,9 +109,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.loadSessionData();
     this.loadAudioPreference();
     this.loadGeneratedSessions();
-    
-    // Vérifier si on est en mode focus
-    this.isFocusMode = this.storageService.get('isFocusMode') || false;
   }
 
   /**
@@ -416,24 +408,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    * Appelé lorsque le jeu est terminé
    */
   private async onGameComplete() {
-    // En mode focus, ne pas proposer de générer de nouveaux mots
-    // L'utilisateur peut simplement retourner au menu principal
-    if (this.isFocusMode) {
-      const alert = await this.alertController.create({
-        header: 'Session terminée',
-        message: 'Session de révision terminée. Retour au menu principal.',
-        buttons: [
-          {
-            text: 'OK',
-            handler: () => {
-              this.router.navigate(['/home']);
-            }
-          }
-        ]
-      });
-      await alert.present();
-    }
-    
     // Pour la révision du dictionnaire personnel, sauvegarder automatiquement les délais
     if (this.isPersonalDictionaryRevision) {
       await this.saveRevisionDelays();
@@ -887,41 +861,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Ouvre le modal pour changer le focus
-   */
-  async changeFocus() {
-    const modal = await this.modalController.create({
-      component: FocusModalComponent,
-      componentProps: {},
-      cssClass: 'focus-modal'
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onWillDismiss();
-    if (data && data.focus) {
-      // Mettre à jour le focus
-      this.focusModeService.setCurrentFocus(data.focus);
-      
-      // Nettoyer les données de session actuelles
-      this.storageService.remove('isFocusMode');
-      this.storageService.remove('focusInstruction');
-      this.storageService.remove('wordPairs');
-      this.storageService.remove('sessionInfo');
-      
-      const toast = await this.toastController.create({
-        message: `Focus changé : ${data.focus}`,
-        duration: 2000,
-        position: 'bottom',
-        color: 'success'
-      });
-      await toast.present();
-      
-      // Retourner à l'accueil pour redémarrer avec le nouveau focus
-      this.router.navigate(['/home']);
-    }
-  }
 
   ngOnDestroy() {
     this.saveRevisionDelays();

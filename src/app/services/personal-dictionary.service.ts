@@ -102,7 +102,10 @@ export class PersonalDictionaryService {
    * Ajoute un mot au dictionnaire personnel
    */
   addWord(word: DictionaryWord): boolean {
+    console.log('🔍 [PersonalDictionary] Tentative d\'ajout du mot:', word);
+    
     const words = this.getAllWords();
+    console.log('🔍 [PersonalDictionary] Mots existants dans le dictionnaire:', words.length);
     
     // Vérifier si le mot existe déjà (même mot dans les mêmes langues)
     const exists = words.some(w => 
@@ -111,7 +114,10 @@ export class PersonalDictionaryService {
       w.targetLang === word.targetLang
     );
     
+    console.log('🔍 [PersonalDictionary] Le mot existe déjà?', exists);
+    
     if (exists) {
+      console.log('🔍 [PersonalDictionary] Mot déjà existant, ajout refusé');
       return false; // Le mot existe déjà
     }
     
@@ -119,9 +125,13 @@ export class PersonalDictionaryService {
     word.id = Date.now().toString();
     word.dateAdded = Date.now();
     
+    console.log('🔍 [PersonalDictionary] Mot avec ID généré:', word);
+    
     // Ajouter le mot et sauvegarder
     words.push(word);
     localStorage.setItem(this.storageKey, JSON.stringify(words));
+    
+    console.log('🔍 [PersonalDictionary] Mot sauvegardé dans localStorage, total mots:', words.length);
     
     // Émettre la mise à jour via le BehaviorSubject
     this.dictionaryWordsSubject.next(words);
@@ -135,6 +145,7 @@ export class PersonalDictionaryService {
     // Synchroniser avec Firebase si activé
     this.syncToFirebase();
     
+    console.log('🔍 [PersonalDictionary] Mot ajouté avec succès');
     return true;
   }
 

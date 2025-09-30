@@ -191,8 +191,18 @@
           </ion-input>
         </ion-item>
         
+        <ion-item>
+          <ion-label position="stacked">UID Firebase personnalisé (optionnel)</ion-label>
+          <ion-input 
+            [(ngModel)]="firebaseCustomUid" 
+            [type]="showFirebaseConfig ? 'text' : 'password'"
+            placeholder="Laissez vide pour UID automatique">
+          </ion-input>
+        </ion-item>
+        
         <ion-text color="medium" class="ion-padding-top">
           <p><small>Votre configuration Firebase est stockée localement sur votre appareil.</small></p>
+          <p><small><strong>UID personnalisé :</strong> Utilisez le même UID sur tous vos appareils pour synchroniser les données. Laissez vide pour un UID automatique unique par appareil.</small></p>
         </ion-text>
         
         <ion-button fill="clear" color="primary" size="small" (click)="showFirebaseInfo()" class="ion-margin-top">

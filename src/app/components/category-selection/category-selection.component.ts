@@ -8,7 +8,6 @@ import { FormsModule } from '@angular/forms';
 import { CustomPromptModalComponent } from '../custom-prompt-modal/custom-prompt-modal.component';
 import { CustomInstructionModalComponent } from '../custom-instruction-modal/custom-instruction-modal.component';
 import { StorageService } from '../../services/storage.service';
-import { FocusModeService } from '../../services/focus-mode.service';
 
 interface Category {
   id: string;
@@ -79,9 +78,6 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   alertButtons: any[] = [];
 
-  // Mode focus
-  isFocusMode: boolean = false;
-  focusInstruction: string = '';
 
   pageTitle = 'Catégories';
 
@@ -92,113 +88,13 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     private toastController: ToastController,
     private modalController: ModalController,
     private storageService: StorageService,
-    private focusModeService: FocusModeService
   ) { }
 
   ngOnInit() {
     // Charger la direction de traduction depuis le service
     this.translationDirection = this.llmService.translationDirection;
-    
-    // Vérifier si on est en mode focus (seulement si on vient de l'accueil avec un focus)
-    this.checkFocusMode();
   }
 
-  /**
-   * Vérifie si on est en mode focus et charge les données appropriées
-   */
-  private checkFocusMode() {
-    this.isFocusMode = this.storageService.get('isFocusMode') || false;
-    this.focusInstruction = this.storageService.get('focusInstruction') || '';
-    const fromFocusButton = this.storageService.get('fromFocusButton') || false;
-    
-    // Ne démarrer la session focus que si on a explicitement activé le mode focus
-    // ET qu'on vient du bouton focus (pas d'une session normale)
-    if (this.isFocusMode && this.focusInstruction && fromFocusButton) {
-      this.pageTitle = 'Focus Mode';
-      // Nettoyer le flag fromFocusButton pour éviter qu'il persiste
-      this.storageService.remove('fromFocusButton');
-      // Démarrer directement la session avec le focus
-      this.startFocusSession();
-    } else {
-      // Nettoyer les flags de focus si on n'est pas en mode focus
-      this.storageService.remove('isFocusMode');
-      this.storageService.remove('focusInstruction');
-      this.storageService.remove('fromFocusButton');
-    }
-  }
-
-  /**
-   * Démarre une session avec le focus défini
-   */
-  private async startFocusSession() {
-    if (!this.focusInstruction) {
-      console.error('Instruction de focus manquante');
-      return;
-    }
-
-    try {
-      // Vérifier si des mots existent déjà pour ce focus
-      const existingWords = this.focusModeService.getCurrentFocusWords();
-
-      // Créer les informations de session
-      const sessionInfo = {
-        category: 'Focus Mode',
-        topic: this.focusInstruction,
-        date: new Date().toISOString(),
-        translationDirection: this.translationDirection,
-        customInstruction: this.focusInstruction
-      };
-
-      // Sauvegarder les informations communes
-      this.storageService.set('sessionInfo', sessionInfo);
-      this.storageService.set('isFocusMode', true);
-      this.storageService.set('focusInstruction', this.focusInstruction);
-
-      // S'il y a déjà des mots, les utiliser directement
-      if (existingWords.length > 0) {
-        this.storageService.set('wordPairs', existingWords);
-        this.router.navigate(['/word-pairs-game']);
-        return;
-      }
-
-      this.isLoading = true;
-
-      // Générer les mots avec l'instruction de focus en excluant ceux déjà générés
-      const wordPairs = await this.llmService.generateWordPairs(
-        this.focusInstruction,
-        undefined,
-        this.translationDirection,
-        existingWords.map(w => w.it)
-      ).toPromise();
-
-      if (!wordPairs || wordPairs.length === 0) {
-        throw new Error('Aucun mot généré');
-      }
-
-      // Sauvegarder les paires de mots pour la session
-      this.storageService.set('wordPairs', wordPairs);
-      this.storageService.set('isFocusMode', true);
-
-      // Ajouter les mots au focus
-      this.focusModeService.addWordsToCurrentFocus(wordPairs);
-
-      // Naviguer vers l'exercice
-      this.router.navigate(['/word-pairs-game']);
-
-    } catch (error) {
-      console.error('Erreur lors du démarrage de la session focus:', error);
-      await this.showToast('Erreur lors de la génération des mots pour le focus');
-      
-      // Nettoyer le mode focus en cas d'erreur
-      this.storageService.remove('isFocusMode');
-      this.storageService.remove('focusInstruction');
-      
-      // Retourner à l'accueil
-      this.router.navigate(['/home']);
-    } finally {
-      this.isLoading = false;
-    }
-  }
 
   selectCategory(categoryId: string) {
     this.selectedCategory = categoryId;

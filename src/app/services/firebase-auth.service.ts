@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { FirebaseSyncService } from './firebase-sync.service';
+import { StorageService } from './storage.service';
 
 export interface UserProfile {
   uid: string;
@@ -18,7 +19,10 @@ export class FirebaseAuthService {
   private userSubject = new BehaviorSubject<UserProfile | null>(null);
   public user$ = this.userSubject.asObservable();
 
-  constructor(private firebaseSync: FirebaseSyncService) {
+  constructor(
+    private firebaseSync: FirebaseSyncService,
+    private storageService: StorageService
+  ) {
     // Écouter les changements d'état de synchronisation Firebase
     this.firebaseSync.syncStatus$.subscribe(status => {
       if (status.isConnected) {
@@ -33,12 +37,26 @@ export class FirebaseAuthService {
    * Met à jour le profil utilisateur
    */
   private updateUserProfile(): void {
-    // Pour l'instant, on utilise un utilisateur anonyme
-    // Plus tard, on pourra ajouter l'authentification par email
+    // Vérifier s'il y a un UID personnalisé configuré
+    const customUid = this.storageService.get('firebaseCustomUid');
+    
+    let uid: string;
+    let displayName: string;
+    
+    if (customUid && customUid.trim()) {
+      // Utiliser l'UID personnalisé
+      uid = customUid.trim();
+      displayName = `Utilisateur personnalisé (${uid.substring(0, 8)}...)`;
+    } else {
+      // Utiliser l'UID anonyme par défaut
+      uid = 'anonymous-user';
+      displayName = 'Utilisateur anonyme';
+    }
+
     const userProfile: UserProfile = {
-      uid: 'anonymous-user',
-      displayName: 'Utilisateur anonyme',
-      isAnonymous: true,
+      uid: uid,
+      displayName: displayName,
+      isAnonymous: !customUid || !customUid.trim(),
       createdAt: new Date(),
       lastLogin: new Date()
     };

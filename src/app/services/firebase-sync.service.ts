@@ -146,22 +146,34 @@ export class FirebaseSyncService {
       this.db = getFirestore(this.app);
       this.auth = getAuth(this.app);
 
-      // Écouter les changements d'authentification
+      // Se connecter anonymement ou avec UID personnalisé
+      await this.connectAnonymously();
+      
+      // Écouter les changements d'authentification (seulement pour les vrais utilisateurs Firebase)
       this.unsubscribeAuth = onAuthStateChanged(this.auth, (user) => {
-        this.currentUser = user;
-        this.updateSyncStatus({ isConnected: !!user });
-        
-        if (user) {
-          console.log('🔍 [FirebaseSync] Utilisateur connecté:', user.uid);
-          this.setupRealtimeSync();
-        } else {
-          console.log('🔍 [FirebaseSync] Utilisateur déconnecté');
-          this.stopRealtimeSync();
+        // Ne traiter que les vrais utilisateurs Firebase (pas nos utilisateurs simulés)
+        const customUid = this.storageService.get('firebaseCustomUid');
+        if (!customUid || !customUid.trim()) {
+          this.currentUser = user;
+          this.updateSyncStatus({ isConnected: !!user });
+          
+          if (user) {
+            console.log('🔍 [FirebaseSync] Utilisateur connecté:', user.uid);
+            this.setupRealtimeSync();
+          } else {
+            console.log('🔍 [FirebaseSync] Utilisateur déconnecté');
+            this.stopRealtimeSync();
+          }
         }
       });
-
-      // Se connecter anonymement
-      await this.connectAnonymously();
+      
+      // Si on utilise un UID personnalisé, mettre à jour le statut manuellement
+      const customUid = this.storageService.get('firebaseCustomUid');
+      if (customUid && customUid.trim() && this.currentUser) {
+        console.log('🔍 [FirebaseSync] UID personnalisé détecté, mise à jour du statut');
+        this.updateSyncStatus({ isConnected: true });
+        this.setupRealtimeSync();
+      }
 
     } catch (error) {
       console.error('🔍 [FirebaseSync] Erreur d\'initialisation:', error);
@@ -212,9 +224,41 @@ export class FirebaseSyncService {
     }
 
     try {
-      const userCredential = await signInAnonymously(this.auth);
-      this.currentUser = userCredential.user;
-      console.log('🔍 [FirebaseSync] Connexion anonyme réussie:', this.currentUser.uid);
+      // Vérifier s'il y a un UID personnalisé configuré
+      const customUid = this.storageService.get('firebaseCustomUid');
+      
+      if (customUid && customUid.trim()) {
+        // Utiliser l'UID personnalisé (simulation d'un utilisateur connecté)
+        this.currentUser = {
+          uid: customUid.trim(),
+          displayName: null,
+          email: null,
+          emailVerified: false,
+          isAnonymous: false,
+          phoneNumber: null,
+          photoURL: null,
+          providerId: 'custom',
+          metadata: {
+            creationTime: new Date().toISOString(),
+            lastSignInTime: new Date().toISOString()
+          },
+          providerData: [],
+          refreshToken: '',
+          tenantId: null,
+          delete: async () => {},
+          getIdToken: async () => '',
+          getIdTokenResult: async () => ({} as any),
+          reload: async () => {},
+          toJSON: () => ({})
+        } as User;
+        console.log('🔍 [FirebaseSync] UID personnalisé utilisé:', this.currentUser.uid);
+        console.log('🔍 [FirebaseSync] Utilisateur personnalisé créé:', this.currentUser);
+      } else {
+        // Utiliser l'authentification anonyme normale
+        const userCredential = await signInAnonymously(this.auth);
+        this.currentUser = userCredential.user;
+        console.log('🔍 [FirebaseSync] Connexion anonyme réussie:', this.currentUser.uid);
+      }
     } catch (error) {
       console.error('🔍 [FirebaseSync] Erreur de connexion anonyme:', error);
       throw error;
@@ -226,8 +270,22 @@ export class FirebaseSyncService {
    */
   async testConnection(): Promise<boolean> {
     try {
-      if (!this.db || !this.currentUser) {
-        throw new Error('Firebase non initialisé ou utilisateur non connecté');
+      if (!this.db) {
+        throw new Error('Firebase non initialisé');
+      }
+
+      // Vérifier si on a un utilisateur (anonyme ou personnalisé)
+      if (!this.currentUser) {
+        // Essayer de se reconnecter si on a un UID personnalisé
+        const customUid = this.storageService.get('firebaseCustomUid');
+        if (customUid && customUid.trim()) {
+          console.log('🔍 [FirebaseSync] Reconnexion avec UID personnalisé...');
+          await this.connectAnonymously();
+        }
+        
+        if (!this.currentUser) {
+          throw new Error('Utilisateur non connecté');
+        }
       }
 
       // Test simple : essayer de lire un document
@@ -250,6 +308,31 @@ export class FirebaseSyncService {
   }
 
   /**
+   * Nettoie les données en supprimant les valeurs undefined
+   */
+  private cleanDataForFirebase(data: any): any {
+    if (data === null || data === undefined) {
+      return null;
+    }
+    
+    if (Array.isArray(data)) {
+      return data.map(item => this.cleanDataForFirebase(item));
+    }
+    
+    if (typeof data === 'object') {
+      const cleaned: any = {};
+      for (const [key, value] of Object.entries(data)) {
+        if (value !== undefined) {
+          cleaned[key] = this.cleanDataForFirebase(value);
+        }
+      }
+      return cleaned;
+    }
+    
+    return data;
+  }
+
+  /**
    * Synchronise toutes les données utilisateur vers Firebase
    */
   async syncAllUserData(userData: UserData): Promise<void> {
@@ -260,9 +343,12 @@ export class FirebaseSyncService {
     this.updateSyncStatus({ isSyncing: true });
 
     try {
+      // Nettoyer les données avant de les envoyer à Firebase
+      const cleanedUserData = this.cleanDataForFirebase(userData);
+      
       const userDocRef = doc(this.db, 'users', this.currentUser.uid);
       await setDoc(userDocRef, {
-        ...userData,
+        ...cleanedUserData,
         lastSync: serverTimestamp(),
         syncVersion: 1
       }, { merge: true });
