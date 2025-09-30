@@ -56,6 +56,7 @@ export class AppComponent {
     '/comprehension': 'Compréhension',
     '/questions': 'Questions',
     '/personal-dictionary': 'Mon dictionnaire personnel',
+    '/saved-conversations': 'Mes conversations',
     '/saved-texts': 'Textes sauvegardés',
     '/preferences': 'Préférences'
   };

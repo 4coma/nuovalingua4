@@ -18,6 +18,11 @@
           <ion-label>Mon dictionnaire</ion-label>
         </ion-item>
         
+        <ion-item routerLink="/saved-conversations" routerDirection="root" (click)="closeMenu()">
+          <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+          <ion-label>Mes conversations</ion-label>
+        </ion-item>
+        
         <ion-item routerLink="/recent-words" routerDirection="root" (click)="closeMenu()">
           <ion-icon name="time-outline" slot="start"></ion-icon>
           <ion-label>Mots récemment vus</ion-label>

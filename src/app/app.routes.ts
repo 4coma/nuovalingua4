@@ -31,6 +31,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/personal-dictionary-list/personal-dictionary-list.component').then(m => m.PersonalDictionaryListComponent)
   },
   {
+    path: 'saved-conversations',
+    loadComponent: () => import('./components/saved-conversations-list/saved-conversations-list.component').then(m => m.SavedConversationsListComponent)
+  },
+  {
     path: 'recent-words',
     loadComponent: () => import('./components/recent-words-list/recent-words-list.component').then(m => m.RecentWordsListComponent)
   },

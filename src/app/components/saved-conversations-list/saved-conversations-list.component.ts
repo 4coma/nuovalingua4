@@ -1,26 +1,21 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { IonicModule, ModalController, ToastController } from '@ionic/angular';
+import { Router, RouterModule } from '@angular/router';
 import { SavedConversationsService } from '../../services/saved-conversations.service';
 import { DiscussionSession } from '../../services/discussion.service';
 
 @Component({
   selector: 'app-saved-conversations-list',
   template: `
-    <ion-header>
-      <ion-toolbar color="secondary">
-        <ion-title>Conversations sauvegardées</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="close()">
-            <ion-icon name="close"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
     <ion-content class="ion-padding">
+      <div class="ion-padding-bottom">
+        <p class="ion-text-muted">Reprenez vos conversations sauvegardées avec l'IA</p>
+      </div>
+      
       <ion-list *ngIf="conversations.length > 0">
-        <ion-item *ngFor="let conv of conversations" (click)="resume(conv)">
-          <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+        <ion-item *ngFor="let conv of conversations" button (click)="resume(conv)">
+          <ion-icon name="chatbubbles-outline" slot="start" color="primary"></ion-icon>
           <ion-label>
             <h2>{{ conv.context.title }}</h2>
             <p>{{ conv.context.situation }}</p>
@@ -31,37 +26,57 @@ import { DiscussionSession } from '../../services/discussion.service';
           </ion-button>
         </ion-item>
       </ion-list>
+      
       <div *ngIf="conversations.length === 0" class="ion-text-center ion-padding">
         <ion-icon name="chatbubble-ellipses-outline" size="large" color="medium"></ion-icon>
-        <p>Aucune conversation sauvegardée.</p>
+        <h3>Aucune conversation sauvegardée</h3>
+        <p>Commencez une discussion avec l'IA pour voir vos conversations ici.</p>
+        <ion-button routerLink="/discussion-context-selection" color="primary" class="ion-margin-top">
+          <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+          Commencer une discussion
+        </ion-button>
       </div>
     </ion-content>
   `,
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule, CommonModule, RouterModule]
 })
-export class SavedConversationsListComponent {
+export class SavedConversationsListComponent implements OnInit {
   conversations: DiscussionSession[] = [];
-  @Output() resumeConversation = new EventEmitter<DiscussionSession>();
 
   constructor(
     private savedConversations: SavedConversationsService,
-    private modalCtrl: ModalController
-  ) {
-    this.conversations = this.savedConversations.getAllConversations();
+    private router: Router,
+    private toastController: ToastController
+  ) {}
+
+  ngOnInit() {
+    this.loadConversations();
   }
 
-  close() {
-    this.modalCtrl.dismiss();
+  loadConversations() {
+    this.conversations = this.savedConversations.getAllConversations();
   }
 
   resume(conv: DiscussionSession) {
-    this.modalCtrl.dismiss(conv);
+    // Naviguer vers la discussion avec l'ID de la session sauvegardée
+    this.router.navigate(['/discussion', conv.context.id], { 
+      queryParams: { sessionId: conv.id } 
+    });
   }
 
-  delete(conv: DiscussionSession, event: Event) {
+  async delete(conv: DiscussionSession, event: Event) {
     event.stopPropagation();
+    
+    const toast = await this.toastController.create({
+      message: `Conversation "${conv.context.title}" supprimée`,
+      duration: 2000,
+      position: 'bottom',
+      color: 'success'
+    });
+    
     this.savedConversations.removeConversation(conv.id);
-    this.conversations = this.savedConversations.getAllConversations();
+    this.loadConversations();
+    await toast.present();
   }
 } 
