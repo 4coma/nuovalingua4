@@ -31,7 +31,7 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
   filteredWords: DictionaryWord[] = [];
 
   // Mots planifiés pour aujourd'hui
-  dueTodayWords: DictionaryWord[] = [];
+  // Propriété supprimée : la révision est maintenant purement aléatoire
   
   // Statistiques du dictionnaire
   totalWords: number = 0;
@@ -100,7 +100,6 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
     this.sortWords();
     this.filterWords();
     this.calculateStatistics();
-    this.updateDueTodayWords();
   }
 
   /**
@@ -113,16 +112,8 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Met à jour la liste des mots à réviser aujourd'hui
+   * Méthode supprimée : la révision est maintenant purement aléatoire
    */
-  updateDueTodayWords() {
-    const now = Date.now();
-    this.dueTodayWords = this.dictionaryWords.filter(word =>
-      !word.isKnown &&
-      word.minRevisionDate !== undefined &&
-      word.minRevisionDate <= now
-    );
-  }
 
   /**
    * Trie les mots par date d'ajout (plus récent d'abord)
@@ -334,7 +325,6 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
     if (success) {
       console.log(`Délai de révision mis à jour pour ${word.sourceWord}: ${word.revisionDelay}`);
       this.calculateStatistics(); // Recalculer les statistiques
-      this.updateDueTodayWords();
     }
   }
 
@@ -349,7 +339,6 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
     if (success) {
       console.log(`Statut 'connu' mis à jour pour ${word.sourceWord}: ${word.isKnown}`);
       this.calculateStatistics(); // Recalculer les statistiques
-      this.updateDueTodayWords();
     }
   }
 

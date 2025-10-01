@@ -550,11 +550,17 @@ export class DiscussionService {
     }
     prompt += `- Si tu réponds dans une autre langue que l'italien, recommence en italien.\n`;
     prompt += `\nIMPORTANT pour le feedback :\n`;
-    prompt += `- Analyse le message de l'utilisateur et identifie UNIQUEMENT les erreurs spécifiques\n`;
-    prompt += `- Pour chaque erreur, indique le texte incorrect, la correction exacte, la traduction française de la correction, et le type d'erreur\n`;
+    prompt += `- Analyse le message de l'utilisateur et identifie CHAQUE erreur individuellement (mot par mot)\n`;
+    prompt += `- CHAQUE erreur doit être ATOMIQUE : un seul mot ou une petite expression (2-3 mots maximum)\n`;
+    prompt += `- NE PAS barrer une phrase entière : identifie chaque mot incorrect séparément\n`;
+    prompt += `- Exemple : dans "sono serioso", l'erreur est UNIQUEMENT "serioso" -> "serio", PAS toute la phrase\n`;
+    prompt += `- Pour chaque erreur atomique, indique :\n`;
+    prompt += `  * "erreur": le mot ou la petite expression incorrecte UNIQUEMENT\n`;
+    prompt += `  * "correction": le mot ou la petite expression corrigée\n`;
+    prompt += `  * "traduction": la traduction française de la correction\n`;
+    prompt += `  * "type": le type d'erreur (grammaire/vocabulaire/orthographe/conjugaison)\n`;
     prompt += `- Si aucune erreur n'est détectée, retourne un tableau vide : "erreurs": []\n`;
     prompt += `- Ne donne AUCUN commentaire général, évaluation ou suggestion\n`;
-    prompt += `- Concentre-toi uniquement sur les corrections précises\n`;
     prompt += `\n`;
 
     // Limiter l'historique à MAX_TURNS_HISTORY (garder le premier + les N derniers)

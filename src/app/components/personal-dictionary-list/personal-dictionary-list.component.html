@@ -9,11 +9,7 @@
       </div>
     </div>
 
-    <div class="today-review">
-      <p *ngIf="dueTodayWords.length > 0">{{ dueTodayWords.length }} mots à réviser aujourd'hui</p>
-      <p *ngIf="dueTodayWords.length === 0">Aucun mot à réviser aujourd'hui</p>
-      <ion-button *ngIf="dueTodayWords.length > 0" size="small" (click)="startTodayRevision()">Réviser maintenant</ion-button>
-    </div>
+    <!-- Section de révision supprimée : la révision est maintenant purement aléatoire -->
 
     <!-- Indicateur de scroll discret -->
     <div class="scroll-indicator">
