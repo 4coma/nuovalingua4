@@ -992,8 +992,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         id: index * 2,
         word: pair.fr,
         isSource: true,
-        isMatched: false,
-        pairId: index
+        isSelected: false,
+        isMatched: false
       });
       
       // Mot cible (italien)
@@ -1001,8 +1001,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         id: index * 2 + 1,
         word: pair.it,
         isSource: false,
-        isMatched: false,
-        pairId: index
+        isSelected: false,
+        isMatched: false
       });
     });
 
