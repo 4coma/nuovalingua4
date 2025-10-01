@@ -960,7 +960,36 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     const revisedWordsJson = localStorage.getItem('revisedWords');
     if (!revisedWordsJson) return;
     
-    const revisedWords = JSON.parse(revisedWordsJson);
+    let revisedWords = JSON.parse(revisedWordsJson);
+    
+    // Si l'utilisateur demande plus de mots que disponibles, aller chercher plus dans le dictionnaire
+    if (this.maxPairsToReview > revisedWords.length) {
+      console.log('🔍 [WordPairsGame] Demande de', this.maxPairsToReview, 'paires, mais seulement', revisedWords.length, 'disponibles');
+      console.log('🔍 [WordPairsGame] Récupération de plus de mots depuis le dictionnaire...');
+      
+      // Récupérer TOUS les mots du dictionnaire
+      const allWords = this.personalDictionaryService.getAllWords();
+      
+      if (allWords.length > revisedWords.length) {
+        // Mélanger tous les mots
+        const shuffledWords = [...allWords].sort(() => Math.random() - 0.5);
+        
+        // Prendre le nombre demandé
+        const additionalWords = shuffledWords.slice(0, this.maxPairsToReview);
+        
+        // Convertir en format revisedWords
+        revisedWords = additionalWords.map(word => ({
+          id: word.id,
+          sourceWord: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
+          targetWord: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
+          context: word.contextualMeaning,
+          revisionDelay: undefined,
+          isKnown: word.isKnown || false
+        }));
+        
+        console.log('🔍 [WordPairsGame] Nouveaux mots récupérés:', revisedWords.length);
+      }
+    }
     
     // Limiter selon le nouveau nombre
     const limitedWords = revisedWords.slice(0, this.maxPairsToReview);
@@ -975,6 +1004,10 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Mettre à jour les données
     this.wordPairs = wordPairs;
     localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
+    
+    // Mettre à jour les mots révisés
+    this.revisedWords = limitedWords;
+    localStorage.setItem('revisedWords', JSON.stringify(limitedWords));
     
     // Réinitialiser le jeu
     this.currentPairsSet = 1;

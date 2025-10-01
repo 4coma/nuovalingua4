@@ -79,8 +79,8 @@ export class HomePage implements OnInit, OnDestroy {
       const savedCount = this.storageService.get('personalDictionaryWordsCount');
       const maxWords = savedCount ? parseInt(savedCount) : 8; // Valeur par défaut si pas configurée
       
-      // Sélection ALÉATOIRE des mots (entre 3 et 20, ou tous si moins de 3)
-      const actualMaxWords = Math.min(20, Math.max(3, Math.min(maxWords, allWords.length)));
+      // Sélection ALÉATOIRE des mots (entre 3 et le nombre demandé, ou tous si moins de 3)
+      const actualMaxWords = Math.max(3, Math.min(maxWords, allWords.length));
       
       // Mélanger aléatoirement tous les mots
       const shuffledWords = [...allWords].sort(() => Math.random() - 0.5);
