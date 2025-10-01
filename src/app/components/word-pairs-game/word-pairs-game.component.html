@@ -22,20 +22,24 @@
       <div class="game-info" *ngIf="!gameComplete && currentPairs && currentPairs.length > 0">
         <div class="game-controls">
           <div class="control-group">
-            <span class="control-label">Paires</span>
-            <ion-button fill="clear" size="small" (click)="decreasePairs()" [disabled]="(currentPairs.length / 2) <= 1">
+            <span class="control-label">Set</span>
+            <ion-button fill="clear" size="small" (click)="decreaseSets()" [disabled]="currentPairsSet <= 1">
               <ion-icon name="remove-outline"></ion-icon>
             </ion-button>
-            <span class="control-value">{{ matchedPairs }}/{{ currentPairs.length / 2 }}</span>
-            <ion-button fill="clear" size="small" (click)="increasePairs()" [disabled]="(currentPairs.length / 2) >= wordPairs.length">
+            <span class="control-value">{{ currentPairsSet }}/{{ maxPossibleSets }}</span>
+            <ion-button fill="clear" size="small" (click)="increaseSets()" [disabled]="currentPairsSet >= maxPossibleSets">
               <ion-icon name="add-outline"></ion-icon>
             </ion-button>
           </div>
           
           <div class="control-group">
-            <span class="control-label">Mélanger</span>
-            <ion-button fill="clear" size="small" (click)="shuffleCurrentPairs()">
-              <ion-icon name="shuffle-outline"></ion-icon>
+            <span class="control-label">Paires</span>
+            <ion-button fill="clear" size="small" (click)="decreasePairs()" [disabled]="currentPairs.length <= 2">
+              <ion-icon name="remove-outline"></ion-icon>
+            </ion-button>
+            <span class="control-value">{{ matchedPairs }}/{{ currentPairs.length / 2 }}</span>
+            <ion-button fill="clear" size="small" (click)="increasePairs()" [disabled]="currentPairs.length >= wordPairs.length * 2">
+              <ion-icon name="add-outline"></ion-icon>
             </ion-button>
           </div>
         </div>

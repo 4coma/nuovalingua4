@@ -53,8 +53,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   // Propriétés pour le jeu d'association
   wordPairs: WordPair[] = [];
   currentPairs: GamePair[] = [];
-  currentPairsSet: number = 1; // Première ou deuxième moitié (1 ou 2)
-  totalSets: number = 1; // Nombre total de sets disponibles
+  currentPairsSet: number = 1; // Set actuel
+  maxPossibleSets: number = 1; // Nombre maximum de sets possibles
   gameComplete: boolean = false;
   
   // État du jeu
@@ -274,8 +274,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    * Prépare un round du jeu avec 6 paires
    */
   setupCurrentGameRound() {
-    // Calculer le nombre total de sets disponibles
-    this.totalSets = Math.ceil(this.wordPairs.length / 6);
+    // Calculer le nombre maximum de sets possibles (basé sur le nombre total de mots)
+    this.maxPossibleSets = Math.max(1, Math.ceil(this.wordPairs.length / 2));
     
     // Début (0) ou milieu (6) de la liste selon le set
     const startIndex = (this.currentPairsSet - 1) * 6;
@@ -928,19 +928,22 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Mélange les paires actuelles sans changer leur nombre
+   * Augmente le nombre de sets (change le set actuel)
    */
-  shuffleCurrentPairs() {
-    if (this.currentPairs.length > 0) {
-      // Mélanger l'ordre d'affichage
-      this.currentPairs = this.currentPairs.sort(() => Math.random() - 0.5);
-      
-      // Réinitialiser l'état du jeu
-      this.selectedPair = null;
-      this.selectedWordId = null;
-      this.errorShown = false;
-      this.matchedPairs = 0;
-      this.attempts = 0;
+  increaseSets() {
+    if (this.currentPairsSet < this.maxPossibleSets) {
+      this.currentPairsSet++;
+      this.regenerateCurrentPairs();
+    }
+  }
+
+  /**
+   * Diminue le nombre de sets (change le set actuel)
+   */
+  decreaseSets() {
+    if (this.currentPairsSet > 1) {
+      this.currentPairsSet--;
+      this.regenerateCurrentPairs();
     }
   }
 
@@ -974,8 +977,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     if (this.wordPairs.length === 0) return;
 
     // Calculer le nombre de paires à afficher
-    const targetPairCount = pairCount || (this.currentPairs.length / 2);
+    const targetPairCount = pairCount || (this.currentPairs.length / 2) || 6;
     const actualPairCount = Math.min(targetPairCount, this.wordPairs.length);
+    
+    // Mettre à jour le nombre maximum de sets possibles (basé sur le nombre total de mots)
+    this.maxPossibleSets = Math.max(1, this.wordPairs.length);
 
     // Mélanger les mots pour avoir un ordre aléatoire
     const shuffledPairs = [...this.wordPairs].sort(() => Math.random() - 0.5);
