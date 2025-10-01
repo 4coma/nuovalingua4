@@ -19,30 +19,34 @@
         Bravo !
       </h2>
       
+      <!-- Contrôle du nombre de paires (uniquement pour la révision du dictionnaire personnel) -->
+      <div class="pairs-control" *ngIf="!gameComplete && isPersonalDictionaryRevision">
+        <ion-item lines="none">
+          <ion-label>Nombre de paires à réviser:</ion-label>
+          <ion-select 
+            [(ngModel)]="maxPairsToReview" 
+            (ionChange)="onPairsCountChange()"
+            interface="popover"
+            placeholder="Sélectionner">
+            <ion-select-option value="3">3 paires</ion-select-option>
+            <ion-select-option value="4">4 paires</ion-select-option>
+            <ion-select-option value="5">5 paires</ion-select-option>
+            <ion-select-option value="6">6 paires</ion-select-option>
+            <ion-select-option value="8">8 paires</ion-select-option>
+            <ion-select-option value="10">10 paires</ion-select-option>
+            <ion-select-option value="12">12 paires</ion-select-option>
+            <ion-select-option value="15">15 paires</ion-select-option>
+            <ion-select-option value="18">18 paires</ion-select-option>
+            <ion-select-option value="20">20 paires</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
       <div class="game-info" *ngIf="!gameComplete && currentPairs && currentPairs.length > 0">
-        <div class="game-controls">
-          <div class="control-group">
-            <span class="control-label">Set</span>
-            <ion-button fill="clear" size="small" (click)="decreaseSets()" [disabled]="currentPairsSet <= 1">
-              <ion-icon name="remove-outline"></ion-icon>
-            </ion-button>
-            <span class="control-value">{{ currentPairsSet }}/{{ maxPossibleSets }}</span>
-            <ion-button fill="clear" size="small" (click)="increaseSets()" [disabled]="currentPairsSet >= maxPossibleSets">
-              <ion-icon name="add-outline"></ion-icon>
-            </ion-button>
-          </div>
-          
-          <div class="control-group">
-            <span class="control-label">Paires</span>
-            <ion-button fill="clear" size="small" (click)="decreasePairs()" [disabled]="currentPairs.length <= 2">
-              <ion-icon name="remove-outline"></ion-icon>
-            </ion-button>
-            <span class="control-value">{{ matchedPairs }}/{{ currentPairs.length / 2 }}</span>
-            <ion-button fill="clear" size="small" (click)="increasePairs()" [disabled]="currentPairs.length >= wordPairs.length * 2">
-              <ion-icon name="add-outline"></ion-icon>
-            </ion-button>
-          </div>
-        </div>
+        <p>
+          <span class="set-indicator">Set {{ currentPairsSet }}/{{ getTotalSets() }}</span>
+          <span class="progress-indicator">{{ matchedPairs }} / {{ currentPairs.length / 2 }} paires</span>
+        </p>
         <ion-progress-bar [value]="matchedPairs / (currentPairs.length / 2)"></ion-progress-bar>
       </div>
       

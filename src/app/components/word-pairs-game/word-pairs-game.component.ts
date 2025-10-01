@@ -53,9 +53,12 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   // Propriétés pour le jeu d'association
   wordPairs: WordPair[] = [];
   currentPairs: GamePair[] = [];
-  currentPairsSet: number = 1; // Set actuel
-  maxPossibleSets: number = 1; // Nombre maximum de sets possibles
+  currentPairsSet: number = 1; // Première ou deuxième moitié (1 ou 2)
   gameComplete: boolean = false;
+  
+  // Contrôle du nombre de paires à réviser
+  maxPairsToReview: number = 6; // Nombre de paires à réviser (par défaut 6)
+  isPersonalDictionaryRevision: boolean = false; // Pour savoir si c'est une révision du dictionnaire personnel
   
   // État du jeu
   selectedPair: GamePair | null = null;
@@ -138,6 +141,19 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         this.wordPairs = JSON.parse(wordPairsJson);
         this.sessionInfo = JSON.parse(sessionInfoJson);
         this.isPersonalDictionaryRevision = isPersonalRevision === 'true';
+        
+        // Si c'est une révision du dictionnaire personnel, charger le nombre de paires configuré
+        if (this.isPersonalDictionaryRevision) {
+          const savedCount = localStorage.getItem('personalDictionaryWordsCount');
+          this.maxPairsToReview = savedCount ? parseInt(savedCount) : 6;
+          console.log('🔍 [WordPairsGame] Nombre de paires à réviser:', this.maxPairsToReview);
+          
+          // Limiter les paires selon la configuration
+          if (this.wordPairs.length > this.maxPairsToReview) {
+            this.wordPairs = this.wordPairs.slice(0, this.maxPairsToReview);
+            console.log('🔍 [WordPairsGame] Paires limitées à:', this.maxPairsToReview);
+          }
+        }
         
         // Charger les mots révisés si c'est une révision du dictionnaire personnel
         if (this.isPersonalDictionaryRevision && revisedWordsJson) {
@@ -274,9 +290,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    * Prépare un round du jeu avec 6 paires
    */
   setupCurrentGameRound() {
-    // Calculer le nombre maximum de sets possibles (basé sur le nombre total de mots)
-    this.maxPossibleSets = Math.max(1, Math.ceil(this.wordPairs.length / 2));
-    
     // Début (0) ou milieu (6) de la liste selon le set
     const startIndex = (this.currentPairsSet - 1) * 6;
     // Récupérer 6 paires ou moins si pas assez
@@ -392,10 +405,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       
       // Si toutes les paires sont trouvées, passer au set suivant ou terminer
       if (this.matchedPairs === this.currentPairs.length / 2) {
-        if (this.currentPairsSet === 1 && this.wordPairs.length > 6) {
-          // Passer au deuxième set si plus de 6 paires
+        const totalSets = this.getTotalSets();
+        if (this.currentPairsSet < totalSets) {
+          // Passer au set suivant s'il y en a un
           setTimeout(() => {
-            this.currentPairsSet = 2;
+            this.currentPairsSet++;
             this.matchedPairs = 0;
             this.setupCurrentGameRound();
           }, 1000);
@@ -928,97 +942,60 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Augmente le nombre de sets (change le set actuel)
+   * Gère le changement du nombre de paires à réviser
    */
-  increaseSets() {
-    if (this.currentPairsSet < this.maxPossibleSets) {
-      this.currentPairsSet++;
-      this.regenerateCurrentPairs();
-    }
-  }
-
-  /**
-   * Diminue le nombre de sets (change le set actuel)
-   */
-  decreaseSets() {
-    if (this.currentPairsSet > 1) {
-      this.currentPairsSet--;
-      this.regenerateCurrentPairs();
-    }
-  }
-
-  /**
-   * Augmente le nombre de paires dans le set actuel
-   */
-  increasePairs() {
-    const maxPairs = this.wordPairs.length;
-    const currentPairCount = this.currentPairs.length / 2;
+  onPairsCountChange() {
+    console.log('🔍 [WordPairsGame] Nombre de paires changé:', this.maxPairsToReview);
     
-    if (currentPairCount < maxPairs) {
-      this.regenerateCurrentPairs(currentPairCount + 1);
-    }
+    // Sauvegarder la nouvelle valeur
+    localStorage.setItem('personalDictionaryWordsCount', this.maxPairsToReview.toString());
+    
+    // Recharger la session avec le nouveau nombre de paires
+    this.reloadSessionWithNewPairsCount();
   }
 
   /**
-   * Diminue le nombre de paires dans le set actuel
+   * Recharge la session avec le nouveau nombre de paires
    */
-  decreasePairs() {
-    const currentPairCount = this.currentPairs.length / 2;
+  reloadSessionWithNewPairsCount() {
+    // Récupérer les mots révisés originaux
+    const revisedWordsJson = localStorage.getItem('revisedWords');
+    if (!revisedWordsJson) return;
     
-    if (currentPairCount > 1) {
-      this.regenerateCurrentPairs(currentPairCount - 1);
-    }
-  }
-
-  /**
-   * Régénère les paires actuelles avec un nombre spécifique de paires
-   */
-  private regenerateCurrentPairs(pairCount?: number) {
-    if (this.wordPairs.length === 0) return;
-
-    // Calculer le nombre de paires à afficher
-    const targetPairCount = pairCount || (this.currentPairs.length / 2) || 6;
-    const actualPairCount = Math.min(targetPairCount, this.wordPairs.length);
+    const revisedWords = JSON.parse(revisedWordsJson);
     
-    // Mettre à jour le nombre maximum de sets possibles (basé sur le nombre total de mots)
-    this.maxPossibleSets = Math.max(1, this.wordPairs.length);
-
-    // Mélanger les mots pour avoir un ordre aléatoire
-    const shuffledPairs = [...this.wordPairs].sort(() => Math.random() - 0.5);
-    const selectedPairs = shuffledPairs.slice(0, actualPairCount);
-
-    // Créer les paires de jeu
-    this.currentPairs = [];
-    selectedPairs.forEach((pair, index) => {
-      // Mot source (français)
-      this.currentPairs.push({
-        id: index * 2,
-        word: pair.fr,
-        isSource: true,
-        isSelected: false,
-        isMatched: false
-      });
-      
-      // Mot cible (italien)
-      this.currentPairs.push({
-        id: index * 2 + 1,
-        word: pair.it,
-        isSource: false,
-        isSelected: false,
-        isMatched: false
-      });
-    });
-
-    // Mélanger l'ordre d'affichage
-    this.currentPairs = this.currentPairs.sort(() => Math.random() - 0.5);
-
-    // Réinitialiser l'état du jeu
+    // Limiter selon le nouveau nombre
+    const limitedWords = revisedWords.slice(0, this.maxPairsToReview);
+    
+    // Recréer les paires de mots
+    const wordPairs = limitedWords.map((word: any) => ({
+      it: word.sourceWord,
+      fr: word.targetWord,
+      context: word.context
+    }));
+    
+    // Mettre à jour les données
+    this.wordPairs = wordPairs;
+    localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
+    
+    // Réinitialiser le jeu
+    this.currentPairsSet = 1;
+    this.matchedPairs = 0;
+    this.gameComplete = false;
     this.selectedPair = null;
     this.selectedWordId = null;
-    this.errorShown = false;
-    this.gameComplete = false;
-    this.matchedPairs = 0;
-    this.attempts = 0;
+    this.failedWords = [];
+    this.hasFailedWords = false;
+    
+    // Redémarrer le jeu
+    this.setupCurrentGameRound();
+  }
+
+  /**
+   * Calcule le nombre total de sets nécessaires
+   */
+  getTotalSets(): number {
+    return Math.ceil(this.wordPairs.length / 6);
   }
 
   ngOnDestroy() {
