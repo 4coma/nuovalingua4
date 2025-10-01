@@ -74,10 +74,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   // Pour les sessions générées
   generatedSessions: any[] = [];
   
-  // Pour la révision du dictionnaire personnel
-  isPersonalDictionaryRevision: boolean = false;
-  
-  
   // Pour les mots révisés
   revisedWords: RevisedWord[] = [];
   
