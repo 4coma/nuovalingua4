@@ -25,7 +25,7 @@
           <ion-label>Nombre de paires à réviser:</ion-label>
           <ion-select 
             [(ngModel)]="maxPairsToReview" 
-            (ionChange)="onPairsCountChange()"
+            (ionChange)="onPairsCountChange($event)"
             interface="popover"
             placeholder="Sélectionner">
             <ion-select-option value="3">3 paires</ion-select-option>
