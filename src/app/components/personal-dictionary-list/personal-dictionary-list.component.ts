@@ -265,43 +265,8 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Lance une session d'association avec tous les mots à réviser aujourd'hui
+   * Méthode supprimée : la révision est maintenant gérée par home.page.ts avec sélection aléatoire
    */
-  startTodayRevision() {
-    if (this.dueTodayWords.length === 0) {
-      this.showToast('Aucun mot à réviser aujourd\'hui', 'warning');
-      return;
-    }
-
-    const wordPairs = this.dueTodayWords.map(word => ({
-      it: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
-      fr: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
-      context: word.contextualMeaning
-    }));
-
-    const revisedWords = this.dueTodayWords.map(word => ({
-      id: word.id,
-      sourceWord: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
-      targetWord: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
-      context: word.contextualMeaning,
-      revisionDelay: undefined,
-      isKnown: word.isKnown || false
-    }));
-
-    const sessionInfo = {
-      category: 'Dictionnaire personnel',
-      topic: 'Révision du jour',
-      date: new Date().toISOString(),
-      translationDirection: 'fr2it' as const
-    };
-
-    this.storageService.set('sessionInfo', sessionInfo);
-    this.storageService.set('wordPairs', wordPairs);
-    this.storageService.set('isPersonalDictionaryRevision', true);
-    this.storageService.set('revisedWords', revisedWords);
-
-    this.router.navigate(['/word-pairs-game']);
-  }
 
   /**
    * Gère le changement de délai de révision pour un mot
