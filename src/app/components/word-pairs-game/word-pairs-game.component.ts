@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, ModalController, AlertController } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -107,7 +107,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     private storageService: StorageService,
     private personalDictionaryService: PersonalDictionaryService,
     private injector: Injector,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -942,11 +943,16 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   /**
    * Gère le changement du nombre de paires à réviser
    */
-  onPairsCountChange() {
-    console.log('🔍 [WordPairsGame] Nombre de paires changé:', this.maxPairsToReview);
+  onPairsCountChange(event: any) {
+    // Convertir la valeur string en number
+    const newValue = parseInt(event.detail.value);
+    console.log('🔍 [WordPairsGame] Nombre de paires changé:', newValue);
+    
+    // Mettre à jour la propriété
+    this.maxPairsToReview = newValue;
     
     // Sauvegarder la nouvelle valeur
-    localStorage.setItem('personalDictionaryWordsCount', this.maxPairsToReview.toString());
+    localStorage.setItem('personalDictionaryWordsCount', newValue.toString());
     
     // Recharger la session avec le nouveau nombre de paires
     this.reloadSessionWithNewPairsCount();
@@ -1020,6 +1026,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     
     // Redémarrer le jeu
     this.setupCurrentGameRound();
+    
+    // Forcer la détection de changement
+    this.cdr.detectChanges();
   }
 
   /**
