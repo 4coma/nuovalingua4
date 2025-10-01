@@ -597,6 +597,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.errorShown = false;
     this.failedWords = [];
     this.hasFailedWords = false;
+    this.currentPairsSet = 1; // Réinitialiser au premier set
     this.setupCurrentGameRound();
   }
 
@@ -629,6 +630,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.errorShown = false;
     this.failedWords = [];
     this.hasFailedWords = false;
+    this.currentPairsSet = 1; // Réinitialiser au premier set
     this.setupCurrentGameRound();
   }
   
