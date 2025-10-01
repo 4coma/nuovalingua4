@@ -928,22 +928,19 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Augmente le nombre de sets
+   * Mélange les paires actuelles sans changer leur nombre
    */
-  increaseSets() {
-    if (this.currentPairsSet < this.totalSets) {
-      this.currentPairsSet++;
-      this.regenerateCurrentPairs();
-    }
-  }
-
-  /**
-   * Diminue le nombre de sets
-   */
-  decreaseSets() {
-    if (this.currentPairsSet > 1) {
-      this.currentPairsSet--;
-      this.regenerateCurrentPairs();
+  shuffleCurrentPairs() {
+    if (this.currentPairs.length > 0) {
+      // Mélanger l'ordre d'affichage
+      this.currentPairs = this.currentPairs.sort(() => Math.random() - 0.5);
+      
+      // Réinitialiser l'état du jeu
+      this.selectedPair = null;
+      this.selectedWordId = null;
+      this.errorShown = false;
+      this.matchedPairs = 0;
+      this.attempts = 0;
     }
   }
 
