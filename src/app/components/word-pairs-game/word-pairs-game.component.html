@@ -20,10 +20,29 @@
       </h2>
       
       <div class="game-info" *ngIf="!gameComplete && currentPairs && currentPairs.length > 0">
-        <p>
-          <span class="set-indicator">Set {{ currentPairsSet }}/{{ wordPairs.length > 6 ? 2 : 1 }}</span>
-          <span class="progress-indicator">{{ matchedPairs }} / {{ currentPairs.length / 2 }} paires</span>
-        </p>
+        <div class="game-controls">
+          <div class="control-group">
+            <span class="control-label">Set</span>
+            <ion-button fill="clear" size="small" (click)="decreaseSets()" [disabled]="currentPairsSet <= 1">
+              <ion-icon name="remove-outline"></ion-icon>
+            </ion-button>
+            <span class="control-value">{{ currentPairsSet }}/{{ totalSets }}</span>
+            <ion-button fill="clear" size="small" (click)="increaseSets()" [disabled]="currentPairsSet >= totalSets">
+              <ion-icon name="add-outline"></ion-icon>
+            </ion-button>
+          </div>
+          
+          <div class="control-group">
+            <span class="control-label">Paires</span>
+            <ion-button fill="clear" size="small" (click)="decreasePairs()" [disabled]="currentPairs.length <= 2">
+              <ion-icon name="remove-outline"></ion-icon>
+            </ion-button>
+            <span class="control-value">{{ matchedPairs }}/{{ currentPairs.length / 2 }}</span>
+            <ion-button fill="clear" size="small" (click)="increasePairs()" [disabled]="currentPairs.length >= wordPairs.length * 2">
+              <ion-icon name="add-outline"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
         <ion-progress-bar [value]="matchedPairs / (currentPairs.length / 2)"></ion-progress-bar>
       </div>
       
