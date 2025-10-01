@@ -944,9 +944,21 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    * Gère le changement du nombre de paires à réviser
    */
   onPairsCountChange(event: any) {
+    // Vérifier si l'utilisateur a déjà commencé à associer des paires
+    if (this.matchedPairs > 0) {
+      console.log('🔍 [WordPairsGame] Changement bloqué: l\'utilisateur a déjà commencé l\'exercice');
+      return;
+    }
+    
     // Convertir la valeur string en number
     const newValue = parseInt(event.detail.value);
     console.log('🔍 [WordPairsGame] Nombre de paires changé:', newValue);
+    
+    // Valider la valeur
+    if (newValue < 3 || newValue > 50) {
+      console.log('🔍 [WordPairsGame] Valeur invalide, retour à la valeur précédente');
+      return;
+    }
     
     // Mettre à jour la propriété
     this.maxPairsToReview = newValue;

@@ -21,25 +21,34 @@
   }
 }
 
-.pairs-control {
-  margin-bottom: 15px;
+.pairs-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   
-  ion-item {
-    --background: var(--ion-color-light);
-    --border-radius: 8px;
-    --padding-start: 16px;
-    --padding-end: 16px;
-    margin-bottom: 10px;
+  .pairs-input {
+    --background: transparent;
+    --border: none;
+    --box-shadow: none;
+    --padding-start: 0;
+    --padding-end: 0;
+    --color: var(--ion-color-dark);
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    width: 60px;
     
-    ion-label {
-      font-weight: 500;
-      color: var(--ion-color-dark);
+    &[disabled] {
+      --color: var(--ion-color-medium);
+      opacity: 0.7;
     }
-    
-    ion-select {
-      --placeholder-color: var(--ion-color-medium);
-      --color: var(--ion-color-dark);
-    }
+  }
+  
+  .pairs-label {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
   }
 }
 

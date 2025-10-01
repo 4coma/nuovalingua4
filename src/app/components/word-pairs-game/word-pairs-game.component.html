@@ -4,7 +4,19 @@
     <div class="game-header ion-text-center">
       <h2 *ngIf="!gameComplete">
         <ion-icon name="link-outline"></ion-icon>
-        Associez les mots
+        <span *ngIf="!isPersonalDictionaryRevision">Associez les mots</span>
+        <div *ngIf="isPersonalDictionaryRevision" class="pairs-title">
+          <ion-input 
+            type="number" 
+            [(ngModel)]="maxPairsToReview" 
+            (ionInput)="onPairsCountChange($event)"
+            [disabled]="matchedPairs > 0"
+            min="3" 
+            max="50"
+            class="pairs-input">
+          </ion-input>
+          <span class="pairs-label">paires</span>
+        </div>
         <!-- Bouton mute/unmute -->
         <ion-button 
           fill="clear" 
@@ -19,33 +31,6 @@
         Bravo !
       </h2>
       
-      <!-- Contrôle du nombre de paires (uniquement pour la révision du dictionnaire personnel) -->
-      <div class="pairs-control" *ngIf="!gameComplete && isPersonalDictionaryRevision">
-        <ion-item lines="none">
-          <ion-label>Nombre de paires à réviser:</ion-label>
-          <ion-select 
-            [(ngModel)]="maxPairsToReview" 
-            (ionChange)="onPairsCountChange($event)"
-            interface="popover"
-            placeholder="Sélectionner">
-            <ion-select-option value="3">3 paires</ion-select-option>
-            <ion-select-option value="4">4 paires</ion-select-option>
-            <ion-select-option value="5">5 paires</ion-select-option>
-            <ion-select-option value="6">6 paires</ion-select-option>
-            <ion-select-option value="8">8 paires</ion-select-option>
-            <ion-select-option value="10">10 paires</ion-select-option>
-            <ion-select-option value="12">12 paires</ion-select-option>
-            <ion-select-option value="15">15 paires</ion-select-option>
-            <ion-select-option value="18">18 paires</ion-select-option>
-            <ion-select-option value="20">20 paires</ion-select-option>
-            <ion-select-option value="24">24 paires</ion-select-option>
-            <ion-select-option value="30">30 paires</ion-select-option>
-            <ion-select-option value="36">36 paires</ion-select-option>
-            <ion-select-option value="42">42 paires</ion-select-option>
-            <ion-select-option value="50">50 paires</ion-select-option>
-          </ion-select>
-        </ion-item>
-      </div>
 
       <div class="game-info" *ngIf="!gameComplete && currentPairs && currentPairs.length > 0">
         <p>
