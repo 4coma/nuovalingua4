@@ -207,7 +207,7 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
         position: relative;
         
         .theme-input {
-          --background: white;
+          --background: rgba(255, 255, 255, 0.05);
           --border-radius: 6px;
           --padding-start: 12px;
           --padding-end: 12px;
@@ -222,7 +222,7 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
           top: 100%;
           left: 0;
           right: 0;
-          background: white;
+          background: var(--ion-color-light);
           border: 1px solid var(--ion-color-medium);
           border-radius: 6px;
           max-height: 150px;
