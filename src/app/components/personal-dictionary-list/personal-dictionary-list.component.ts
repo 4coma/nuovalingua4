@@ -5,13 +5,6 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
-
-// Extension de l'interface DictionaryWord pour les propriétés temporaires
-interface ExtendedDictionaryWord extends DictionaryWord {
-  themeInput?: string;
-  showThemeAutocomplete?: boolean;
-  filteredThemes?: string[];
-}
 import { AddWordComponent } from '../add-word/add-word.component';
 import { EditWordModalComponent } from './edit-word-modal.component';
 import { StorageService } from '../../services/storage.service';
@@ -32,10 +25,10 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
   // Titre de la page pour le header global
   pageTitle: string = 'Mon dictionnaire personnel';
   
-  dictionaryWords: ExtendedDictionaryWord[] = [];
+  dictionaryWords: DictionaryWord[] = [];
   isLoading: boolean = true;
   searchTerm: string = '';
-  filteredWords: ExtendedDictionaryWord[] = [];
+  filteredWords: DictionaryWord[] = [];
 
   // Mots planifiés pour aujourd'hui
   // Propriété supprimée : la révision est maintenant purement aléatoire
@@ -54,8 +47,6 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
     'de': 'Allemand'
   };
   
-  // Gestion des thèmes
-  availableThemes: string[] = []; // Tous les thèmes disponibles dans le dictionnaire
 
   // Subscription pour le BehaviorSubject
   private dictionarySubscription?: Subscription;
@@ -71,13 +62,11 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadDictionary();
-    this.loadAvailableThemes();
     
     // S'abonner aux changements du dictionnaire en temps réel
     this.dictionarySubscription = this.dictionaryService.dictionaryWords$.subscribe(words => {
       this.dictionaryWords = words;
       this.processDictionaryData();
-      this.loadAvailableThemes(); // Recharger les thèmes disponibles
     });
   }
 
@@ -384,95 +373,4 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
     return undefined; // Plus de 6 mois
   }
 
-  /**
-   * Charge tous les thèmes disponibles dans le dictionnaire
-   */
-  loadAvailableThemes() {
-    const themesSet = new Set<string>();
-    
-    this.dictionaryWords.forEach(word => {
-      if (word.themes && word.themes.length > 0) {
-        word.themes.forEach(theme => themesSet.add(theme));
-      }
-    });
-    
-    this.availableThemes = Array.from(themesSet).sort();
-  }
-
-  /**
-   * Gère la saisie dans le champ de thème
-   */
-  onThemeInputChange(word: ExtendedDictionaryWord, event: any) {
-    const value = event.detail.value;
-    word.themeInput = value;
-    
-    if (value.length > 0) {
-      // Filtrer les thèmes disponibles
-      word.filteredThemes = this.availableThemes.filter(theme => 
-        theme.toLowerCase().includes(value.toLowerCase()) &&
-        (!word.themes || !word.themes.includes(theme))
-      );
-      word.showThemeAutocomplete = true;
-    } else {
-      word.filteredThemes = [];
-      word.showThemeAutocomplete = false;
-    }
-  }
-
-  /**
-   * Affiche/masque l'autocomplete des thèmes
-   */
-  showThemeAutocomplete(word: ExtendedDictionaryWord, show: boolean) {
-    word.showThemeAutocomplete = show;
-  }
-
-  /**
-   * Cache l'autocomplete des thèmes
-   */
-  hideThemeAutocomplete(word: ExtendedDictionaryWord) {
-    // Délai pour permettre le clic sur un élément de l'autocomplete
-    setTimeout(() => {
-      word.showThemeAutocomplete = false;
-    }, 200);
-  }
-
-  /**
-   * Ajoute un thème à un mot
-   */
-  addThemeToWord(word: ExtendedDictionaryWord, theme: string) {
-    if (!word.themes) {
-      word.themes = [];
-    }
-    
-    if (!word.themes.includes(theme)) {
-      word.themes.push(theme);
-      this.updateWord(word);
-    }
-    
-    word.themeInput = '';
-    word.showThemeAutocomplete = false;
-    word.filteredThemes = [];
-  }
-
-  /**
-   * Supprime un thème d'un mot
-   */
-  removeThemeFromWord(word: ExtendedDictionaryWord, theme: string) {
-    if (word.themes) {
-      word.themes = word.themes.filter(t => t !== theme);
-      this.updateWord(word);
-    }
-  }
-
-  /**
-   * Met à jour un mot dans le dictionnaire
-   */
-  private updateWord(word: ExtendedDictionaryWord) {
-    const success = this.dictionaryService.updateWord(word);
-    if (success) {
-      this.showToast('Thème mis à jour');
-    } else {
-      this.showToast('Erreur lors de la mise à jour', 'danger');
-    }
-  }
 } 
