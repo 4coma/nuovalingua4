@@ -17,6 +17,21 @@
           </ion-input>
           <span class="pairs-label">paires</span>
         </div>
+        
+        <!-- Sélecteur de thème pour la révision du dictionnaire personnel -->
+        <div *ngIf="isPersonalDictionaryRevision && availableThemes.length > 0" class="theme-selector">
+          <ion-select 
+            [(ngModel)]="selectedTheme" 
+            (ionChange)="onThemeChange($event)"
+            [disabled]="matchedPairs > 0"
+            placeholder="Filtrer par thème"
+            class="theme-select">
+            <ion-select-option value="all">Tous les thèmes</ion-select-option>
+            <ion-select-option *ngFor="let theme of availableThemes" [value]="theme">
+              {{ theme }}
+            </ion-select-option>
+          </ion-select>
+        </div>
         <!-- Bouton mute/unmute -->
         <ion-button 
           fill="clear" 

@@ -60,6 +60,10 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   maxPairsToReview: number = 6; // Nombre de paires à réviser (par défaut 6)
   isPersonalDictionaryRevision: boolean = false; // Pour savoir si c'est une révision du dictionnaire personnel
   
+  // Filtrage par thème
+  selectedTheme: string = 'all'; // Thème sélectionné pour le filtrage
+  availableThemes: string[] = []; // Liste des thèmes disponibles
+  
   // État du jeu
   selectedPair: GamePair | null = null;
   selectedWordId: number | null = null;
@@ -144,6 +148,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           const savedCount = localStorage.getItem('personalDictionaryWordsCount');
           this.maxPairsToReview = savedCount ? parseInt(savedCount) : 6;
           console.log('🔍 [WordPairsGame] Nombre de paires à réviser:', this.maxPairsToReview);
+          
+          // Charger les thèmes disponibles
+          this.loadAvailableThemes();
           
           // Limiter les paires selon la configuration
           if (this.wordPairs.length > this.maxPairsToReview) {
@@ -971,6 +978,112 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Charge les thèmes disponibles depuis le dictionnaire personnel
+   */
+  loadAvailableThemes() {
+    const allWords = this.personalDictionaryService.getAllWords();
+    const themes = new Set<string>();
+    
+    allWords.forEach(word => {
+      if (word.theme && word.theme.trim()) {
+        themes.add(word.theme);
+      }
+    });
+    
+    this.availableThemes = Array.from(themes).sort();
+    console.log('🔍 [WordPairsGame] Thèmes disponibles:', this.availableThemes);
+  }
+  
+  /**
+   * Filtre les mots par thème sélectionné
+   */
+  onThemeChange(event: any) {
+    this.selectedTheme = event.detail.value;
+    console.log('🔍 [WordPairsGame] Thème sélectionné:', this.selectedTheme);
+    
+    // Recharger la session avec le nouveau filtre
+    this.reloadSessionWithThemeFilter();
+  }
+  
+  /**
+   * Recharge la session avec le filtre de thème
+   */
+  reloadSessionWithThemeFilter() {
+    // Récupérer les mots révisés originaux
+    const revisedWordsJson = localStorage.getItem('revisedWords');
+    if (!revisedWordsJson) return;
+    
+    let revisedWords = JSON.parse(revisedWordsJson);
+    
+    // Filtrer par thème si un thème spécifique est sélectionné
+    if (this.selectedTheme !== 'all') {
+      revisedWords = revisedWords.filter((word: any) => {
+        // Récupérer le mot complet depuis le dictionnaire pour avoir le thème
+        const dictWord = this.personalDictionaryService.getWordById(word.id);
+        return dictWord && dictWord.theme === this.selectedTheme;
+      });
+      console.log('🔍 [WordPairsGame] Mots filtrés par thème:', this.selectedTheme, 'Résultat:', revisedWords.length);
+    }
+    
+    // Si l'utilisateur demande plus de mots que disponibles, aller chercher plus dans le dictionnaire
+    if (this.maxPairsToReview > revisedWords.length) {
+      console.log('🔍 [WordPairsGame] Demande de', this.maxPairsToReview, 'paires, mais seulement', revisedWords.length, 'disponibles');
+      console.log('🔍 [WordPairsGame] Récupération de plus de mots depuis le dictionnaire...');
+      
+      // Récupérer TOUS les mots du dictionnaire
+      let allWords = this.personalDictionaryService.getAllWords();
+      
+      // Filtrer par thème si nécessaire
+      if (this.selectedTheme !== 'all') {
+        allWords = allWords.filter(word => word.theme === this.selectedTheme);
+      }
+      
+      if (allWords.length > revisedWords.length) {
+        // Mélanger tous les mots
+        const shuffledWords = [...allWords].sort(() => Math.random() - 0.5);
+        
+        // Prendre le nombre demandé
+        const additionalWords = shuffledWords.slice(0, this.maxPairsToReview);
+        
+        // Convertir en format revisedWords
+        revisedWords = additionalWords.map(word => ({
+          id: word.id,
+          sourceWord: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
+          targetWord: word.sourceLang === 'fr' ? word.sourceWord : word.targetWord,
+          context: word.contextualMeaning,
+          revisionDelay: undefined,
+          isKnown: word.isKnown || false
+        }));
+        
+        console.log('🔍 [WordPairsGame] Nouveaux mots récupérés:', revisedWords.length);
+      }
+    }
+    
+    // Limiter selon le nouveau nombre
+    const limitedWords = revisedWords.slice(0, this.maxPairsToReview);
+    
+    // Recréer les paires de mots
+    const wordPairs = limitedWords.map((word: any) => ({
+      it: word.sourceWord,
+      fr: word.targetWord,
+      context: word.context
+    }));
+    
+    // Mettre à jour les données
+    this.wordPairs = wordPairs;
+    this.revisedWords = limitedWords;
+    
+    // Réinitialiser le jeu
+    this.initializeGame();
+    this.currentPairsSet = 1;
+    this.matchedPairs = 0;
+    this.gameComplete = false;
+    
+    // Forcer la mise à jour de l'UI
+    this.cdr.detectChanges();
+  }
+
+  /**
    * Recharge la session avec le nouveau nombre de paires
    */
   reloadSessionWithNewPairsCount() {
@@ -980,13 +1093,28 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     
     let revisedWords = JSON.parse(revisedWordsJson);
     
+    // Filtrer par thème si un thème spécifique est sélectionné
+    if (this.selectedTheme !== 'all') {
+      revisedWords = revisedWords.filter((word: any) => {
+        // Récupérer le mot complet depuis le dictionnaire pour avoir le thème
+        const dictWord = this.personalDictionaryService.getWordById(word.id);
+        return dictWord && dictWord.theme === this.selectedTheme;
+      });
+      console.log('🔍 [WordPairsGame] Mots filtrés par thème:', this.selectedTheme, 'Résultat:', revisedWords.length);
+    }
+    
     // Si l'utilisateur demande plus de mots que disponibles, aller chercher plus dans le dictionnaire
     if (this.maxPairsToReview > revisedWords.length) {
       console.log('🔍 [WordPairsGame] Demande de', this.maxPairsToReview, 'paires, mais seulement', revisedWords.length, 'disponibles');
       console.log('🔍 [WordPairsGame] Récupération de plus de mots depuis le dictionnaire...');
       
       // Récupérer TOUS les mots du dictionnaire
-      const allWords = this.personalDictionaryService.getAllWords();
+      let allWords = this.personalDictionaryService.getAllWords();
+      
+      // Filtrer par thème si nécessaire
+      if (this.selectedTheme !== 'all') {
+        allWords = allWords.filter(word => word.theme === this.selectedTheme);
+      }
       
       if (allWords.length > revisedWords.length) {
         // Mélanger tous les mots

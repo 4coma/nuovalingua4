@@ -52,6 +52,25 @@
   }
 }
 
+.theme-selector {
+  margin-top: 10px;
+  
+  .theme-select {
+    --background: rgba(255, 255, 255, 0.1);
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --color: var(--ion-color-dark);
+    font-size: 14px;
+    min-width: 200px;
+    
+    &[disabled] {
+      --color: var(--ion-color-medium);
+      opacity: 0.6;
+    }
+  }
+}
+
 .game-header {
   .audio-toggle-btn {
     margin-left: 10px;

@@ -150,6 +150,19 @@ export class DictionaryModalComponent implements OnInit {
   addWordToDictionary(word: WordPair) {
     console.log('🔍 [DictionaryModal] Tentative d\'ajout du mot:', word);
     
+    // Récupérer les informations de session pour obtenir le thème
+    const sessionInfoJson = localStorage.getItem('sessionInfo');
+    let theme = '';
+    if (sessionInfoJson) {
+      try {
+        const sessionInfo = JSON.parse(sessionInfoJson);
+        theme = `${sessionInfo.category} - ${sessionInfo.topic}`;
+        console.log('🔍 [DictionaryModal] Thème récupéré:', theme);
+      } catch (e) {
+        console.error('🔍 [DictionaryModal] Erreur lors de la récupération du thème:', e);
+      }
+    }
+    
     const newWord: DictionaryWord = {
       id: '',
       sourceWord: word.it,
@@ -159,7 +172,8 @@ export class DictionaryModalComponent implements OnInit {
       contextualMeaning: word.context || '',
       partOfSpeech: '',
       examples: [],
-      dateAdded: Date.now()
+      dateAdded: Date.now(),
+      theme: theme
     };
 
     console.log('🔍 [DictionaryModal] Mot formaté pour le dictionnaire:', newWord);
