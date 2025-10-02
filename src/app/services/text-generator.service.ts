@@ -14,6 +14,7 @@ export interface TranslationResult {
   contextualMeaning: string;
   partOfSpeech?: string;
   examples?: string[];
+  themes?: string[]; // Thèmes atomiques générés par l'IA
 }
 
 export interface AssociationSession {
@@ -166,8 +167,15 @@ export class TextGeneratorService {
         "translation": "la traduction française la plus précise dans ce contexte",
         "contextualMeaning": "explication brève en français du sens dans ce contexte spécifique",
         "partOfSpeech": "catégorie grammaticale en français (nom, verbe, adjectif, etc.)",
-        "examples": ["1-2 exemples de phrases en italien avec traduction française"]
+        "examples": ["1-2 exemples de phrases en italien avec traduction française"],
+        "themes": ["thème1", "thème2", "thème3"]
       }
+      
+      IMPORTANT pour les thèmes:
+      - Ajoute un tableau "themes" avec 2-4 thèmes atomiques
+      - Exemples de thèmes: "vocabulaire", "nom", "verbe", "adjectif", "grammaire", "famille", "nourriture", "couleur", "temps", "conjugaison", "présent", "passé composé", etc.
+      - Les thèmes doivent être précis et atomiques (un seul concept par thème)
+      - Inclus toujours le thème principal (ex: "vocabulaire") et des thèmes spécifiques (ex: "nom", "famille")
       
       Assure-toi que la traduction et les explications sont en français standard et correct.
     `;
