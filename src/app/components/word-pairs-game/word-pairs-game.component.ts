@@ -293,14 +293,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     const endIndex = Math.min(startIndex + 6, this.wordPairs.length);
     const pairsForRound = this.wordPairs.slice(startIndex, endIndex);
     
-    console.log('🔍 [WordPairsGame] setupCurrentGameRound - Set:', this.currentPairsSet);
-    console.log('🔍 [WordPairsGame] setupCurrentGameRound - wordPairs.length:', this.wordPairs.length);
-    console.log('🔍 [WordPairsGame] setupCurrentGameRound - startIndex:', startIndex, 'endIndex:', endIndex);
-    console.log('🔍 [WordPairsGame] setupCurrentGameRound - pairsForRound.length:', pairsForRound.length);
-    
     // Si pas de paires, le jeu est terminé
     if (pairsForRound.length === 0) {
-      console.log('🔍 [WordPairsGame] setupCurrentGameRound - Aucune paire, fin du jeu');
       this.gameComplete = true;
       this.onGameComplete();
       return;
@@ -993,7 +987,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       
       // Récupérer TOUS les mots du dictionnaire
       const allWords = this.personalDictionaryService.getAllWords();
-      console.log('🔍 [WordPairsGame] Dictionnaire complet:', allWords.length, 'mots');
       
       if (allWords.length > revisedWords.length) {
         // Mélanger tous les mots
@@ -1001,7 +994,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         
         // Prendre le nombre demandé
         const additionalWords = shuffledWords.slice(0, this.maxPairsToReview);
-        console.log('🔍 [WordPairsGame] Mots supplémentaires récupérés:', additionalWords.length);
         
         // Convertir en format revisedWords
         revisedWords = additionalWords.map(word => ({
@@ -1019,7 +1011,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     
     // Limiter selon le nouveau nombre
     const limitedWords = revisedWords.slice(0, this.maxPairsToReview);
-    console.log('🔍 [WordPairsGame] Mots limités à:', limitedWords.length);
     
     // Recréer les paires de mots
     const wordPairs = limitedWords.map((word: any) => ({
@@ -1027,14 +1018,10 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       fr: word.targetWord,
       context: word.context
     }));
-    console.log('🔍 [WordPairsGame] Paires créées:', wordPairs.length);
     
     // Mettre à jour les données
     this.wordPairs = wordPairs;
     localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
-    
-    console.log('🔍 [WordPairsGame] reloadSessionWithNewPairsCount - wordPairs mis à jour:', this.wordPairs.length, 'paires');
-    console.log('🔍 [WordPairsGame] reloadSessionWithNewPairsCount - totalSets calculé:', this.getTotalSets());
     
     // Mettre à jour les mots révisés
     this.revisedWords = limitedWords;
@@ -1060,9 +1047,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    * Calcule le nombre total de sets nécessaires
    */
   getTotalSets(): number {
-    const totalSets = Math.ceil(this.wordPairs.length / 6);
-    console.log('🔍 [WordPairsGame] getTotalSets():', this.wordPairs.length, 'paires =', totalSets, 'sets');
-    return totalSets;
+    return Math.ceil(this.wordPairs.length / 6);
   }
 
   ngOnDestroy() {

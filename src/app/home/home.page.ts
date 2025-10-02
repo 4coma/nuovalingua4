@@ -5,7 +5,6 @@ import { RouterModule, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PersonalDictionaryService, DictionaryWord } from '../services/personal-dictionary.service';
 import { StorageService } from '../services/storage.service';
-import { SM2AlgorithmService } from '../services/sm2-algorithm.service';
 import { WordMastery } from '../services/vocabulary-tracking.service';
 
 @Component({
@@ -30,7 +29,6 @@ export class HomePage implements OnInit, OnDestroy {
     private menuController: MenuController,
     private personalDictionaryService: PersonalDictionaryService,
     private storageService: StorageService,
-    private sm2Service: SM2AlgorithmService,
     private toastController: ToastController
   ) {
   }
@@ -55,9 +53,6 @@ export class HomePage implements OnInit, OnDestroy {
     console.log('🔍 HomePage - Bouton Discussion cliqué');
   }
 
-  startSpacedRepetition() {
-    this.router.navigate(['/spaced-repetition']);
-  }
 
   async startPersonalWordsRevision() {
     try {
