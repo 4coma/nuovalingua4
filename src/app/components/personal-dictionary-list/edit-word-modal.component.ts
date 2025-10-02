@@ -103,7 +103,7 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
               color="secondary"
               class="theme-chip">
               {{ theme }}
-              <ion-icon name="close-circle" slot="end" (click)="removeTheme(theme)"></ion-icon>
+              <span slot="end" (click)="removeTheme(theme)" class="remove-theme-btn">×</span>
             </ion-chip>
           </div>
           
@@ -196,15 +196,20 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
           height: 28px;
           margin: 0;
           
-          ion-icon {
-            font-size: 14px;
+          .remove-theme-btn {
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            margin-left: 6px;
+            margin-left: 8px;
             color: white !important;
             opacity: 0.8;
+            padding: 2px 4px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
             
             &:hover {
               opacity: 1;
+              background: rgba(255, 255, 255, 0.3);
             }
           }
         }

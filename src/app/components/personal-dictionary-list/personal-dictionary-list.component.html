@@ -84,7 +84,7 @@
                       color="secondary"
                       class="theme-chip">
                       {{ theme }}
-                      <ion-icon name="close-circle" slot="end" (click)="removeThemeFromWord(word, theme); $event.stopPropagation()"></ion-icon>
+                      <span slot="end" (click)="removeThemeFromWord(word, theme); $event.stopPropagation()" class="remove-theme-btn">×</span>
                     </ion-chip>
                   </div>
                 </div>
