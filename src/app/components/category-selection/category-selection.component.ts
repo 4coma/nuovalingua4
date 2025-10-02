@@ -80,6 +80,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
 
 
   pageTitle = 'Catégories';
+  
+  // Contrôle du nombre de mots à générer pour le mode apprentissage
+  wordsToGenerate: number = 10; // Nombre de mots à générer (par défaut 10)
 
   constructor(
     private llmService: LlmService,
@@ -93,6 +96,12 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Charger la direction de traduction depuis le service
     this.translationDirection = this.llmService.translationDirection;
+    
+    // Charger le nombre de mots depuis les préférences
+    const savedCount = this.storageService.get('wordAssociationsCount');
+    if (savedCount) {
+      this.wordsToGenerate = parseInt(savedCount);
+    }
   }
 
 
@@ -162,6 +171,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
         topic: this.selectedTopic
       });
 
+      // Sauvegarder le nombre de mots choisi pour cette session
+      this.storageService.set('wordAssociationsCount', this.wordsToGenerate.toString());
+      
       // Générer les paires de mots via l'API OpenAI
       this.llmService.generateWordPairs(this.selectedTopic, this.selectedCategory).subscribe({
         next: (wordPairs) => {
@@ -397,6 +409,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
         topic: this.selectedTopic
       });
 
+      // Sauvegarder le nombre de mots choisi pour cette session
+      this.storageService.set('wordAssociationsCount', this.wordsToGenerate.toString());
+      
       // Générer les paires de mots via l'API OpenAI avec la consigne personnalisée
       this.llmService.generateWordPairsWithCustomInstruction(
         this.selectedTopic, 

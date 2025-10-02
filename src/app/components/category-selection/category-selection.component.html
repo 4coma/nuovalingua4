@@ -15,6 +15,21 @@
           </ion-segment-button>
         </ion-segment>
       </div>
+      
+      <!-- Contrôle du nombre de mots à générer -->
+      <div class="words-count-selector">
+        <ion-item lines="none">
+          <ion-label>Nombre de mots à générer:</ion-label>
+          <ion-input 
+            type="number" 
+            [(ngModel)]="wordsToGenerate" 
+            min="3" 
+            max="50"
+            placeholder="10"
+            class="words-count-input">
+          </ion-input>
+        </ion-item>
+      </div>
     </div>
     
     <!-- Étape 1: Affichage des catégories principales -->

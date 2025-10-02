@@ -22,6 +22,31 @@
   margin-bottom: 32px;
 }
 
+.words-count-selector {
+  margin-top: 16px;
+  
+  ion-item {
+    --background: rgba(255, 255, 255, 0.05);
+    --border-radius: 8px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    margin-bottom: 10px;
+    
+    ion-label {
+      font-weight: 500;
+      color: #ffffff;
+      font-size: 14px;
+    }
+    
+    ion-input {
+      --color: #ffffff;
+      --placeholder-color: rgba(255, 255, 255, 0.5);
+      text-align: center;
+      font-weight: 500;
+    }
+  }
+}
+
 .page-title {
   font-size: 28px;
   font-weight: 600;
