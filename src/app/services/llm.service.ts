@@ -13,6 +13,7 @@ export interface WordPair {
   context?: string;
   category?: string;
   topic?: string;
+  themes?: string[]; // Thèmes atomiques associés au mot
 }
 
 export interface OpenAIResponse {
@@ -177,9 +178,16 @@ export class LlmService {
       
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
-        {"it": "verbe_italien_conjugué", "fr": "traduction_française_conjuguée", "context": "exemple de phrase avec le verbe conjugué au temps ${topic}"},
+        {"it": "verbe_italien_conjugué", "fr": "traduction_française_conjuguée", "context": "exemple de phrase avec le verbe conjugué au temps ${topic}", "themes": ["thème1", "thème2", "thème3"]},
         // Répète pour ${count} verbes au total.
       ]
+      
+      IMPORTANT pour les thèmes:
+      - Chaque mot doit avoir un tableau "themes" avec 2-4 thèmes atomiques
+      - Exemples de thèmes: "conjugaison", "présent", "verbe faire", "subjonctif", "grammaire", "vocabulaire", "temps", "personne", etc.
+      - Les thèmes doivent être précis et atomiques (un seul concept par thème)
+      - Inclus toujours le thème principal (ex: "conjugaison") et des thèmes spécifiques (ex: "présent", "verbe faire")
+      
       N'inclus aucun texte avant ou après le JSON.`;
     } else {
       prompt = `Génère ${count} paires de mots en italien avec leur traduction en français sur le thème: "${topic}".
@@ -187,9 +195,16 @@ export class LlmService {
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
-        {"it": "mot_italien", "fr": "traduction_française", "context": "phrase d'exemple ou contexte d'utilisation (optionnel)"},
+        {"it": "mot_italien", "fr": "traduction_française", "context": "phrase d'exemple ou contexte d'utilisation (optionnel)", "themes": ["thème1", "thème2", "thème3"]},
         // Répète pour ${count} paires au total
       ]
+      
+      IMPORTANT pour les thèmes:
+      - Chaque mot doit avoir un tableau "themes" avec 2-4 thèmes atomiques
+      - Exemples de thèmes: "vocabulaire", "nourriture", "couleur", "adjectif", "nom", "grammaire", "famille", "maison", etc.
+      - Les thèmes doivent être précis et atomiques (un seul concept par thème)
+      - Inclus toujours le thème principal (ex: "vocabulaire") et des thèmes spécifiques (ex: "nourriture", "nom")
+      
       Attention, le mot italien et le mot français doivent uniquement contenir la traduction de l'un et de l'autre.
       N'inclus aucun texte avant ou après le JSON.`;
     }
@@ -229,9 +244,16 @@ export class LlmService {
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
-        {"it": "verbe_italien", "fr": "traduction_française", "context": "exemple de phrase conjuguée au temps ${topic}"},
+        {"it": "verbe_italien", "fr": "traduction_française", "context": "exemple de phrase conjuguée au temps ${topic}", "themes": ["thème1", "thème2", "thème3"]},
         // Répète pour ${count} verbes au total.
       ]
+      
+      IMPORTANT pour les thèmes:
+      - Chaque mot doit avoir un tableau "themes" avec 2-4 thèmes atomiques
+      - Exemples de thèmes: "conjugaison", "présent", "verbe faire", "subjonctif", "grammaire", "vocabulaire", "temps", "personne", etc.
+      - Les thèmes doivent être précis et atomiques (un seul concept par thème)
+      - Inclus toujours le thème principal (ex: "conjugaison") et des thèmes spécifiques (ex: "présent", "verbe faire")
+      
       N'inclus aucun texte avant ou après le JSON.`;
     } else {
       prompt = `Génère ${count} paires de mots en italien avec leur traduction en français sur le thème: "${topic}".
@@ -240,9 +262,16 @@ export class LlmService {
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
-        {"it": "mot_italien", "fr": "traduction_française", "context": "phrase d'exemple ou contexte d'utilisation (optionnel)"},
+        {"it": "mot_italien", "fr": "traduction_française", "context": "phrase d'exemple ou contexte d'utilisation (optionnel)", "themes": ["thème1", "thème2", "thème3"]},
         // Répète pour ${count} paires au total
       ]
+      
+      IMPORTANT pour les thèmes:
+      - Chaque mot doit avoir un tableau "themes" avec 2-4 thèmes atomiques
+      - Exemples de thèmes: "vocabulaire", "nourriture", "couleur", "adjectif", "nom", "grammaire", "famille", "maison", etc.
+      - Les thèmes doivent être précis et atomiques (un seul concept par thème)
+      - Inclus toujours le thème principal (ex: "vocabulaire") et des thèmes spécifiques (ex: "nourriture", "nom")
+      
       Attention, le mot italien et le mot français doivent uniquement contenir la traduction de l'un et de l'autre.
       N'inclus aucun texte avant ou après le JSON.`;
     }

@@ -22,7 +22,7 @@ export interface DictionaryWord {
   minRevisionDate?: number; // Timestamp de la date minimum pour la révision (undefined = pas de restriction)
   isKnown?: boolean; // Si le mot est marqué comme connu
   revisionDelay?: string; // Délai de révision sélectionné ('1j', '3j', '7j', '15j', '1m', '3m', '6m')
-  theme?: string; // Thème/catégorie du mot (ex: "Subjonctif passé", "Articles", etc.)
+  themes?: string[]; // Thèmes atomiques associés au mot
 }
 
 export interface TranslationResponse {
