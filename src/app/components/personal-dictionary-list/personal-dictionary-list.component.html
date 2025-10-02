@@ -74,17 +74,43 @@
                 </div>
                 
                 <!-- Thèmes associés -->
-                <div *ngIf="word.themes && word.themes.length > 0" class="themes-section">
+                <div class="themes-section">
                   <div class="themes-label">
                     <small>Thèmes :</small>
                   </div>
-                  <div class="themes-chips">
+                  
+                  <!-- Chips des thèmes existants -->
+                  <div *ngIf="word.themes && word.themes.length > 0" class="themes-chips">
                     <ion-chip 
                       *ngFor="let theme of word.themes" 
                       color="secondary"
                       class="theme-chip">
                       {{ theme }}
+                      <ion-icon name="close-circle" slot="end" (click)="removeThemeFromWord(word, theme)"></ion-icon>
                     </ion-chip>
+                  </div>
+                  
+                  <!-- Champ d'ajout de thème -->
+                  <div class="theme-input-container">
+                    <ion-input 
+                      [(ngModel)]="word.themeInput" 
+                      (ionInput)="onThemeInputChange(word, $event)"
+                      (ionFocus)="showThemeAutocomplete(word, true)"
+                      (ionBlur)="hideThemeAutocomplete(word)"
+                      placeholder="Ajouter un thème..."
+                      class="theme-input">
+                    </ion-input>
+                    
+                    <!-- Autocomplete dropdown pour les thèmes -->
+                    <div *ngIf="word.showThemeAutocomplete && word.filteredThemes && word.filteredThemes.length > 0" 
+                         class="theme-autocomplete-dropdown">
+                      <div 
+                        *ngFor="let theme of word.filteredThemes" 
+                        class="theme-autocomplete-item"
+                        (click)="addThemeToWord(word, theme)">
+                        {{ theme }}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
