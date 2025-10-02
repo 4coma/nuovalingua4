@@ -111,6 +111,7 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
           <div class="theme-input-container">
             <ion-input 
               [(ngModel)]="themeInput" 
+              [ngModelOptions]="{standalone: true}"
               (ionInput)="onThemeInputChange($event)"
               (ionFocus)="showAutocomplete = true"
               (ionBlur)="hideAutocomplete()"
@@ -373,7 +374,7 @@ export class EditWordModalComponent implements OnInit {
     console.log('🔍 [EditWordModal] Thèmes disponibles:', this.availableThemes);
     
     if (value.length > 0) {
-      // Filtrer les thèmes disponibles
+      // Filtrer les thèmes disponibles (recherche plus permissive)
       this.filteredThemes = this.availableThemes.filter(theme => 
         theme.toLowerCase().includes(value.toLowerCase()) &&
         !this.currentThemes.includes(theme)
@@ -382,8 +383,12 @@ export class EditWordModalComponent implements OnInit {
       console.log('🔍 [EditWordModal] Thèmes filtrés:', this.filteredThemes);
       console.log('🔍 [EditWordModal] showAutocomplete:', this.showAutocomplete);
     } else {
-      this.filteredThemes = [];
-      this.showAutocomplete = false;
+      // Si pas de saisie, montrer tous les thèmes disponibles (sauf ceux déjà sélectionnés)
+      this.filteredThemes = this.availableThemes.filter(theme => 
+        !this.currentThemes.includes(theme)
+      );
+      this.showAutocomplete = true;
+      console.log('🔍 [EditWordModal] Tous les thèmes disponibles:', this.filteredThemes);
     }
   }
 
@@ -393,7 +398,10 @@ export class EditWordModalComponent implements OnInit {
   hideAutocomplete() {
     // Délai pour permettre le clic sur un élément de l'autocomplete
     setTimeout(() => {
-      this.showAutocomplete = false;
+      // Ne cacher que si le champ est vide
+      if (!this.themeInput || this.themeInput.trim() === '') {
+        this.showAutocomplete = false;
+      }
     }, 200);
   }
 
