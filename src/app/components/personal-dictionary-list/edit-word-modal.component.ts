@@ -103,7 +103,7 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
               color="secondary"
               class="theme-chip">
               {{ theme }}
-              <span slot="end" (click)="removeTheme(theme)" class="remove-theme-btn">×</span>
+              <ion-icon name="close-circle" slot="end" (click)="removeTheme(theme); $event.stopPropagation()"></ion-icon>
             </ion-chip>
           </div>
           
@@ -196,21 +196,10 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
           height: 28px;
           margin: 0;
           
-          .remove-theme-btn {
-            font-size: 16px;
-            font-weight: bold;
+          ion-icon {
+            font-size: 14px;
             cursor: pointer;
-            margin-left: 8px;
-            color: white !important;
-            opacity: 0.8;
-            padding: 2px 4px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            
-            &:hover {
-              opacity: 1;
-              background: rgba(255, 255, 255, 0.3);
-            }
+            margin-left: 6px;
           }
         }
       }
@@ -308,7 +297,6 @@ export class EditWordModalComponent implements OnInit {
       
       // Initialiser les thèmes
       this.currentThemes = [...(this.word.themes || [])];
-      console.log('🔍 [EditWordModal] Thèmes actuels du mot:', this.currentThemes);
       this.loadAvailableThemes();
     }
   }
@@ -435,7 +423,8 @@ export class EditWordModalComponent implements OnInit {
    */
   removeTheme(theme: string) {
     console.log('🔍 [EditWordModal] Suppression thème:', theme);
+    console.log('🔍 [EditWordModal] Thèmes avant suppression:', this.currentThemes);
     this.currentThemes = this.currentThemes.filter(t => t !== theme);
-    console.log('🔍 [EditWordModal] Thèmes restants:', this.currentThemes);
+    console.log('🔍 [EditWordModal] Thèmes après suppression:', this.currentThemes);
   }
 } 

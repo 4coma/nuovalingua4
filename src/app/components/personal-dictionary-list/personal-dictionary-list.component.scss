@@ -276,21 +276,10 @@ ion-item-sliding {
       height: 20px;
       margin: 0;
       
-      .remove-theme-btn {
-        font-size: 14px;
-        font-weight: bold;
+      ion-icon {
+        font-size: 12px;
         cursor: pointer;
-        margin-left: 6px;
-        color: white !important;
-        opacity: 0.8;
-        padding: 1px 3px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        
-        &:hover {
-          opacity: 1;
-          background: rgba(255, 255, 255, 0.3);
-        }
+        margin-left: 4px;
       }
     }
   }
