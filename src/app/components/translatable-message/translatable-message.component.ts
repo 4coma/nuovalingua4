@@ -172,7 +172,8 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
       contextualMeaning: this.translation.contextualMeaning,
       partOfSpeech: this.translation.partOfSpeech,
       examples: this.translation.examples,
-      dateAdded: 0
+      dateAdded: 0,
+      themes: this.translation.themes || [] // Inclure les thèmes générés par l'IA
     };
     
     const added = this.dictionaryService.addWord(newWord);
