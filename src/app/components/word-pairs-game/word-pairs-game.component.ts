@@ -61,8 +61,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   isPersonalDictionaryRevision: boolean = false; // Pour savoir si c'est une révision du dictionnaire personnel
   
   // Filtrage par thèmes
-  themeFilter: string = ''; // Thèmes séparés par des virgules
+  themeInput: string = ''; // Input en cours de saisie
+  selectedThemes: string[] = []; // Thèmes sélectionnés
   availableThemes: string[] = []; // Thèmes disponibles dans le dictionnaire
+  filteredThemes: string[] = []; // Thèmes filtrés pour l'autocomplete
+  showAutocomplete: boolean = false; // Afficher l'autocomplete
   
   // État du jeu
   selectedPair: GamePair | null = null;
@@ -1074,14 +1077,62 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Filtre les mots selon les thèmes spécifiés
+   * Gère la saisie dans le champ de thèmes
    */
-  onThemeFilterChange() {
+  onThemeInputChange(event: any) {
+    const value = event.detail.value;
+    this.themeInput = value;
+    
+    if (value.length > 0) {
+      // Filtrer les thèmes disponibles
+      this.filteredThemes = this.availableThemes.filter(theme => 
+        theme.toLowerCase().includes(value.toLowerCase()) &&
+        !this.selectedThemes.includes(theme)
+      );
+      this.showAutocomplete = true;
+    } else {
+      this.filteredThemes = [];
+      this.showAutocomplete = false;
+    }
+  }
+
+  /**
+   * Sélectionne un thème depuis l'autocomplete
+   */
+  selectTheme(theme: string) {
+    if (!this.selectedThemes.includes(theme)) {
+      this.selectedThemes.push(theme);
+      this.applyThemeFilter();
+    }
+    this.themeInput = '';
+    this.showAutocomplete = false;
+  }
+
+  /**
+   * Supprime un thème de la sélection
+   */
+  removeTheme(theme: string) {
+    this.selectedThemes = this.selectedThemes.filter(t => t !== theme);
+    this.applyThemeFilter();
+  }
+
+  /**
+   * Cache l'autocomplete
+   */
+  hideAutocomplete() {
+    // Délai pour permettre le clic sur un élément de l'autocomplete
+    setTimeout(() => {
+      this.showAutocomplete = false;
+    }, 200);
+  }
+
+  /**
+   * Applique le filtre de thèmes
+   */
+  applyThemeFilter() {
     if (!this.isPersonalDictionaryRevision) return;
     
-    const themes = this.themeFilter.split(',').map(t => t.trim().toLowerCase()).filter(t => t);
-    
-    if (themes.length === 0) {
+    if (this.selectedThemes.length === 0) {
       // Pas de filtre, recharger tous les mots
       this.reloadSessionWithNewPairsCount();
       return;
@@ -1090,13 +1141,13 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Récupérer tous les mots du dictionnaire
     const allWords = this.personalDictionaryService.getAllWords();
     
-    // Filtrer selon les thèmes
+    // Filtrer selon les thèmes sélectionnés
     const filteredWords = allWords.filter(word => {
       if (!word.themes || word.themes.length === 0) return false;
       
-      return themes.some(theme => 
+      return this.selectedThemes.some(selectedTheme => 
         word.themes!.some(wordTheme => 
-          wordTheme.toLowerCase().includes(theme)
+          wordTheme.toLowerCase().includes(selectedTheme.toLowerCase())
         )
       );
     });

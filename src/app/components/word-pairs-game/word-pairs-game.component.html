@@ -21,16 +21,36 @@
         <!-- Filtrage par thèmes -->
         <div *ngIf="isPersonalDictionaryRevision && availableThemes.length > 0" class="theme-filter">
           <ion-item lines="none">
-            <ion-label position="stacked">Filtrer par thèmes (séparés par des virgules):</ion-label>
+            <ion-label position="stacked">Thèmes</ion-label>
             <ion-input 
-              [(ngModel)]="themeFilter" 
-              (ionInput)="onThemeFilterChange()"
-              placeholder="Ex: conjugaison, présent, verbe faire"
+              [(ngModel)]="themeInput" 
+              (ionInput)="onThemeInputChange($event)"
+              (ionFocus)="showAutocomplete = true"
+              (ionBlur)="hideAutocomplete()"
+              placeholder="Tapez un thème..."
               [disabled]="matchedPairs > 0">
             </ion-input>
           </ion-item>
-          <div class="available-themes">
-            <small>Thèmes disponibles: {{ availableThemes.join(', ') }}</small>
+          
+          <!-- Autocomplete dropdown -->
+          <div *ngIf="showAutocomplete && filteredThemes.length > 0" class="autocomplete-dropdown">
+            <div 
+              *ngFor="let theme of filteredThemes" 
+              class="autocomplete-item"
+              (click)="selectTheme(theme)">
+              {{ theme }}
+            </div>
+          </div>
+          
+          <!-- Chiplist des thèmes sélectionnés -->
+          <div *ngIf="selectedThemes.length > 0" class="selected-themes">
+            <ion-chip 
+              *ngFor="let theme of selectedThemes" 
+              color="primary"
+              (click)="removeTheme(theme)">
+              {{ theme }}
+              <ion-icon name="close-circle" slot="end"></ion-icon>
+            </ion-chip>
           </div>
         </div>
         <!-- Bouton mute/unmute -->
