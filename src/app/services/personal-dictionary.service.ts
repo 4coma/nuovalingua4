@@ -33,6 +33,7 @@ export interface TranslationResponse {
   contextualMeaning?: string;
   partOfSpeech?: string;
   examples?: string[];
+  themes?: string[]; // Thèmes atomiques générés par l'IA
 }
 
 @Injectable({
@@ -343,8 +344,15 @@ export class PersonalDictionaryService {
         "targetLang": "${targetLang}",
         "contextualMeaning": "explication brève en français du sens du mot",
         "partOfSpeech": "catégorie grammaticale (nom, verbe, adjectif, etc.)",
-        "examples": ["1-2 exemples de phrases avec traduction"]
+        "examples": ["1-2 exemples de phrases avec traduction"],
+        "themes": ["thème1", "thème2", "thème3"]
       }
+      
+      IMPORTANT pour les thèmes:
+      - Ajoute un tableau "themes" avec 2-4 thèmes atomiques
+      - Exemples de thèmes: "vocabulaire", "nom", "verbe", "adjectif", "grammaire", "famille", "nourriture", "couleur", "temps", "conjugaison", "présent", "passé composé", etc.
+      - Les thèmes doivent être précis et atomiques (un seul concept par thème)
+      - Inclus toujours le thème principal (ex: "vocabulaire") et des thèmes spécifiques (ex: "nom", "famille")
       
       Assure-toi que la traduction est précise et que les exemples sont utiles pour comprendre l'usage du mot.
     `;

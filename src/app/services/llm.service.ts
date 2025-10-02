@@ -365,9 +365,15 @@ export class LlmService {
       
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
-        {"it": "mot_italien", "fr": "traduction_française", "context": "phrase d'exemple ou contexte d'utilisation pour mieux comprendre le mot"},
+        {"it": "mot_italien", "fr": "traduction_française", "context": "phrase d'exemple ou contexte d'utilisation pour mieux comprendre le mot", "themes": ["thème1", "thème2", "thème3"]},
         // Répète pour ${userAssociationsCount} paires au total
       ]
+      
+      IMPORTANT pour les thèmes:
+      - Chaque mot doit avoir un tableau "themes" avec 2-4 thèmes atomiques
+      - Exemples de thèmes: "vocabulaire", "nom", "verbe", "adjectif", "grammaire", "famille", "nourriture", "couleur", "temps", "conjugaison", "présent", "passé composé", etc.
+      - Les thèmes doivent être précis et atomiques (un seul concept par thème)
+      - Inclus toujours le thème principal (ex: "vocabulaire") et des thèmes spécifiques (ex: "nom", "famille")
       
       Attention, le mot italien et le mot français doivent uniquement contenir la traduction de l'un et de l'autre.
       N'inclus aucun texte avant ou après le JSON.

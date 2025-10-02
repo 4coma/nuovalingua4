@@ -101,9 +101,9 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
             <ion-chip 
               *ngFor="let theme of currentThemes" 
               color="secondary"
-              class="theme-chip">
+              class="theme-chip"
+              (click)="removeTheme(theme)">
               {{ theme }}
-              <ion-icon name="close-circle" slot="end" (click)="removeTheme(theme); $event.stopPropagation()"></ion-icon>
             </ion-chip>
           </div>
           
@@ -195,12 +195,7 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
           font-size: 12px;
           height: 28px;
           margin: 0;
-          
-          ion-icon {
-            font-size: 14px;
-            cursor: pointer;
-            margin-left: 6px;
-          }
+          cursor: pointer;
         }
       }
       

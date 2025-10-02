@@ -101,7 +101,8 @@ export class AddWordComponent {
       contextualMeaning: this.translationResult.contextualMeaning,
       partOfSpeech: this.translationResult.partOfSpeech,
       examples: this.translationResult.examples,
-      dateAdded: 0  // Sera défini par le service
+      dateAdded: 0,  // Sera défini par le service
+      themes: this.translationResult.themes || [] // Inclure les thèmes générés par l'IA
     };
 
     const added = this.dictionaryService.addWord(newWord);

@@ -82,9 +82,9 @@
                     <ion-chip 
                       *ngFor="let theme of word.themes" 
                       color="secondary"
-                      class="theme-chip">
+                      class="theme-chip"
+                      (click)="removeThemeFromWord(word, theme); $event.stopPropagation()">
                       {{ theme }}
-                      <ion-icon name="close-circle" slot="end" (click)="removeThemeFromWord(word, theme); $event.stopPropagation()"></ion-icon>
                     </ion-chip>
                   </div>
                 </div>

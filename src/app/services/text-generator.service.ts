@@ -277,14 +277,20 @@ export class TextGeneratorService {
       - RETOURNE TA RÉPONSE SOUS FORME D'OBJET JSON AVEC LA STRUCTURE SUIVANTE:
       {
         "wordPairs": [
-          {"it": "mot italien du texte", "fr": "traduction française", "context": "contexte d'utilisation optionnel"},
-          {"it": "mot italien du texte", "fr": "traduction française", "context": "contexte d'utilisation optionnel"},
+          {"it": "mot italien du texte", "fr": "traduction française", "context": "contexte d'utilisation optionnel", "themes": ["thème1", "thème2", "thème3"]},
+          {"it": "mot italien du texte", "fr": "traduction française", "context": "contexte d'utilisation optionnel", "themes": ["thème1", "thème2", "thème3"]},
           ...
         ],
         "title": "${title}",
         "description": "Description brève de la session basée sur le contenu du texte",
         "category": "vocabulaire"
       }
+      
+      IMPORTANT pour les thèmes:
+      - Chaque mot doit avoir un tableau "themes" avec 2-4 thèmes atomiques
+      - Exemples de thèmes: "vocabulaire", "nom", "verbe", "adjectif", "grammaire", "famille", "nourriture", "couleur", "temps", "conjugaison", "présent", "passé composé", etc.
+      - Les thèmes doivent être précis et atomiques (un seul concept par thème)
+      - Inclus toujours le thème principal (ex: "vocabulaire") et des thèmes spécifiques (ex: "nom", "famille")
       - Le format JSON doit être valide pour pouvoir être traité par une application
       - Assure-toi que chaque paire a les champs "it" et "fr"
       - Le champ "context" est optionnel
