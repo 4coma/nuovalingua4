@@ -200,6 +200,12 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
             font-size: 14px;
             cursor: pointer;
             margin-left: 6px;
+            color: white !important;
+            opacity: 0.8;
+            
+            &:hover {
+              opacity: 1;
+            }
           }
         }
       }
@@ -297,6 +303,7 @@ export class EditWordModalComponent implements OnInit {
       
       // Initialiser les thèmes
       this.currentThemes = [...(this.word.themes || [])];
+      console.log('🔍 [EditWordModal] Thèmes actuels du mot:', this.currentThemes);
       this.loadAvailableThemes();
     }
   }

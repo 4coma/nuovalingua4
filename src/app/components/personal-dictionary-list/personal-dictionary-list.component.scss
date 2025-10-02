@@ -280,6 +280,12 @@ ion-item-sliding {
         font-size: 12px;
         cursor: pointer;
         margin-left: 4px;
+        color: white !important;
+        opacity: 0.8;
+        
+        &:hover {
+          opacity: 1;
+        }
       }
     }
   }
