@@ -377,6 +377,7 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
    * Supprime un thème d'un mot
    */
   removeThemeFromWord(word: DictionaryWord, theme: string) {
+    console.log('🔍 [PersonalDictionaryList] Suppression thème:', theme, 'du mot:', word.sourceWord);
     if (word.themes) {
       word.themes = word.themes.filter(t => t !== theme);
       const success = this.dictionaryService.updateWord(word);

@@ -227,8 +227,9 @@ import { DictionaryWord, PersonalDictionaryService } from '../../services/person
           border-radius: 6px;
           max-height: 150px;
           overflow-y: auto;
-          z-index: 1000;
+          z-index: 9999;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          margin-top: 4px;
           
           .theme-autocomplete-item {
             padding: 10px 12px;
@@ -348,13 +349,17 @@ export class EditWordModalComponent implements OnInit {
     const allWords = this.dictionaryService.getAllWords();
     const themesSet = new Set<string>();
     
+    console.log('🔍 [EditWordModal] Chargement thèmes, mots total:', allWords.length);
+    
     allWords.forEach(word => {
       if (word.themes && word.themes.length > 0) {
+        console.log('🔍 [EditWordModal] Mot avec thèmes:', word.sourceWord, word.themes);
         word.themes.forEach(theme => themesSet.add(theme));
       }
     });
     
     this.availableThemes = Array.from(themesSet).sort();
+    console.log('🔍 [EditWordModal] Thèmes disponibles chargés:', this.availableThemes);
   }
 
   /**
@@ -364,6 +369,9 @@ export class EditWordModalComponent implements OnInit {
     const value = event.detail.value;
     this.themeInput = value;
     
+    console.log('🔍 [EditWordModal] Saisie thème:', value);
+    console.log('🔍 [EditWordModal] Thèmes disponibles:', this.availableThemes);
+    
     if (value.length > 0) {
       // Filtrer les thèmes disponibles
       this.filteredThemes = this.availableThemes.filter(theme => 
@@ -371,6 +379,8 @@ export class EditWordModalComponent implements OnInit {
         !this.currentThemes.includes(theme)
       );
       this.showAutocomplete = true;
+      console.log('🔍 [EditWordModal] Thèmes filtrés:', this.filteredThemes);
+      console.log('🔍 [EditWordModal] showAutocomplete:', this.showAutocomplete);
     } else {
       this.filteredThemes = [];
       this.showAutocomplete = false;
@@ -404,6 +414,8 @@ export class EditWordModalComponent implements OnInit {
    * Supprime un thème
    */
   removeTheme(theme: string) {
+    console.log('🔍 [EditWordModal] Suppression thème:', theme);
     this.currentThemes = this.currentThemes.filter(t => t !== theme);
+    console.log('🔍 [EditWordModal] Thèmes restants:', this.currentThemes);
   }
 } 
