@@ -648,7 +648,28 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    */
   goToVocabularyExercise() {
     this.saveRevisionDelays(); // Sauvegarder avant de naviguer
-    this.router.navigate(['/vocabulary-exercise']);
+    
+    // S'assurer que les données sont correctement formatées pour l'exercice d'encodage
+    if (this.wordPairs && this.wordPairs.length > 0 && this.sessionInfo) {
+      // Créer un exercice de vocabulaire compatible avec le composant vocabulary-exercise
+      const vocabularyExercise = {
+        items: this.wordPairs.map(pair => ({
+          word: this.sessionInfo?.translationDirection === 'fr2it' ? pair.fr : pair.it,
+          translation: this.sessionInfo?.translationDirection === 'fr2it' ? pair.it : pair.fr,
+          context: pair.context || ''
+        })),
+        type: 'vocabulary',
+        topic: this.sessionInfo.topic || 'Général'
+      };
+      
+      // Sauvegarder l'exercice de vocabulaire
+      localStorage.setItem('vocabularyExercise', JSON.stringify(vocabularyExercise));
+      
+      console.log('🔍 [WordPairs] Exercice d\'encodage préparé:', vocabularyExercise);
+      console.log('🔍 [WordPairs] Nombre d\'items:', vocabularyExercise.items.length);
+    }
+    
+    this.router.navigate(['/vocabulary']);
   }
   
   /**
