@@ -630,60 +630,8 @@ export class PreferencesComponent implements OnInit {
   }
 
   /**
-   * Teste l'algorithme SM-2 et affiche les résultats
+   * Méthodes SM-2 supprimées : le mode révision espacée a été supprimé
    */
-  testSM2Algorithm() {
-    const allWords = this.vocabularyTrackingService.getAllTrackedWords();
-    
-    if (allWords.length === 0) {
-      this.showToast('Aucun mot trouvé. Générez d\'abord des mots de test.');
-      return;
-    }
-
-    // Trier les mots par priorité SM-2
-    const sortedWords = this.sm2Service.sortWordsByPriority(allWords);
-    
-    // Récupérer les mots dûs pour révision
-    const dueWords = this.sm2Service.getWordsDueForReview(allWords);
-    
-    // Afficher les résultats
-    this.showSM2Results(sortedWords, dueWords);
-  }
-
-  /**
-   * Affiche les résultats du test SM-2
-   */
-  private async showSM2Results(sortedWords: WordMastery[], dueWords: WordMastery[]) {
-    // Formater le message en texte simple
-    let message = `📊 STATISTIQUES\n\n`;
-    message += `Total de mots : ${sortedWords.length}\n`;
-    message += `Mots dûs pour révision : ${dueWords.length}\n\n`;
-    
-    message += `🏆 TOP 10 DES MOTS PRIORITAIRES (SM-2)\n\n`;
-    
-    sortedWords.slice(0, 10).forEach((word, index) => {
-      message += `${index + 1}. ${word.word} → ${word.translation}\n`;
-      message += `   EF: ${word.eFactor?.toFixed(1) || '2.5'}\n`;
-      message += `   Intervalle: ${word.interval || 0} jours\n`;
-      message += `   Répétitions: ${word.repetitions || 0}\n`;
-      message += `   Maîtrise: ${word.masteryLevel}%\n`;
-      message += `   Dû: ${this.sm2Service.isDueForReview(word) ? 'OUI' : 'NON'}\n\n`;
-    });
-    
-    if (dueWords.length > 0) {
-      message += `📅 MOTS DÛS POUR RÉVISION\n\n`;
-      dueWords.forEach(word => {
-        message += `• ${word.word} → ${word.translation} (EF: ${word.eFactor?.toFixed(1) || '2.5'})\n`;
-      });
-    }
-    
-    const alert = await this.alertController.create({
-      header: 'Résultats du test SM-2',
-      message: message,
-      buttons: ['Compris']
-    });
-    await alert.present();
-  }
 
   /**
    * Efface tous les mots du vocabulaire (localStorage)
