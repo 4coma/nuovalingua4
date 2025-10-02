@@ -3,8 +3,6 @@
     <!-- En-tête du jeu -->
     <div class="game-header ion-text-center">
       <h2 *ngIf="!gameComplete">
-        <ion-icon name="link-outline"></ion-icon>
-        <span *ngIf="!isPersonalDictionaryRevision">Associez les mots</span>
         <div *ngIf="isPersonalDictionaryRevision" class="pairs-title">
           <ion-input 
             type="number" 
@@ -18,41 +16,6 @@
           <span class="pairs-label">paires</span>
         </div>
         
-        <!-- Filtrage par thèmes - sur la ligne en dessous -->
-        <div *ngIf="isPersonalDictionaryRevision && availableThemes.length > 0" class="theme-filter-inline">
-          <ion-item lines="none">
-            <ion-label position="stacked">Thèmes</ion-label>
-            <ion-input 
-              [(ngModel)]="themeInput" 
-              (ionInput)="onThemeInputChange($event)"
-              (ionFocus)="showAutocomplete = true"
-              (ionBlur)="hideAutocomplete()"
-              placeholder="Tapez un thème..."
-              [disabled]="matchedPairs > 0">
-            </ion-input>
-          </ion-item>
-          
-          <!-- Autocomplete dropdown -->
-          <div *ngIf="showAutocomplete && filteredThemes.length > 0" class="autocomplete-dropdown">
-            <div 
-              *ngFor="let theme of filteredThemes" 
-              class="autocomplete-item"
-              (click)="selectTheme(theme)">
-              {{ theme }}
-            </div>
-          </div>
-          
-          <!-- Chiplist des thèmes sélectionnés -->
-          <div *ngIf="selectedThemes.length > 0" class="selected-themes">
-            <ion-chip 
-              *ngFor="let theme of selectedThemes" 
-              color="primary"
-              (click)="removeTheme(theme)">
-              {{ theme }}
-              <ion-icon name="close-circle" slot="end"></ion-icon>
-            </ion-chip>
-          </div>
-        </div>
         <!-- Bouton mute/unmute -->
         <ion-button 
           fill="clear" 
@@ -65,6 +28,43 @@
       <h2 *ngIf="gameComplete">
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         Bravo !
+      </h2>
+      <h2 *ngIf="isPersonalDictionaryRevision">
+                <!-- Filtrage par thèmes - sur la ligne en dessous -->
+                <div *ngIf="isPersonalDictionaryRevision && availableThemes.length > 0" class="theme-filter-inline">
+                  <ion-item lines="none">
+                    <ion-label position="stacked">Thèmes</ion-label>
+                    <ion-input 
+                      [(ngModel)]="themeInput" 
+                      (ionInput)="onThemeInputChange($event)"
+                      (ionFocus)="showAutocomplete = true"
+                      (ionBlur)="hideAutocomplete()"
+                      placeholder="Thème..."
+                      [disabled]="matchedPairs > 0">
+                    </ion-input>
+                  </ion-item>
+                  
+                  <!-- Autocomplete dropdown -->
+                  <div *ngIf="showAutocomplete && filteredThemes.length > 0" class="autocomplete-dropdown">
+                    <div 
+                      *ngFor="let theme of filteredThemes" 
+                      class="autocomplete-item"
+                      (click)="selectTheme(theme)">
+                      {{ theme }}
+                    </div>
+                  </div>
+                  
+                  <!-- Chiplist des thèmes sélectionnés -->
+                  <div *ngIf="selectedThemes.length > 0" class="selected-themes">
+                    <ion-chip 
+                      *ngFor="let theme of selectedThemes" 
+                      color="primary"
+                      (click)="removeTheme(theme)">
+                      {{ theme }}
+                      <ion-icon name="close-circle" slot="end"></ion-icon>
+                    </ion-chip>
+                  </div>
+                </div>
       </h2>
       
 

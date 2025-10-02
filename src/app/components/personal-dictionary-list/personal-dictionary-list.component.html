@@ -73,6 +73,21 @@
                   <p>{{ word.contextualMeaning }}</p>
                 </div>
                 
+                <!-- Thèmes associés -->
+                <div *ngIf="word.themes && word.themes.length > 0" class="themes-section">
+                  <div class="themes-label">
+                    <small>Thèmes :</small>
+                  </div>
+                  <div class="themes-chips">
+                    <ion-chip 
+                      *ngFor="let theme of word.themes" 
+                      color="secondary"
+                      class="theme-chip">
+                      {{ theme }}
+                    </ion-chip>
+                  </div>
+                </div>
+                
                 <!-- Catégorie grammaticale et date d'ajout -->
                 <div class="word-info">
                   <span *ngIf="word.partOfSpeech" class="part-of-speech">{{ word.partOfSpeech }}</span>
