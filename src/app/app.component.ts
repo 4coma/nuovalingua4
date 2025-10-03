@@ -15,6 +15,7 @@ import { ToastController } from '@ionic/angular';
 import { TextGeneratorService } from './services/text-generator.service';
 import { AddTextModalComponent } from './components/add-text-modal/add-text-modal.component';
 import { TextPreviewModalComponent } from './components/text-preview-modal/text-preview-modal.component';
+import { AddWordComponent } from './components/add-word/add-word.component';
 
 enum AppState {
   CATEGORY_SELECTION,
