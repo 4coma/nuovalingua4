@@ -40,6 +40,12 @@
         background-color: rgba(var(--ion-color-primary-rgb), 0.1);
       }
     }
+
+    .highlighted-word {
+      background-color: rgba(var(--ion-color-warning-rgb), 0.25);
+      border-radius: 4px;
+      padding: 0 4px;
+    }
   }
 }
 

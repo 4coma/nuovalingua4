@@ -503,6 +503,12 @@
   }
 }
 
+.full-revision-note {
+  text-align: center;
+  font-size: 0.85rem;
+  margin-top: -8px;
+}
+
 // Animation pour l'affichage des options
 .additional-options {
   animation: slideDown 0.3s ease-out;

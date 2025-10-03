@@ -9,6 +9,7 @@ import { TextGeneratorService } from '../../services/text-generator.service';
 import { ComprehensionText } from '../../models/vocabulary';
 import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
 import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-selection-modal.component';
+import { FullRevisionService } from '../../services/full-revision.service';
 
 interface QuizItem {
   question: WordPair;
@@ -66,7 +67,8 @@ export class VocabularyExerciseComponent implements OnInit {
     private router: Router,
     private textGeneratorService: TextGeneratorService,
     private vocabularyTrackingService: VocabularyTrackingService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private fullRevisionService: FullRevisionService
   ) { }
 
   ngOnInit() {
@@ -327,6 +329,7 @@ export class VocabularyExerciseComponent implements OnInit {
     }));
     
     this.complete.emit(vocabularyItems);
+    this.cleanupFullRevisionSession();
     this.router.navigate(['/category']);
   }
 
@@ -436,6 +439,21 @@ export class VocabularyExerciseComponent implements OnInit {
     
     // Recharger la page pour démarrer le nouvel exercice
     window.location.reload();
+  }
+
+  /**
+   * Nettoie l'état d'une révision complète après l'encodage
+   */
+  private cleanupFullRevisionSession(): void {
+    const session = this.fullRevisionService.getSession();
+    if (!session) {
+      return;
+    }
+
+    this.fullRevisionService.setStage('completed');
+    this.fullRevisionService.clearSession();
+    localStorage.removeItem('fullRevisionActive');
+    localStorage.removeItem('fullRevisionSessionId');
   }
 
   /**

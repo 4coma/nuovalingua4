@@ -200,6 +200,39 @@ ion-card-header {
   padding-bottom: 8px;
 }
 
+.revision-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.revision-column {
+  flex: 1 1 220px;
+
+  h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  ion-note {
+    display: block;
+    margin-top: 8px;
+  }
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.full-revision-progress {
+  display: block;
+  text-align: center;
+  margin: 12px 0;
+}
+
 ion-card-title {
   font-size: 1.2rem;
   font-weight: 600;

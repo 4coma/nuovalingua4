@@ -50,6 +50,8 @@ export class DiscussionContextSelectionComponent implements OnInit {
   getFilteredContexts(): { [key: string]: DiscussionContext[] } {
     let filtered = this.discussionService.getDiscussionContexts();
 
+    filtered = filtered.filter(context => !context.hidden);
+
     // Filtrer par difficulté
     if (this.selectedDifficulty !== 'all') {
       filtered = filtered.filter(context => context.difficulty === this.selectedDifficulty);
@@ -72,7 +74,7 @@ export class DiscussionContextSelectionComponent implements OnInit {
 
   getCategories(): string[] {
     const contexts = this.discussionService.getDiscussionContexts();
-    const categories = [...new Set(contexts.map(context => context.category))];
+    const categories = [...new Set(contexts.filter(context => !context.hidden).map(context => context.category))];
     return categories;
   }
 

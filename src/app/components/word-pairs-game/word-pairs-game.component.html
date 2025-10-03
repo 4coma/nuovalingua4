@@ -181,6 +181,20 @@
 
       <!-- Menu principal simplifié -->
       <div class="main-actions">
+        <ion-button
+          *ngIf="isFullRevisionSession"
+          (click)="goToFullRevisionConversation()"
+          expand="block"
+          color="success"
+          class="main-button">
+          <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
+          Passer à la conversation
+        </ion-button>
+
+        <ion-note *ngIf="isFullRevisionSession" color="medium" class="full-revision-note">
+          La conversation guidée s'ouvre lorsque l'association est terminée.
+        </ion-note>
+
         <!-- Bouton Plus pour afficher/masquer les options -->
         <ion-button 
           (click)="toggleMoreOptions()" 

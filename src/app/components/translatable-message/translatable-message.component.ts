@@ -24,6 +24,7 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
   @Input() speakerName: string = '';
   @Input() timestamp?: Date;
   @Input() showTimestamp: boolean = true;
+  @Input() highlightWords: string[] = [];
 
   selectedFragment: string = '';
   showTranslateButton: boolean = false;
@@ -211,14 +212,36 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
     let text = this.message;
     
     // Rendre tous les mots cliquables en les entourant de spans
+    const highlightSet = new Set(
+      (this.highlightWords || [])
+        .map(w => this.normalizeForComparison(w))
+    );
+
     const words = text.split(/(\s+)/);
     const highlightedWords = words.map(word => {
       if (word.trim() && !word.match(/^\s+$/)) {
-        return `<span class="clickable-word" data-word="${word.trim()}">${word}</span>`;
+        const cleaned = this.cleanWord(word);
+        const isHighlighted = cleaned && highlightSet.has(this.normalizeForComparison(cleaned));
+        const baseClass = isHighlighted ? 'clickable-word highlighted-word' : 'clickable-word';
+        return `<span class="${baseClass}" data-word="${word.trim()}">${word}</span>`;
       }
       return word;
     });
     
     return highlightedWords.join('');
   }
-} 
+
+  private normalizeForComparison(value: string): string {
+    return value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  private cleanWord(value: string): string {
+    return value
+      .trim()
+      .replace(/^[^\p{L}\p{N}]+/u, '')
+      .replace(/[^\p{L}\p{N}]+$/u, '');
+  }
+}

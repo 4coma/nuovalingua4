@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/discussion-context-selection"></ion-back-button>
+      <ion-back-button [defaultHref]="fullRevisionActive ? '/home' : '/discussion-context-selection'"></ion-back-button>
     </ion-buttons>
     <ion-title>{{ currentContext?.title || 'Discussion' }}</ion-title>
   </ion-toolbar>
@@ -20,6 +20,40 @@
         <p><strong>Situation:</strong> {{ currentContext.situation }}</p>
         <p><strong>Votre rôle:</strong> {{ currentContext.userRole }}</p>
         <p><strong>Rôle de l'IA:</strong> {{ currentContext.aiRole }}</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="fullRevisionActive">
+      <ion-card-header>
+        <ion-card-title>Vocabulaire ciblé</ion-card-title>
+        <ion-card-subtitle>Utilise tous les mots pour terminer la session</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="revision-grid">
+          <div class="revision-column">
+            <h4>Mots de l'IA</h4>
+            <div class="chip-list">
+              <ion-chip *ngFor="let word of aiRevisionWords"
+                        [color]="word.usedByAi ? 'success' : 'medium'"
+                        [outline]="!word.usedByAi">
+                <ion-label>{{ word.it }}</ion-label>
+              </ion-chip>
+            </div>
+            <ion-note color="medium">{{ remainingAiCount }} mot(s) restants pour l'IA</ion-note>
+          </div>
+
+          <div class="revision-column">
+            <h4>Tes mots</h4>
+            <div class="chip-list">
+              <ion-chip *ngFor="let word of userRevisionWords"
+                        [color]="word.usedByUser ? 'success' : 'warning'"
+                        [outline]="!word.usedByUser">
+                <ion-label>{{ word.it }}</ion-label>
+              </ion-chip>
+            </div>
+            <ion-note color="medium">{{ remainingUserCount }} mot(s) restants pour toi</ion-note>
+          </div>
+        </div>
       </ion-card-content>
     </ion-card>
 
@@ -44,7 +78,8 @@
               [speaker]="turn.speaker"
               [speakerName]="turn.speaker === 'ai' ? (currentContext?.aiRole || 'IA') : 'Vous'"
               [timestamp]="turn.timestamp"
-              [showTimestamp]="true">
+              [showTimestamp]="true"
+              [highlightWords]="turn.highlightedWords || []">
             </app-translatable-message>
             
             <!-- Lecteur audio pour les messages IA -->
@@ -140,15 +175,29 @@
       </ion-button>
     </div>
 
+    <ion-button
+      *ngIf="fullRevisionActive"
+      expand="block"
+      color="tertiary"
+      class="ion-margin-vertical"
+      (click)="goToEncoding()">
+      <ion-icon name="create-outline" slot="start"></ion-icon>
+      Passer à l'encodage
+    </ion-button>
+
+    <ion-note *ngIf="fullRevisionActive && (remainingAiCount + remainingUserCount) > 0" color="warning" class="full-revision-progress">
+      Il reste {{ remainingAiCount }} mot(s) pour l'IA et {{ remainingUserCount }} mot(s) pour toi.
+    </ion-note>
+
     <!-- Bouton retour -->
-    <ion-button routerLink="/discussion-context-selection" 
+    <ion-button [routerLink]="fullRevisionActive ? '/home' : '/discussion-context-selection'" 
                 color="medium" 
                 fill="outline" 
                 expand="block"
                 [disabled]="isLoading"
                 style="margin-top: 16px;">
       <ion-icon name="arrow-back" slot="start"></ion-icon>
-      Retour à la sélection
+      {{ fullRevisionActive ? 'Retour à l\'accueil' : 'Retour à la sélection' }}
     </ion-button>
 
   </div>

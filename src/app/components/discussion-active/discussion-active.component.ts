@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DiscussionService, DiscussionContext, DiscussionSession } from '../../services/discussion.service';
 import { Subscription } from 'rxjs';
 import { SpeechService } from '../../services/speech.service';
@@ -10,6 +10,7 @@ import { AudioPlayerComponent } from '../audio-player/audio-player.component';
 import { SavedConversationsService } from '../../services/saved-conversations.service';
 import { TranslatableMessageComponent } from '../translatable-message/translatable-message.component';
 import { MessageFeedbackComponent } from '../message-feedback/message-feedback.component';
+import { FullRevisionService, FullRevisionWord } from '../../services/full-revision.service';
 
 @Component({
   selector: 'app-discussion-active',
@@ -20,6 +21,7 @@ import { MessageFeedbackComponent } from '../message-feedback/message-feedback.c
     CommonModule,
     IonicModule,
     FormsModule,
+    RouterLink,
     AudioPlayerComponent,
     TranslatableMessageComponent,
     MessageFeedbackComponent
@@ -36,6 +38,11 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
   audioGeneratingTurns: Set<string> = new Set();
   responseMode: 'voice' | 'text' = 'voice';
   textResponse: string = '';
+  fullRevisionActive = false;
+  aiRevisionWords: FullRevisionWord[] = [];
+  userRevisionWords: FullRevisionWord[] = [];
+  remainingAiCount = 0;
+  remainingUserCount = 0;
   
   private subscription = new Subscription();
 
@@ -44,7 +51,9 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     private discussionService: DiscussionService,
     private speechService: SpeechService,
     private cdRef: ChangeDetectorRef,
-    private savedConversations: SavedConversationsService
+    private savedConversations: SavedConversationsService,
+    private fullRevisionService: FullRevisionService,
+    private router: Router
   ) {
     console.log('🔍 DiscussionActiveComponent - Constructor appelé');
   }
@@ -57,6 +66,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
       this.contextId = params['contextId'] || 'aucun';
       const sessionId = this.route.snapshot.queryParamMap.get('sessionId');
       console.log('🔍 [CTX] Param contextId reçu dans URL:', this.contextId);
+      this.refreshFullRevisionState();
       if (sessionId) {
         // Charger la session sauvegardée
         const savedSession = this.savedConversations.getConversationById(sessionId);
@@ -68,6 +78,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
           // Synchroniser l'état du service avec la session chargée
           this.discussionService.resumeSession(savedSession);
           console.log('🔍 [CTX] État du service synchronisé avec la session chargée');
+          this.refreshFullRevisionState();
           return;
         } else {
           alert('Erreur : la conversation sauvegardée est introuvable.');
@@ -84,6 +95,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
         console.error('❌ DiscussionActiveComponent - Contexte non trouvé pour ID:', this.contextId);
         alert('Erreur : le contexte demandé n\'existe pas ou n\'est pas disponible.');
       }
+      this.refreshFullRevisionState();
     });
 
     // S'abonner aux changements d'état
@@ -123,6 +135,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
           });
         }
         console.log('🔍 [Vue] État mis à jour:', state);
+        this.refreshFullRevisionState();
       })
     );
   }
@@ -141,6 +154,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
       const success = await this.discussionService.startDiscussion(this.currentContext);
       if (success) {
         console.log('🔍 DiscussionActiveComponent - Discussion démarrée avec succès');
+        this.refreshFullRevisionState();
       } else {
         console.error('🔍 DiscussionActiveComponent - Échec du démarrage de la discussion');
       }
@@ -172,6 +186,34 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('🔍 DiscussionActiveComponent - Erreur lors de l\'arrêt de l\'enregistrement:', error);
     }
+  }
+
+  private refreshFullRevisionState(): void {
+    const session = this.fullRevisionService.getSession();
+    if (!session) {
+      this.fullRevisionActive = false;
+      this.aiRevisionWords = [];
+      this.userRevisionWords = [];
+      this.remainingAiCount = 0;
+      this.remainingUserCount = 0;
+      return;
+    }
+
+    const isRelevantStage = session.stage === 'conversation' || session.stage === 'encoding';
+    this.fullRevisionActive = isRelevantStage && (this.contextId === 'full-revision' || session.stage === 'encoding');
+
+    if (!this.fullRevisionActive) {
+      this.aiRevisionWords = [];
+      this.userRevisionWords = [];
+      this.remainingAiCount = 0;
+      this.remainingUserCount = 0;
+      return;
+    }
+
+    this.aiRevisionWords = this.fullRevisionService.getWordsByAssignment('ai');
+    this.userRevisionWords = this.fullRevisionService.getWordsByAssignment('user');
+    this.remainingAiCount = this.aiRevisionWords.filter(word => !word.usedByAi).length;
+    this.remainingUserCount = this.userRevisionWords.filter(word => !word.usedByUser).length;
   }
 
   /**
@@ -213,4 +255,9 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
       console.error('🔍 DiscussionActiveComponent - Erreur lors de l\'envoi de la réponse texte:', error);
     }
   }
-} 
+
+  goToEncoding(): void {
+    this.fullRevisionService.setStage('encoding');
+    this.router.navigate(['/vocabulary']);
+  }
+}

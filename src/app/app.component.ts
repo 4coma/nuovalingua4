@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
 import { IonicModule, ModalController, Platform, MenuController, ActionSheetController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterOutlet, NavigationEnd } from '@angular/router';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { LlmService } from './services/llm.service';
 import { VocabularyExercise, ComprehensionText, VocabularyItem } from './models/vocabulary';
-import { AddWordComponent } from './components/add-word/add-word.component';
 import { filter } from 'rxjs/operators';
 import { StatusBar } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
@@ -30,12 +29,8 @@ enum AppState {
   standalone: true,
   imports: [
     IonicModule,
-    RouterOutlet,
     RouterLink,
-    CommonModule,
-    AddWordComponent,
-    AddTextModalComponent,
-    TextPreviewModalComponent
+    CommonModule
   ]
 })
 export class AppComponent {

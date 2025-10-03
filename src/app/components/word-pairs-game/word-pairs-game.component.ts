@@ -16,6 +16,7 @@ import { PersonalDictionaryService, DictionaryWord } from '../../services/person
 import { Injector } from '@angular/core';
 import { AddTextModalComponent } from '../add-text-modal/add-text-modal.component';
 import { TextPreviewModalComponent } from '../text-preview-modal/text-preview-modal.component';
+import { FullRevisionService } from '../../services/full-revision.service';
 
 interface GamePair {
   id: number;
@@ -59,6 +60,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   // Contrôle du nombre de paires à réviser
   maxPairsToReview: number = 6; // Nombre de paires à réviser (par défaut 6)
   isPersonalDictionaryRevision: boolean = false; // Pour savoir si c'est une révision du dictionnaire personnel
+  isFullRevisionSession: boolean = false; // Indique si la session fait partie d'une révision complète
+  fullRevisionSessionId: string | null = null;
   
   // Filtrage par thèmes
   themeInput: string = ''; // Input en cours de saisie
@@ -113,6 +116,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     private speechService: SpeechService,
     private storageService: StorageService,
     private personalDictionaryService: PersonalDictionaryService,
+    private fullRevisionService: FullRevisionService,
     private injector: Injector,
     private alertController: AlertController,
     private cdr: ChangeDetectorRef
@@ -133,6 +137,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     const wordPairsJson = localStorage.getItem('wordPairs');
     const sessionInfoJson = localStorage.getItem('sessionInfo');
     const isPersonalRevision = localStorage.getItem('isPersonalDictionaryRevision');
+    const fullRevisionActive = localStorage.getItem('fullRevisionActive');
+    const fullRevisionSessionId = localStorage.getItem('fullRevisionSessionId');
     const revisedWordsJson = localStorage.getItem('revisedWords');
     
     console.log('🔍 [WordPairsGame] Chargement des données de session:');
@@ -146,6 +152,15 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         this.wordPairs = JSON.parse(wordPairsJson);
         this.sessionInfo = JSON.parse(sessionInfoJson);
         this.isPersonalDictionaryRevision = isPersonalRevision === 'true';
+        this.isFullRevisionSession = fullRevisionActive === 'true' && !!fullRevisionSessionId;
+        this.fullRevisionSessionId = fullRevisionSessionId;
+
+        if (this.isFullRevisionSession && !this.fullRevisionService.getSession()) {
+          console.warn('🔍 [WordPairsGame] Indicateur de révision complète présent sans session active. Nettoyage.');
+          this.isFullRevisionSession = false;
+          localStorage.removeItem('fullRevisionActive');
+          localStorage.removeItem('fullRevisionSessionId');
+        }
         
         // Si c'est une révision du dictionnaire personnel, charger le nombre de paires configuré
         if (this.isPersonalDictionaryRevision) {
@@ -158,6 +173,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
             this.wordPairs = this.wordPairs.slice(0, this.maxPairsToReview);
             console.log('🔍 [WordPairsGame] Paires limitées à:', this.maxPairsToReview);
           }
+        }
+        
+        if (this.isFullRevisionSession) {
+          console.log('🔍 [WordPairsGame] Révision complète détectée. Nombre de paires:', this.wordPairs.length);
+          this.fullRevisionService.assignQueuesFromWords();
         }
         
         // Charger les mots révisés si c'est une révision du dictionnaire personnel
@@ -648,7 +668,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    */
   goToVocabularyExercise() {
     this.saveRevisionDelays(); // Sauvegarder avant de naviguer
-    
+
     // S'assurer que les données sont correctement formatées pour l'exercice d'encodage
     if (this.wordPairs && this.wordPairs.length > 0 && this.sessionInfo) {
       // Créer un exercice de vocabulaire compatible avec le composant vocabulary-exercise
@@ -668,8 +688,36 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       console.log('🔍 [WordPairs] Exercice d\'encodage préparé:', vocabularyExercise);
       console.log('🔍 [WordPairs] Nombre d\'items:', vocabularyExercise.items.length);
     }
-    
+
+    if (this.isFullRevisionSession) {
+      this.fullRevisionService.setStage('encoding');
+    }
+
     this.router.navigate(['/vocabulary']);
+  }
+
+  /**
+   * Lance la conversation guidée dans le cadre d'une révision complète
+   */
+  goToFullRevisionConversation() {
+    if (!this.isFullRevisionSession) {
+      return;
+    }
+
+    if (!this.gameComplete) {
+      this.showToast('Terminez l\'association avant de passer à la conversation.');
+      return;
+    }
+
+    const session = this.fullRevisionService.setStage('conversation');
+    if (!session) {
+      this.showToast('Session de révision complète introuvable.');
+      return;
+    }
+
+    this.router.navigate(['/discussion', 'full-revision'], {
+      queryParams: { fullRevision: 'true' }
+    });
   }
   
   /**

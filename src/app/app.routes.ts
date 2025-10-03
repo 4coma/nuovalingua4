@@ -15,6 +15,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/category-selection/category-selection.component').then(m => m.CategorySelectionComponent)
   },
   {
+    path: 'full-revision-setup',
+    loadComponent: () => import('./components/full-revision-setup/full-revision-setup.component').then(m => m.FullRevisionSetupComponent)
+  },
+  {
     path: 'vocabulary',
     loadComponent: () => import('./components/vocabulary-exercise/vocabulary-exercise.component').then(m => m.VocabularyExerciseComponent)
   },

@@ -5,6 +5,7 @@ import { AudioRecordingService } from './audio-recording.service';
 import { SpeechRecognitionService, TranscriptionResult } from './speech-recognition.service';
 import { ToastController } from '@ionic/angular';
 import { SavedConversationsService } from './saved-conversations.service';
+import { FullRevisionService, FullRevisionSession } from './full-revision.service';
 
 export interface DiscussionContext {
   id: string;
@@ -15,6 +16,7 @@ export interface DiscussionContext {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   category: string;
   description: string;
+  hidden?: boolean;
 }
 
 export interface ErrorCorrection {
@@ -45,6 +47,7 @@ export interface DiscussionTurn {
   audioUrl?: string;
   transcription?: string;
   feedback?: MessageFeedback;
+  highlightedWords?: string[];
 }
 
 export interface DiscussionSession {
@@ -129,6 +132,17 @@ export class DiscussionService {
       difficulty: 'advanced',
       category: 'Professionnel',
       description: 'Présenter un projet en italien'
+    },
+    {
+      id: 'full-revision',
+      title: 'Révision complète',
+      situation: 'Vous menez une conversation libre en italien pour réviser un vocabulaire ciblé',
+      userRole: 'Apprenant qui doit placer des mots précis',
+      aiRole: 'Coach de langue italien qui guide la conversation',
+      difficulty: 'intermediate',
+      category: 'Révision',
+      description: 'Conversation guidée pour réemployer des mots d\'une session de révision',
+      hidden: true
     }
   ];
 
@@ -137,7 +151,8 @@ export class DiscussionService {
     private audioRecordingService: AudioRecordingService,
     private speechRecognitionService: SpeechRecognitionService,
     private toastCtrl: ToastController,
-    private savedConversations: SavedConversationsService
+    private savedConversations: SavedConversationsService,
+    private fullRevisionService: FullRevisionService
   ) {}
 
   /**
@@ -192,6 +207,18 @@ export class DiscussionService {
    */
   async startDiscussion(context: DiscussionContext): Promise<boolean> {
     try {
+      if (context.id === 'full-revision') {
+        const activeFullRevision = this.fullRevisionService.getSession();
+        if (!activeFullRevision) {
+          this.showToast('Aucune session de révision complète n\'est active.');
+          return false;
+        }
+        if (activeFullRevision.stage !== 'conversation') {
+          this.fullRevisionService.setStage('conversation');
+        }
+        this.fullRevisionService.assignQueuesFromWords();
+      }
+
       const session: DiscussionSession = {
         id: this.generateSessionId(),
         context: context,
@@ -208,6 +235,11 @@ export class DiscussionService {
         message: aiFirstResponse.reponse,
         timestamp: new Date()
       };
+
+      const highlightedWords = this.handleAiWordsForFullRevision(aiTurn.message);
+      if (highlightedWords.length > 0) {
+        aiTurn.highlightedWords = highlightedWords;
+      }
 
       session.turns.push(aiTurn);
 
@@ -305,6 +337,8 @@ export class DiscussionService {
       currentState.currentSession.turns.push(userTurn);
       console.log('🔍 DiscussionService - Tour utilisateur ajouté à la session');
 
+      this.handleUserWordsForFullRevision(userTurn.message);
+
       // Mettre à jour l'état pour afficher le message utilisateur immédiatement
       this.updateState({
         currentSession: currentState.currentSession,
@@ -330,6 +364,12 @@ export class DiscussionService {
         message: aiResponseData.reponse,
         timestamp: new Date()
       };
+
+      const highlightedWords = this.handleAiWordsForFullRevision(aiTurn.message);
+      if (highlightedWords.length > 0) {
+        aiTurn.highlightedWords = highlightedWords;
+      }
+
       currentState.currentSession.turns.push(aiTurn);
       console.log('🔍 DiscussionService - Tour IA ajouté à la session');
 
@@ -374,6 +414,8 @@ export class DiscussionService {
       currentState.currentSession.turns.push(userTurn);
       console.log('🔍 DiscussionService - Tour utilisateur ajouté à la session');
 
+      this.handleUserWordsForFullRevision(userTurn.message);
+
       // Mettre à jour l'état pour afficher le message utilisateur immédiatement
       this.updateState({
         currentSession: currentState.currentSession,
@@ -399,6 +441,12 @@ export class DiscussionService {
         message: aiResponseData.reponse,
         timestamp: new Date()
       };
+
+      const highlightedWords = this.handleAiWordsForFullRevision(aiTurn.message);
+      if (highlightedWords.length > 0) {
+        aiTurn.highlightedWords = highlightedWords;
+      }
+
       currentState.currentSession.turns.push(aiTurn);
       console.log('🔍 DiscussionService - Tour IA ajouté à la session');
 
@@ -549,6 +597,40 @@ export class DiscussionService {
       prompt += `- Si c'est le tout premier tour, démarre la conversation EN ITALIEN, de façon naturelle et adaptée au contexte ci-dessus.\n`;
     }
     prompt += `- Si tu réponds dans une autre langue que l'italien, recommence en italien.\n`;
+
+    const fullRevisionSession = this.fullRevisionService.getSession();
+    const isFullRevisionConversation =
+      !!fullRevisionSession &&
+      fullRevisionSession.stage === 'conversation' &&
+      context.id === 'full-revision';
+
+    if (isFullRevisionConversation) {
+      const remainingAiWords = this.fullRevisionService.getRemainingWords('ai');
+      const remainingUserWords = this.fullRevisionService.getRemainingWords('user');
+      const nextAiWord = this.fullRevisionService.getNextAiWord();
+
+      prompt += `\nConsignes spéciales pour la révision complète (ne les cite pas telles quelles) :\n`;
+      if (fullRevisionSession.themes.length > 0) {
+        prompt += `- Oriente subtilement l'échange autour de ces thèmes : ${fullRevisionSession.themes.join(', ')}.\n`;
+      }
+
+      if (remainingAiWords.length > 0) {
+        prompt += `- Tu dois utiliser chacun de ces mots, un seul par message : ${remainingAiWords.join(', ')}.\n`;
+        if (nextAiWord) {
+          prompt += `- Dans cette réponse précise, intègre naturellement le mot « ${nextAiWord} » une seule fois.\n`;
+        }
+        prompt += `- N'utilise jamais plus d'un mot de ta liste dans un même message et n'emploie pas les mots réservés à l'utilisateur.\n`;
+      } else {
+        prompt += `- Tu as déjà utilisé tous tes mots : garde la conversation vivante et aide l'utilisateur à terminer les siens.\n`;
+      }
+
+      if (remainingUserWords.length > 0) {
+        prompt += `- L'utilisateur doit encore placer : ${remainingUserWords.join(', ')}. Encourage-le doucement, rappelle-lui ce qu'il reste sans prononcer ces mots toi-même et pose des questions ouvertes.\n`;
+      } else {
+        prompt += `- L'utilisateur a placé tous ses mots : propose de conclure ou d'approfondir, selon son envie.\n`;
+      }
+    }
+
     prompt += `\nIMPORTANT pour le feedback :\n`;
     prompt += `- Analyse le message de l'utilisateur et identifie CHAQUE erreur individuellement (mot par mot)\n`;
     prompt += `- CHAQUE erreur doit être ATOMIQUE : un seul mot ou une petite expression (2-3 mots maximum)\n`;
@@ -599,6 +681,84 @@ export class DiscussionService {
     }\n`;
     prompt += `\nTa réponse :`;
     return prompt;
+  }
+
+  private handleAiWordsForFullRevision(message: string): string[] {
+    const session = this.fullRevisionService.getSession();
+    if (!session || session.stage !== 'conversation') {
+      return [];
+    }
+
+    const remainingAiWords = this.fullRevisionService.getRemainingWords('ai');
+    if (remainingAiWords.length === 0) {
+      return [];
+    }
+
+    const matched = this.findWordsInText(message, remainingAiWords);
+    matched.forEach(word => this.fullRevisionService.markWordUsed(word, 'ai'));
+    return matched;
+  }
+
+  private handleUserWordsForFullRevision(message: string): void {
+    const session = this.fullRevisionService.getSession();
+    if (!session || session.stage !== 'conversation') {
+      return;
+    }
+
+    const remainingUserWords = this.fullRevisionService.getRemainingWords('user');
+    if (remainingUserWords.length === 0) {
+      return;
+    }
+
+    const matched = this.findWordsInText(message, remainingUserWords);
+    matched.forEach(word => this.fullRevisionService.markWordUsed(word, 'user'));
+  }
+
+  private findWordsInText(text: string, candidates: string[]): string[] {
+    if (!text || candidates.length === 0) {
+      return [];
+    }
+
+    const normalizedText = this.normalizeForComparison(text).replace(/[^a-z0-9\s]/g, ' ');
+    const tokens = normalizedText.split(/\s+/).filter(token => token.length > 0);
+    const tokenSet = new Set(tokens);
+
+    const matches: string[] = [];
+
+    candidates.forEach(candidate => {
+      const normalizedCandidate = this.normalizeForComparison(candidate);
+      if (!normalizedCandidate) {
+        return;
+      }
+
+      if (normalizedCandidate.includes(' ')) {
+        const pattern = new RegExp(`\\b${this.escapeRegExp(normalizedCandidate)}\\b`, 'i');
+        if (pattern.test(normalizedText)) {
+          matches.push(candidate);
+        }
+      } else if (tokenSet.has(normalizedCandidate)) {
+        matches.push(candidate);
+      }
+    });
+
+    return matches;
+  }
+
+  private normalizeForComparison(value: string): string {
+    return value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  private escapeRegExp(value: string): string {
+    const specials = new Set(['\\', '^', '$', '*', '+', '?', '.', '(', ')', '|', '{', '}', '[', ']', '-', '/']);
+    let escaped = '';
+    for (const char of value) {
+      escaped += specials.has(char) ? `\\${char}` : char;
+    }
+    return escaped;
   }
 
   /**
