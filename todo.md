@@ -54,7 +54,7 @@ révision du système de POM (implémenter les principes de mémorisation espac�
 
 ~~jout d'une notification supplémentaire le matin par exemple avec génération d'une compréhension à l'audition (s/b mots mémorisation espacée ou dico perso) et proposition d'ajouter les mots qui ne sont pas encore dans le dico~~
 
-procédure d'import et d'export ou sauvegarde avec firebase ou supabase
+~ procédure d'import et d'export ou sauvegarde avec firebase ou supabase
 
 UX UI
 

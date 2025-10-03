@@ -40,6 +40,12 @@ export interface FullRevisionStartConfig {
   themes?: string[];
 }
 
+export interface VocabularyExercisePayload {
+  items: Array<{ word: string; translation: string; context?: string }>;
+  type: 'vocabulary';
+  topic: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -50,19 +56,13 @@ export class FullRevisionService {
 
   startSession(config: FullRevisionStartConfig): FullRevisionSession {
     const shuffled = [...config.words].sort(() => Math.random() - 0.5);
-    const total = shuffled.length;
-    const aiCount = Math.floor(total / 2);
-
-    const aiWords = shuffled.slice(0, aiCount);
-    const userWords = shuffled.slice(aiCount);
-
     const words: FullRevisionWord[] = shuffled.map(word => ({
       id: word.id,
       it: word.it,
       fr: word.fr,
       context: word.context,
       themes: word.themes || [],
-      assignedTo: aiWords.includes(word) ? 'ai' as const : 'user' as const,
+      assignedTo: 'user',
       usedByAi: false,
       usedByUser: false
     }));
@@ -74,8 +74,8 @@ export class FullRevisionService {
       translationDirection: config.translationDirection,
       themes: config.themes || [],
       words,
-      aiQueue: aiWords.map(w => w.it),
-      userQueue: userWords.map(w => w.it),
+      aiQueue: [],
+      userQueue: words.map(w => w.it),
       associationCompleted: false,
       conversationCompleted: false
     };
@@ -135,15 +135,10 @@ export class FullRevisionService {
     }
 
     if (speaker === 'ai') {
-      if (target.assignedTo !== 'ai') {
-        return session;
-      }
+      // Les mots ne sont plus assignés à l'IA, mais on conserve la logique pour compatibilité
       target.usedByAi = true;
       session.aiQueue = session.aiQueue.filter(itWord => itWord.toLowerCase() !== normalised);
     } else {
-      if (target.assignedTo !== 'user') {
-        return session;
-      }
       target.usedByUser = true;
       session.userQueue = session.userQueue.filter(itWord => itWord.toLowerCase() !== normalised);
     }
@@ -172,6 +167,40 @@ export class FullRevisionService {
     return session.words.filter(word => word.assignedTo === assignedTo);
   }
 
+  getSessionInfoSummary(): { category: string; topic: string; date: string; translationDirection: TranslationDirection } | null {
+    const session = this.getSession();
+    if (!session) {
+      return null;
+    }
+
+    return {
+      category: 'Révision complète',
+      topic: session.themes.length > 0 ? session.themes.join(', ') : 'Révision complète',
+      date: session.createdAt,
+      translationDirection: session.translationDirection
+    };
+  }
+
+  getVocabularyExercisePayload(): VocabularyExercisePayload | null {
+    const session = this.getSession();
+    if (!session) {
+      return null;
+    }
+
+    const isFrToIt = session.translationDirection === 'fr2it';
+    const items = session.words.map(word => ({
+      word: isFrToIt ? word.fr : word.it,
+      translation: isFrToIt ? word.it : word.fr,
+      context: word.context
+    }));
+
+    return {
+      items,
+      type: 'vocabulary',
+      topic: session.themes.length > 0 ? session.themes.join(', ') : 'Révision complète'
+    };
+  }
+
   getWords(): FullRevisionWord[] {
     const session = this.getSession();
     return session ? session.words : [];
@@ -182,13 +211,10 @@ export class FullRevisionService {
     if (!session) {
       return;
     }
-    const aiWords = session.words
-      .filter(w => w.assignedTo === 'ai' && !w.usedByAi)
-      .map(w => w.it);
     const userWords = session.words
       .filter(w => w.assignedTo === 'user' && !w.usedByUser)
       .map(w => w.it);
-    session.aiQueue = [...aiWords];
+    session.aiQueue = [];
     session.userQueue = [...userWords];
     this.storage.set(this.storageKey, session);
   }

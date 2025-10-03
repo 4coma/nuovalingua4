@@ -31,21 +31,10 @@
       <ion-card-content>
         <div class="revision-grid">
           <div class="revision-column">
-            <h4>Mots de l'IA</h4>
-            <div class="chip-list">
-              <ion-chip *ngFor="let word of aiRevisionWords"
-                        [color]="word.usedByAi ? 'success' : 'medium'"
-                        [outline]="!word.usedByAi">
-                <ion-label>{{ word.it }}</ion-label>
-              </ion-chip>
-            </div>
-            <ion-note color="medium">{{ remainingAiCount }} mot(s) restants pour l'IA</ion-note>
-          </div>
-
-          <div class="revision-column">
             <h4>Tes mots</h4>
             <div class="chip-list">
               <ion-chip *ngFor="let word of userRevisionWords"
+                        class="word-chip"
                         [color]="word.usedByUser ? 'success' : 'warning'"
                         [outline]="!word.usedByUser">
                 <ion-label>{{ word.it }}</ion-label>
@@ -90,6 +79,18 @@
               [isLoading]="isAudioGenerating(i, turn)"
               style="margin-top: 8px; background: transparent; box-shadow: none;">
             </app-audio-player>
+
+            <div *ngIf="turn.speaker === 'ai' && isLastAiTurn(i) && fullRevisionActive && getRemainingUserWords().length > 0" class="remaining-user-words">
+              <ion-note color="medium">Mots qu'il te reste à placer :</ion-note>
+              <div class="chip-list">
+              <ion-chip *ngFor="let word of getRemainingUserWords()"
+                          color="warning"
+                          [outline]="false"
+                          class="word-chip">
+                <ion-label>{{ word.it }}</ion-label>
+              </ion-chip>
+            </div>
+          </div>
           </ion-card-content>
         </ion-card>
         
@@ -185,8 +186,8 @@
       Passer à l'encodage
     </ion-button>
 
-    <ion-note *ngIf="fullRevisionActive && (remainingAiCount + remainingUserCount) > 0" color="warning" class="full-revision-progress">
-      Il reste {{ remainingAiCount }} mot(s) pour l'IA et {{ remainingUserCount }} mot(s) pour toi.
+    <ion-note *ngIf="fullRevisionActive && remainingUserCount > 0" color="warning" class="full-revision-progress">
+      Il te reste {{ remainingUserCount }} mot(s) à placer dans la conversation.
     </ion-note>
 
     <!-- Bouton retour -->

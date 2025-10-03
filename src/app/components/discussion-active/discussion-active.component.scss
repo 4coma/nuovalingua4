@@ -227,6 +227,30 @@ ion-card-header {
   gap: 8px;
 }
 
+.word-chip {
+  font-weight: 600;
+  --color: var(--ion-color-dark);
+
+  &[color="warning"] {
+    --background: rgba(var(--ion-color-warning-rgb), 0.2);
+    --color: var(--ion-color-dark);
+  }
+
+  &[color="success"] {
+    --background: rgba(var(--ion-color-success-rgb), 0.2);
+    --color: var(--ion-color-success-shade);
+  }
+}
+
+.remaining-user-words {
+  margin-top: 12px;
+
+  ion-note {
+    margin-bottom: 6px;
+    display: block;
+  }
+}
+
 .full-revision-progress {
   display: block;
   text-align: center;

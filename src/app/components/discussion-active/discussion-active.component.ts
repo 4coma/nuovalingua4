@@ -39,9 +39,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
   responseMode: 'voice' | 'text' = 'voice';
   textResponse: string = '';
   fullRevisionActive = false;
-  aiRevisionWords: FullRevisionWord[] = [];
   userRevisionWords: FullRevisionWord[] = [];
-  remainingAiCount = 0;
   remainingUserCount = 0;
   
   private subscription = new Subscription();
@@ -192,9 +190,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     const session = this.fullRevisionService.getSession();
     if (!session) {
       this.fullRevisionActive = false;
-      this.aiRevisionWords = [];
       this.userRevisionWords = [];
-      this.remainingAiCount = 0;
       this.remainingUserCount = 0;
       return;
     }
@@ -203,17 +199,29 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     this.fullRevisionActive = isRelevantStage && (this.contextId === 'full-revision' || session.stage === 'encoding');
 
     if (!this.fullRevisionActive) {
-      this.aiRevisionWords = [];
       this.userRevisionWords = [];
-      this.remainingAiCount = 0;
       this.remainingUserCount = 0;
       return;
     }
 
-    this.aiRevisionWords = this.fullRevisionService.getWordsByAssignment('ai');
     this.userRevisionWords = this.fullRevisionService.getWordsByAssignment('user');
-    this.remainingAiCount = this.aiRevisionWords.filter(word => !word.usedByAi).length;
     this.remainingUserCount = this.userRevisionWords.filter(word => !word.usedByUser).length;
+  }
+
+  getRemainingUserWords(): FullRevisionWord[] {
+    return this.userRevisionWords.filter(word => !word.usedByUser);
+  }
+
+  isLastAiTurn(index: number): boolean {
+    if (!this.currentSession) {
+      return false;
+    }
+    for (let i = this.currentSession.turns.length - 1; i >= 0; i--) {
+      if (this.currentSession.turns[i].speaker === 'ai') {
+        return i === index;
+      }
+    }
+    return false;
   }
 
   /**
@@ -257,6 +265,16 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
   }
 
   goToEncoding(): void {
+    const exercise = this.fullRevisionService.getVocabularyExercisePayload();
+    const sessionInfo = this.fullRevisionService.getSessionInfoSummary();
+
+    if (exercise) {
+      localStorage.setItem('vocabularyExercise', JSON.stringify(exercise));
+    }
+    if (sessionInfo) {
+      localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
+    }
+
     this.fullRevisionService.setStage('encoding');
     this.router.navigate(['/vocabulary']);
   }

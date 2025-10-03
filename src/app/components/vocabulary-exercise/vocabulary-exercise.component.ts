@@ -106,22 +106,39 @@ export class VocabularyExerciseComponent implements OnInit {
   loadExerciseData(exercise: VocabularyExercise) {
     // Récupérer les infos de session
     const sessionInfoJson = localStorage.getItem('sessionInfo');
-    if (sessionInfoJson) {
-      this.sessionInfo = JSON.parse(sessionInfoJson);
-    } else {
-      this.sessionInfo = {
-        category: 'Vocabulaire',
-        topic: exercise.topic || 'Général',
-        date: new Date().toISOString()
+    const parsedInfo = sessionInfoJson ? JSON.parse(sessionInfoJson) : null;
+
+    const baseInfo = {
+      category: parsedInfo?.category || 'Vocabulaire',
+      topic: parsedInfo?.topic || exercise.topic || 'Général',
+      date: parsedInfo?.date || new Date().toISOString(),
+      translationDirection: (parsedInfo?.translationDirection as TranslationDirection | undefined) || 'fr2it'
+    };
+
+    const direction = baseInfo.translationDirection;
+
+    this.sessionInfo = {
+      category: baseInfo.category,
+      topic: baseInfo.topic,
+      date: baseInfo.date,
+      translationDirection: direction
+    };
+
+    // Convertir les items en paires de mots (format WordPair) en respectant la direction
+    this.wordPairs = exercise.items.map(item => {
+      if (direction === 'fr2it') {
+        return {
+          it: item.translation,
+          fr: item.word,
+          context: item.context
+        };
+      }
+      return {
+        it: item.word,
+        fr: item.translation,
+        context: item.context
       };
-    }
-    
-    // Convertir les items en paires de mots (format WordPair)
-    this.wordPairs = exercise.items.map(item => ({
-      it: item.word,
-      fr: item.translation,
-      context: item.context
-    }));
+    });
     
     this.prepareQuiz();
   }

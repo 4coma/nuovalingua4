@@ -337,7 +337,10 @@ export class DiscussionService {
       currentState.currentSession.turns.push(userTurn);
       console.log('🔍 DiscussionService - Tour utilisateur ajouté à la session');
 
-      this.handleUserWordsForFullRevision(userTurn.message);
+      const userHighlights = this.handleUserWordsForFullRevision(userTurn.message);
+      if (userHighlights.length > 0) {
+        userTurn.highlightedWords = userHighlights;
+      }
 
       // Mettre à jour l'état pour afficher le message utilisateur immédiatement
       this.updateState({
@@ -414,7 +417,10 @@ export class DiscussionService {
       currentState.currentSession.turns.push(userTurn);
       console.log('🔍 DiscussionService - Tour utilisateur ajouté à la session');
 
-      this.handleUserWordsForFullRevision(userTurn.message);
+      const userHighlights = this.handleUserWordsForFullRevision(userTurn.message);
+      if (userHighlights.length > 0) {
+        userTurn.highlightedWords = userHighlights;
+      }
 
       // Mettre à jour l'état pour afficher le message utilisateur immédiatement
       this.updateState({
@@ -605,29 +611,19 @@ export class DiscussionService {
       context.id === 'full-revision';
 
     if (isFullRevisionConversation) {
-      const remainingAiWords = this.fullRevisionService.getRemainingWords('ai');
+      this.fullRevisionService.assignQueuesFromWords();
       const remainingUserWords = this.fullRevisionService.getRemainingWords('user');
-      const nextAiWord = this.fullRevisionService.getNextAiWord();
 
       prompt += `\nConsignes spéciales pour la révision complète (ne les cite pas telles quelles) :\n`;
       if (fullRevisionSession.themes.length > 0) {
         prompt += `- Oriente subtilement l'échange autour de ces thèmes : ${fullRevisionSession.themes.join(', ')}.\n`;
       }
 
-      if (remainingAiWords.length > 0) {
-        prompt += `- Tu dois utiliser chacun de ces mots, un seul par message : ${remainingAiWords.join(', ')}.\n`;
-        if (nextAiWord) {
-          prompt += `- Dans cette réponse précise, intègre naturellement le mot « ${nextAiWord} » une seule fois.\n`;
-        }
-        prompt += `- N'utilise jamais plus d'un mot de ta liste dans un même message et n'emploie pas les mots réservés à l'utilisateur.\n`;
-      } else {
-        prompt += `- Tu as déjà utilisé tous tes mots : garde la conversation vivante et aide l'utilisateur à terminer les siens.\n`;
-      }
-
       if (remainingUserWords.length > 0) {
-        prompt += `- L'utilisateur doit encore placer : ${remainingUserWords.join(', ')}. Encourage-le doucement, rappelle-lui ce qu'il reste sans prononcer ces mots toi-même et pose des questions ouvertes.\n`;
+        prompt += `- L'utilisateur doit encore placer ces mots précis : ${remainingUserWords.join(', ')}. Encourage-le doucement, rappelle-lui ce qu'il reste sans prononcer ces mots toi-même et pose des questions ouvertes pour l'y aider.\n`;
+        prompt += `- Reformule si nécessaire pour qu'il comprenne bien quels mots il n'a pas encore utilisés.\n`;
       } else {
-        prompt += `- L'utilisateur a placé tous ses mots : propose de conclure ou d'approfondir, selon son envie.\n`;
+        prompt += `- L'utilisateur a placé tous ses mots : félicite-le et propose de conclure ou d'approfondir, selon son envie.\n`;
       }
     }
 
@@ -689,29 +685,26 @@ export class DiscussionService {
       return [];
     }
 
-    const remainingAiWords = this.fullRevisionService.getRemainingWords('ai');
-    if (remainingAiWords.length === 0) {
-      return [];
-    }
-
-    const matched = this.findWordsInText(message, remainingAiWords);
-    matched.forEach(word => this.fullRevisionService.markWordUsed(word, 'ai'));
-    return matched;
+    return [];
   }
 
-  private handleUserWordsForFullRevision(message: string): void {
+  private handleUserWordsForFullRevision(message: string): string[] {
     const session = this.fullRevisionService.getSession();
     if (!session || session.stage !== 'conversation') {
-      return;
+      return [];
     }
 
     const remainingUserWords = this.fullRevisionService.getRemainingWords('user');
     if (remainingUserWords.length === 0) {
-      return;
+      return [];
     }
 
     const matched = this.findWordsInText(message, remainingUserWords);
     matched.forEach(word => this.fullRevisionService.markWordUsed(word, 'user'));
+    if (matched.length > 0) {
+      this.fullRevisionService.assignQueuesFromWords();
+    }
+    return matched;
   }
 
   private findWordsInText(text: string, candidates: string[]): string[] {
