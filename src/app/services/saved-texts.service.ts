@@ -13,15 +13,8 @@ export class SavedTextsService {
    * Sauvegarde un texte de compréhension
    */
   saveText(comprehensionText: ComprehensionText, category: string, topic: string, customTitle?: string): boolean {
-    console.log('SavedTextsService.saveText() appelé');
-    console.log('comprehensionText:', comprehensionText);
-    console.log('category:', category);
-    console.log('topic:', topic);
-    console.log('customTitle:', customTitle);
-    
     try {
       const savedTexts = this.getAllTexts();
-      console.log('Textes déjà sauvegardés:', savedTexts.length);
       
       const newSavedText: SavedText = {
         id: this.generateId(),
@@ -38,15 +31,10 @@ export class SavedTextsService {
         isFavorite: false
       };
       
-      console.log('Nouveau texte à sauvegarder:', newSavedText);
-      
       savedTexts.push(newSavedText);
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(savedTexts));
-      
-      console.log('Sauvegarde réussie, total:', savedTexts.length);
       return true;
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde du texte:', error);
+    } catch {
       return false;
     }
   }
@@ -58,8 +46,7 @@ export class SavedTextsService {
     try {
       const savedTextsJson = localStorage.getItem(this.STORAGE_KEY);
       return savedTextsJson ? JSON.parse(savedTextsJson) : [];
-    } catch (error) {
-      console.error('Erreur lors de la récupération des textes sauvegardés:', error);
+    } catch {
       return [];
     }
   }
@@ -85,8 +72,7 @@ export class SavedTextsService {
         savedTexts[textIndex].accessCount++;
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(savedTexts));
       }
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour des statistiques:', error);
+    } catch {
     }
   }
 
@@ -104,8 +90,7 @@ export class SavedTextsService {
         return savedTexts[textIndex].isFavorite;
       }
       return false;
-    } catch (error) {
-      console.error('Erreur lors du changement de statut favori:', error);
+    } catch {
       return false;
     }
   }
@@ -123,8 +108,7 @@ export class SavedTextsService {
         return true;
       }
       return false;
-    } catch (error) {
-      console.error('Erreur lors de la suppression du texte:', error);
+    } catch {
       return false;
     }
   }

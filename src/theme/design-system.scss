@@ -1,0 +1,273 @@
+/*
+ * NuovaLingua Design System foundations
+ * These utilities ensure consistent styling aligned with the design tokens.
+ */
+
+/* Layout helpers */
+.ds-container {
+  width: min(100%, 72rem);
+  margin: 0 auto;
+  padding-inline: var(--ds-space-xxs);
+}
+
+.stack-xs {
+  display: grid;
+  gap: var(--ds-space-xxs);
+}
+
+.stack-sm {
+  display: grid;
+  gap: var(--ds-space-sm);
+}
+
+.stack-md {
+  display: grid;
+  gap: var(--ds-space-md);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.surface {
+  background: var(--color-surface);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-sm);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.surface-inverse {
+  background: var(--color-surface-inverse);
+  color: var(--color-text-inverse);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+/* Typography scale */
+.h1 {
+  font-family: var(--ds-font-family-display);
+  font-size: var(--ds-font-size-h1);
+  line-height: var(--ds-line-height-tight);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.h2 {
+  font-family: var(--ds-font-family-display);
+  font-size: var(--ds-font-size-h2);
+  line-height: var(--ds-line-height-tight);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.h3 {
+  font-size: var(--ds-font-size-h3);
+  line-height: var(--ds-line-height-snug);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.body-lg {
+  font-size: var(--ds-font-size-body-lg);
+  line-height: var(--ds-line-height-normal);
+}
+
+.body {
+  font-size: var(--ds-font-size-body);
+  line-height: var(--ds-line-height-normal);
+}
+
+.body-sm {
+  font-size: var(--ds-font-size-body-sm);
+  line-height: var(--ds-line-height-relaxed);
+}
+
+.caption {
+  font-size: var(--ds-font-size-caption);
+  line-height: var(--ds-line-height-relaxed);
+  letter-spacing: 0.02em;
+}
+
+/* Buttons */
+ion-button {
+  --border-radius: var(--ds-radius-md);
+  --padding-top: 0.85rem;
+  --padding-bottom: 0.85rem;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --box-shadow: none;
+  font-family: var(--ds-font-family-sans);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  transition: transform var(--ds-transition-base), box-shadow var(--ds-transition-base);
+}
+
+ion-button::part(native) {
+  border-radius: var(--ds-radius-md);
+}
+
+ion-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+ion-button.button-outline {
+  --border-color: var(--color-border-strong);
+  --color: var(--color-text-primary);
+}
+
+ion-button.button-outline:hover {
+  --border-color: var(--ion-color-primary);
+  color: var(--ion-color-primary);
+}
+
+ion-button.button-clear,
+ion-button.button-clear:hover,
+ion-button.button-clear.ion-activated {
+  --color: var(--color-text-secondary);
+  box-shadow: none;
+  transform: none;
+}
+
+/* Cards */
+ion-card {
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+}
+
+ion-card-header {
+  padding-bottom: var(--ds-space-xxs);
+}
+
+ion-card-title,
+ion-card-subtitle {
+  font-family: var(--ds-font-family-sans);
+}
+
+/* Inputs */
+ion-item {
+  --background: var(--color-surface);
+  --border-radius: var(--ds-radius-md);
+  --padding-start: var(--ds-space-xxs);
+  --padding-end: var(--ds-space-xxs);
+  --inner-padding-top: 0.75rem;
+  --inner-padding-bottom: 0.75rem;
+  --border-color: transparent;
+  --highlight-height: 0;
+  --inner-border-width: 0;
+  box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+  transition: box-shadow var(--ds-transition-base), background var(--ds-transition-base);
+}
+
+ion-item.item-has-focus,
+ion-item.item-interactive.ion-focused {
+  box-shadow: inset 0 0 0 2px var(--color-border-focus);
+  background: var(--color-surface);
+}
+
+ion-input,
+ion-textarea {
+  --color: var(--color-text-primary);
+  --placeholder-color: var(--color-text-muted);
+  font-family: var(--ds-font-family-sans);
+}
+
+ion-select,
+ion-datetime {
+  --color: var(--color-text-primary);
+  --placeholder-color: var(--color-text-muted);
+}
+
+/* Modal */
+ion-modal {
+  --border-radius: var(--ds-radius-lg);
+  --box-shadow: var(--ds-shadow-lg);
+}
+
+ion-modal::part(content) {
+  border-radius: var(--ds-radius-lg);
+}
+
+/* Navigation */
+ion-header {
+  box-shadow: var(--ds-shadow-xs);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+ion-toolbar {
+  --background: var(--color-surface);
+  --color: var(--color-text-primary);
+  --border-color: transparent;
+  font-family: var(--ds-font-family-sans);
+}
+
+ion-menu {
+  --background: var(--color-surface);
+  --border: none;
+  box-shadow: var(--ds-shadow-md);
+}
+
+ion-tab-bar {
+  --background: var(--color-surface);
+  --border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-full);
+  margin: var(--ds-space-xxs) var(--ds-space-xxs) calc(env(safe-area-inset-bottom) + var(--ds-space-xxs));
+}
+
+ion-tab-button {
+  --color-selected: var(--ion-color-primary);
+  --color: var(--color-text-muted);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+/* Utilities */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--ds-radius-full);
+  font-size: var(--ds-font-size-caption);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: 1;
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  color: var(--ion-color-primary);
+}
+
+.surface-accent {
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  border-radius: var(--ds-radius-md);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.16);
+}
+
+.focus-ring {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0f172a;
+    color: var(--color-text-inverse);
+  }
+
+  ion-card,
+  ion-item {
+    background: rgba(15, 23, 42, 0.8);
+    color: var(--color-text-inverse);
+    box-shadow: var(--ds-shadow-xs);
+  }
+
+  ion-header,
+  ion-toolbar,
+  ion-menu,
+  ion-tab-bar {
+    background: rgba(15, 23, 42, 0.9);
+    color: var(--color-text-inverse);
+  }
+}

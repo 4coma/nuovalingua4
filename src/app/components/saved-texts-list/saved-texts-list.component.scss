@@ -1,39 +1,91 @@
-    .empty-list { color: #888; text-align: center; margin-top: 2em; }
-    .stats { color: #666; font-size: 0.9em; margin-top: 1em; text-align: right; }
-    .comprehension-text { line-height: 1.7; font-size: 16px; margin-top: 1em; }
-    .highlighted-word.vocabulary-word { color: var(--ion-color-primary); font-weight: bold; background-color: rgba(var(--ion-color-primary-rgb), 0.1); padding: 2px 4px; border-radius: 3px; transition: all 0.2s ease; cursor: pointer; }
-    .highlighted-word.vocabulary-word:hover { background-color: rgba(var(--ion-color-primary-rgb), 0.2); text-decoration: underline; }
-    .clickable-word { cursor: pointer; transition: all 0.15s ease; }
-    .clickable-word:hover { color: var(--ion-color-primary); background-color: rgba(var(--ion-color-primary-rgb), 0.05); border-radius: 3px; }
-    .translation { font-size: 18px; font-weight: 500; color: var(--ion-color-primary); }
-    .examples-section { margin-top: 16px; }
-    .examples-section h3 { font-size: 18px; margin-bottom: 10px; }
-    .translate-fixed-btn {
-      position: fixed;
-      left: 50%;
-      bottom: 32px;
-      transform: translateX(-50%);
-      z-index: 99999;
-      background: var(--ion-color-primary);
-      color: #fff;
-      border: none;
-      border-radius: 20px;
-      padding: 12px 32px;
-      font-size: 18px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      cursor: pointer;
-      opacity: 1;
-      transition: background 0.2s, opacity 0.2s;
-    }
-    .translate-fixed-btn:disabled {
-      background: #ccc;
-      color: #888;
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-    .comprehension-text, .translate-fixed-btn {
-      user-select: text !important;
-      -webkit-user-select: text !important;
-      -ms-user-select: text !important;
-    }
-  
+.empty-list {
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: var(--ds-space-sm);
+}
+
+.stats {
+  color: var(--color-text-secondary);
+  font-size: var(--ds-font-size-body-sm);
+  margin-top: var(--ds-space-xxs);
+  text-align: right;
+}
+
+.comprehension-text {
+  line-height: var(--ds-line-height-relaxed);
+  font-size: var(--ds-font-size-body);
+  margin-top: var(--ds-space-xxs);
+}
+
+.highlighted-word.vocabulary-word {
+  color: var(--ion-color-primary);
+  font-weight: var(--ds-font-weight-semibold);
+  background-color: rgba(var(--ion-color-primary-rgb), 0.12);
+  padding: 2px 6px;
+  border-radius: var(--ds-radius-xs);
+  transition: background var(--ds-transition-base), color var(--ds-transition-base);
+  cursor: pointer;
+}
+
+.highlighted-word.vocabulary-word:hover {
+  background-color: rgba(var(--ion-color-primary-rgb), 0.2);
+  text-decoration: underline;
+}
+
+.clickable-word {
+  cursor: pointer;
+  transition: color var(--ds-transition-base), background var(--ds-transition-base);
+  border-radius: var(--ds-radius-xs);
+}
+
+.clickable-word:hover {
+  color: var(--ion-color-primary);
+  background-color: rgba(var(--ion-color-primary-rgb), 0.08);
+}
+
+.translation {
+  font-size: var(--ds-font-size-body-lg);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ion-color-primary);
+}
+
+.examples-section {
+  margin-top: var(--ds-space-xxs);
+}
+
+.examples-section h3 {
+  font-size: var(--ds-font-size-h3);
+  margin-bottom: var(--ds-space-3xs);
+}
+
+.translate-fixed-btn {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--ds-space-lg) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 99999;
+  background: var(--ion-color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--ds-radius-full);
+  padding: var(--ds-space-xxs) var(--ds-space-sm);
+  font-size: var(--ds-font-size-body-lg);
+  box-shadow: var(--ds-shadow-sm);
+  cursor: pointer;
+  opacity: 1;
+  transition: background var(--ds-transition-base), opacity var(--ds-transition-base);
+}
+
+.translate-fixed-btn:disabled {
+  background: var(--color-border-subtle);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.comprehension-text,
+.translate-fixed-btn {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -ms-user-select: text !important;
+}

@@ -514,7 +514,16 @@ export class DiscussionService {
     userMessage: string,
     previousTurns: DiscussionTurn[] = []
   ): Promise<AIResponse> {
-    const prompt = this.buildDiscussionPrompt(context, userMessage, previousTurns);
+    // Vérifier si c'est une conversation de révision complète
+    const fullRevisionSession = this.fullRevisionService.getSession();
+    const isFullRevisionConversation =
+      !!fullRevisionSession &&
+      fullRevisionSession.stage === 'conversation' &&
+      context.id === 'full-revision';
+
+    const prompt = isFullRevisionConversation 
+      ? this.buildFullRevisionDiscussionPrompt(context, userMessage, previousTurns)
+      : this.buildDiscussionPrompt(context, userMessage, previousTurns);
     console.log('🔍 Prompt envoyé au modèle IA :\n', prompt);
     try {
       const response: any = await this.llmService.generateDiscussionResponse(prompt).toPromise();
@@ -604,29 +613,117 @@ export class DiscussionService {
     }
     prompt += `- Si tu réponds dans une autre langue que l'italien, recommence en italien.\n`;
 
-    const fullRevisionSession = this.fullRevisionService.getSession();
-    const isFullRevisionConversation =
-      !!fullRevisionSession &&
-      fullRevisionSession.stage === 'conversation' &&
-      context.id === 'full-revision';
 
-    if (isFullRevisionConversation) {
-      this.fullRevisionService.assignQueuesFromWords();
-      const remainingUserWords = this.fullRevisionService.getRemainingWords('user');
+    prompt += `\nIMPORTANT pour le feedback :\n`;
+    prompt += `- Analyse le message de l'utilisateur et identifie CHAQUE erreur individuellement (mot par mot)\n`;
+    prompt += `- CHAQUE erreur doit être ATOMIQUE : un seul mot ou une petite expression (2-3 mots maximum)\n`;
+    prompt += `- NE PAS barrer une phrase entière : identifie chaque mot incorrect séparément\n`;
+    prompt += `- Exemple : dans "sono serioso", l'erreur est UNIQUEMENT "serioso" -> "serio", PAS toute la phrase\n`;
+    prompt += `- Pour chaque erreur atomique, indique :\n`;
+    prompt += `  * "erreur": le mot ou la petite expression incorrecte UNIQUEMENT\n`;
+    prompt += `  * "correction": le mot ou la petite expression corrigée\n`;
+    prompt += `  * "traduction": la traduction française de la correction\n`;
+    prompt += `  * "type": le type d'erreur (grammaire/vocabulaire/orthographe/conjugaison)\n`;
+    prompt += `- Si aucune erreur n'est détectée, retourne un tableau vide : "erreurs": []\n`;
+    prompt += `- Ne donne AUCUN commentaire général, évaluation ou suggestion\n`;
+    prompt += `\n`;
 
-      prompt += `\nConsignes spéciales pour la révision complète (ne les cite pas telles quelles) :\n`;
-      if (fullRevisionSession.themes.length > 0) {
-        prompt += `- Oriente subtilement l'échange autour de ces thèmes : ${fullRevisionSession.themes.join(', ')}.\n`;
-      }
-
-      if (remainingUserWords.length > 0) {
-        prompt += `- L'utilisateur doit encore placer ces mots précis : ${remainingUserWords.join(', ')}. Encourage-le doucement, rappelle-lui ce qu'il reste sans prononcer ces mots toi-même et pose des questions ouvertes pour l'y aider.\n`;
-        prompt += `- Reformule si nécessaire pour qu'il comprenne bien quels mots il n'a pas encore utilisés.\n`;
-      } else {
-        prompt += `- L'utilisateur a placé tous ses mots : félicite-le et propose de conclure ou d'approfondir, selon son envie.\n`;
-      }
+    // Limiter l'historique à MAX_TURNS_HISTORY (garder le premier + les N derniers)
+    let turnsToInclude: DiscussionTurn[] = previousTurns;
+    if (previousTurns.length > this.MAX_TURNS_HISTORY) {
+      turnsToInclude = [
+        previousTurns[0],
+        ...previousTurns.slice(- (this.MAX_TURNS_HISTORY - 1))
+      ];
     }
 
+    if (turnsToInclude.length > 0) {
+      prompt += `Historique de la conversation (dans l'ordre chronologique, tronqué si trop long) :\n`;
+      turnsToInclude.forEach(turn => {
+        prompt += `${turn.speaker === 'user' ? 'Utilisateur' : 'IA'} : ${turn.message}\n`;
+      });
+    } else {
+      prompt += `Début de la conversation.\n`;
+    }
+
+    if (userMessage) {
+      prompt += `\nDernier message de l'utilisateur : "${userMessage}"\n`;
+    }
+    prompt += `\nRéponds uniquement avec un objet JSON de la forme : { 
+      "reponse": "<ta réponse en italien>",
+      "feedback": {
+        "erreurs": [
+          {
+            "erreur": "<texte incorrect de l'utilisateur>",
+            "correction": "<texte corrigé en italien>",
+            "traduction": "<traduction française de la correction>",
+            "type": "<type d'erreur: grammaire/vocabulaire/orthographe/conjugaison>"
+          }
+        ]
+      }
+    }\n`;
+    prompt += `\nTa réponse :`;
+    return prompt;
+  }
+
+  /**
+   * Construit le prompt spécialisé pour la révision complète
+   */
+  private buildFullRevisionDiscussionPrompt(
+    context: DiscussionContext,
+    userMessage: string,
+    previousTurns: DiscussionTurn[]
+  ): string {
+    const fullRevisionSession = this.fullRevisionService.getSession();
+    if (!fullRevisionSession) {
+      return this.buildDiscussionPrompt(context, userMessage, previousTurns);
+    }
+
+    this.fullRevisionService.assignQueuesFromWords();
+    const remainingUserWords = this.fullRevisionService.getRemainingWords('user');
+    const allUserWords = this.fullRevisionService.getWordsByAssignment('user');
+    const remainingUserWordObjects = allUserWords.filter(word => !word.usedByUser);
+
+    let prompt = `IMPORTANT : Tu dois TOUJOURS répondre en italien, même au tout premier tour.\n\n`;
+    
+    // Instructions spéciales pour la révision complète
+    prompt += `Tu es dans une conversation de révision complète en italien. Voici le contexte :\n\n`;
+    prompt += `Situation : ${context.situation}\n`;
+    prompt += `Description : ${context.description || ''}\n`;
+    prompt += `Ton rôle : ${context.aiRole}\n`;
+    prompt += `Rôle de l'utilisateur : ${context.userRole}\n`;
+    prompt += `Difficulté : ${context.difficulty}\n`;
+    prompt += `Catégorie : ${context.category}\n`;
+    
+    // Instructions pour la révision complète
+    prompt += `\nINSTRUCTIONS SPÉCIALES POUR LA RÉVISION COMPLÈTE :\n`;
+    prompt += `- Tu dois créer une conversation naturelle sur un sujet que tu choisis toi-même\n`;
+    prompt += `- Le sujet doit être inspiré des mots que l'utilisateur doit utiliser dans la conversation\n`;
+    prompt += `- L'utilisateur DOIT utiliser tous ces mots dans ses réponses : ${allUserWords.map(w => w.fr).join(', ')}\n`;
+    prompt += `- Ces mots correspondent aux traductions italiennes : ${allUserWords.map(w => w.it).join(', ')}\n`;
+    
+    if (fullRevisionSession.themes.length > 0) {
+      prompt += `- Oriente la conversation autour de ces thèmes : ${fullRevisionSession.themes.join(', ')}\n`;
+    }
+    
+    if (remainingUserWordObjects.length > 0) {
+      prompt += `- L'utilisateur n'a PAS ENCORE utilisé ces mots : ${remainingUserWordObjects.map(w => w.fr).join(', ')}\n`;
+      prompt += `- Encourage-le subtilement à les utiliser en posant des questions ou en créant des situations qui l'y amènent naturellement\n`;
+      prompt += `- Ne prononce JAMAIS ces mots toi-même, mais crée le contexte pour qu'il les utilise\n`;
+    } else {
+      prompt += `- L'utilisateur a utilisé tous ses mots : félicite-le et propose de conclure ou d'approfondir le sujet\n`;
+    }
+    
+    prompt += `- Reste naturel et conversationnel\n`;
+    prompt += `- Ne répète pas ce que tu as déjà dit, fais avancer la conversation\n`;
+    prompt += `- Prends en compte tout l'historique de la conversation pour répondre\n`;
+    
+    if (!userMessage) {
+      prompt += `- Si c'est le tout premier tour, démarre la conversation EN ITALIEN en choisissant un sujet approprié basé sur les mots à réviser\n`;
+    }
+    prompt += `- Si tu réponds dans une autre langue que l'italien, recommence en italien.\n`;
+
+    // Instructions pour le feedback atomique
     prompt += `\nIMPORTANT pour le feedback :\n`;
     prompt += `- Analyse le message de l'utilisateur et identifie CHAQUE erreur individuellement (mot par mot)\n`;
     prompt += `- CHAQUE erreur doit être ATOMIQUE : un seul mot ou une petite expression (2-3 mots maximum)\n`;

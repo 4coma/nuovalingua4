@@ -57,7 +57,6 @@ export class SpeechRecognitionService {
         confidence: response.confidence
       })),
       catchError(error => {
-        console.error('Erreur lors de la transcription:', error);
         if (error.status === 401) {
           this.showErrorToast('Clé API OpenAI invalide. Veuillez vérifier votre clé API dans les paramètres.');
         } else {
@@ -93,7 +92,6 @@ export class SpeechRecognitionService {
         confidence: response.confidence
       })),
       catchError(error => {
-        console.error('Erreur lors de la transcription:', error);
         if (error.status === 401) {
           this.showErrorToast('Clé API OpenAI invalide. Veuillez vérifier votre clé API dans les paramètres.');
         } else {

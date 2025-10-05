@@ -14,4 +14,4 @@ bootstrapApplication(AppComponent, {
     importProvidersFrom(IonicModule.forRoot()),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ]
-}).catch(err => console.log(err));
+});
