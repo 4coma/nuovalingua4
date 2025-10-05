@@ -33,12 +33,10 @@ export class DataMigrationService {
     }
 
     try {
-      console.log('🔍 [DataMigration] Début de la migration des données...');
       
       const userData = await this.collectAllLocalData();
       await this.firebaseSync.syncAllUserData(userData);
       
-      console.log('🔍 [DataMigration] Migration terminée avec succès');
     } catch (error) {
       console.error('🔍 [DataMigration] Erreur lors de la migration:', error);
       throw error;
@@ -76,11 +74,9 @@ export class DataMigrationService {
   private getPersonalDictionary(): DictionaryWord[] {
     try {
       const storedWords = localStorage.getItem('personalDictionary');
-      console.log('🔍 [DataMigration] Données brutes du dictionnaire:', storedWords ? 'présentes' : 'absentes');
       
       if (storedWords) {
         const words = JSON.parse(storedWords);
-        console.log('🔍 [DataMigration] Dictionnaire parsé:', words.length, 'mots');
         return words;
       }
       return [];
@@ -265,14 +261,6 @@ export class DataMigrationService {
     const hasConversations = conversations.length > 0;
     const hasTexts = texts.length > 0;
     
-    console.log('🔍 [DataMigration] Vérification des données locales:', {
-      words: words.length,
-      conversations: conversations.length,
-      texts: texts.length,
-      hasWords,
-      hasConversations,
-      hasTexts
-    });
     
     return hasWords || hasConversations || hasTexts;
   }

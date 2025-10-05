@@ -121,7 +121,6 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
   }
 
   onWordClicked(word: string): void {
-    console.log('Mot reçu de la directive:', word);
     this.getWordTranslation(word);
   }
 

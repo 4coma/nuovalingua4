@@ -84,7 +84,6 @@ export class SavedConversationsService {
     try {
       const conversations = this.getAllConversations();
       // Les conversations sont déjà incluses dans la synchronisation générale via DataMigrationService
-      console.log('🔍 [SavedConversations] Synchronisation vers Firebase:', conversations.length, 'conversations');
     } catch (error) {
       console.error('🔍 [SavedConversations] Erreur de synchronisation vers Firebase:', error);
     }
@@ -118,7 +117,6 @@ export class SavedConversationsService {
         // Sauvegarder localement
         localStorage.setItem(this.storageKey, JSON.stringify(mergedConversations));
         
-        console.log('🔍 [SavedConversations] Synchronisation depuis Firebase réussie:', mergedConversations.length, 'conversations');
       }
     } catch (error) {
       console.error('🔍 [SavedConversations] Erreur de synchronisation depuis Firebase:', error);

@@ -47,7 +47,6 @@ export class SpeechService {
    * Convertit le texte en fichier audio et initialise la lecture
    */
   generateSpeech(text: string, voice: string = 'nova', speed: number = 1.0): Observable<string> {
-    console.log('🔍 SpeechService - Début de la génération audio pour:', text.substring(0, 50) + '...');
     
     // Récupérer la clé API éventuellement définie par l'utilisateur
     const userApiKey = this.storageService.get('userOpenaiApiKey');
@@ -85,7 +84,6 @@ export class SpeechService {
         // Convertir la réponse en blob et créer une URL
         const blob = new Blob([response], { type: 'audio/mpeg' });
         const audioUrl = URL.createObjectURL(blob);
-        console.log('🔍 SpeechService - Audio généré avec succès, URL:', audioUrl);
         this.audioUrlSubject.next(audioUrl);
         
         // Initialiser l'audio
@@ -99,7 +97,6 @@ export class SpeechService {
         this.showErrorToast('Erreur lors de la génération de l\'audio');
         
         // En cas d'erreur, utiliser l'API Web Speech comme fallback
-        console.log('🔍 SpeechService - Utilisation du fallback Web Speech API');
         this.initWebSpeechAudio(text);
         
         // Retourner une URL factice pour éviter les erreurs dans le composant

@@ -37,7 +37,6 @@ export class HomePage implements OnInit, OnDestroy {
     // S'abonner aux changements du dictionnaire pour mettre à jour les statistiques
     this.dictionarySubscription = this.personalDictionaryService.dictionaryWords$.subscribe(() => {
       // Les statistiques peuvent être mises à jour ici si nécessaire
-      console.log('Dictionnaire mis à jour - statistiques actualisées');
     });
   }
 
@@ -50,7 +49,6 @@ export class HomePage implements OnInit, OnDestroy {
 
 
   onDiscussionClick() {
-    console.log('🔍 HomePage - Bouton Discussion cliqué');
   }
 
 
@@ -100,8 +98,6 @@ export class HomePage implements OnInit, OnDestroy {
         isKnown: word.isKnown || false // Récupérer le statut existant ou false par défaut
       }));
 
-      console.log('🔍 [HomePage] Mots révisés créés:', revisedWords.length);
-      console.log('🔍 [HomePage] Détail des mots révisés:', revisedWords);
 
       // Sauvegarder les données de session
       const sessionInfo = {
@@ -117,11 +113,6 @@ export class HomePage implements OnInit, OnDestroy {
       this.storageService.set('isPersonalDictionaryRevision', true);
       this.storageService.set('revisedWords', revisedWords);
 
-      console.log('🔍 [HomePage] Données sauvegardées dans le localStorage:');
-      console.log('🔍 [HomePage] sessionInfo:', sessionInfo);
-      console.log('🔍 [HomePage] wordPairs.length:', wordPairs.length);
-      console.log('🔍 [HomePage] isPersonalDictionaryRevision: true');
-      console.log('🔍 [HomePage] revisedWords.length:', revisedWords.length);
 
       // Naviguer vers l'exercice d'association
       this.router.navigate(['/word-pairs-game']);
@@ -144,10 +135,8 @@ export class HomePage implements OnInit, OnDestroy {
 
   async forceOpenMenu() {
     try {
-      console.log('Forcing menu to open from home page...');
       await this.menuController.enable(true);
       await this.menuController.open();
-      console.log('Menu forced open successfully');
     } catch (error) {
       console.error('Error forcing menu open:', error);
     }

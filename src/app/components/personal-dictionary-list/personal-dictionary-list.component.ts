@@ -166,7 +166,6 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
     // Traiter le résultat du modal
     const { data } = await modal.onDidDismiss();
     if (data) {
-      console.log('Données reçues du modal:', data);
       // Mettre à jour le mot dans le service
       const success = this.dictionaryService.updateWord(data);
       if (success) {
@@ -273,7 +272,6 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
    * Gère le changement de délai de révision pour un mot
    */
   onRevisionDelayChange(word: DictionaryWord) {
-    console.log('Délai de révision changé pour:', word.sourceWord, '→', word.revisionDelay);
     
     if (word.revisionDelay) {
       const delayInMs = this.calculateDelayInMs(word.revisionDelay);
@@ -289,7 +287,6 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
     // Sauvegarder le mot entier pour persister revisionDelay et minRevisionDate
     const success = this.dictionaryService.updateWord(word);
     if (success) {
-      console.log(`Délai de révision mis à jour pour ${word.sourceWord}: ${word.revisionDelay}`);
       this.calculateStatistics(); // Recalculer les statistiques
     }
   }
@@ -298,12 +295,10 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
    * Gère le changement de statut "connu" pour un mot
    */
   onKnownStatusChange(word: DictionaryWord) {
-    console.log('Statut "connu" changé pour:', word.sourceWord, '→', word.isKnown);
     
     // Sauvegarder le mot entier pour persister isKnown
     const success = this.dictionaryService.updateWord(word);
     if (success) {
-      console.log(`Statut 'connu' mis à jour pour ${word.sourceWord}: ${word.isKnown}`);
       this.calculateStatistics(); // Recalculer les statistiques
     }
   }
@@ -377,7 +372,6 @@ export class PersonalDictionaryListComponent implements OnInit, OnDestroy {
    * Supprime un thème d'un mot
    */
   removeThemeFromWord(word: DictionaryWord, theme: string) {
-    console.log('🔍 [PersonalDictionaryList] Suppression thème:', theme, 'du mot:', word.sourceWord);
     if (word.themes) {
       word.themes = word.themes.filter(t => t !== theme);
       const success = this.dictionaryService.updateWord(word);

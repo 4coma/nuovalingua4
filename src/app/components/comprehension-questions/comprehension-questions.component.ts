@@ -168,7 +168,6 @@ export class ComprehensionQuestionsComponent implements OnInit {
    * Gère un mot cliqué via la directive SafeHtmlDirective
    */
   onWordClicked(word: string): void {
-    console.log('Mot reçu de la directive:', word);
     this.getWordTranslation(word);
   }
   

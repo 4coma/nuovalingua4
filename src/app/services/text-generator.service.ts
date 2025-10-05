@@ -262,7 +262,6 @@ export class TextGeneratorService {
    * Crée le prompt pour générer une session d'association à partir d'un texte
    */
   private createAssociationSessionPrompt(text: string, title: string): string {
-    console.log('text passé au modèle : ', text);
     
     return `
       Tu es un assistant pédagogique spécialisé dans l'apprentissage de l'italien.

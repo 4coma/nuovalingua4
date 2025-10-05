@@ -26,6 +26,5 @@ import { IonicModule } from '@ionic/angular';
 })
 export class TestComponent {
   constructor() {
-    console.log('TestComponent loaded successfully');
   }
 } 
