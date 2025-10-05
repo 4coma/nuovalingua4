@@ -23,7 +23,6 @@ export class SafeHtmlDirective implements OnInit {
           const word = targetElement.getAttribute('data-word');
           if (word) {
             this.zone.run(() => {
-              console.log('Mot cliqué via directive:', word);
               this.wordClick.emit(word);
             });
           }

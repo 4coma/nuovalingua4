@@ -59,11 +59,9 @@ export class AudioPlayerComponent implements OnInit, OnDestroy, OnChanges {
       const newAudioUrl = changes['audioUrl'].currentValue;
       const previousAudioUrl = changes['audioUrl'].previousValue;
       
-      console.log('🔍 AudioPlayer - audioUrl changé:', { previous: previousAudioUrl, current: newAudioUrl });
       
       // Si l'URL a changé et qu'elle n'est pas null, réinitialiser l'audio
       if (newAudioUrl && newAudioUrl !== previousAudioUrl) {
-        console.log('🔍 AudioPlayer - Réinitialisation de l\'audio avec nouvelle URL');
         this.initAudio();
       }
     }
@@ -80,10 +78,8 @@ export class AudioPlayerComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private initAudio() {
-    console.log('🔍 AudioPlayer - initAudio appelé avec URL:', this.audioUrl);
     
     if (!this.audioUrl) {
-      console.log('🔍 AudioPlayer - Pas d\'URL audio fournie');
       return;
     }
 
@@ -106,7 +102,6 @@ export class AudioPlayerComponent implements OnInit, OnDestroy, OnChanges {
       if (this.audio) {
         this.duration = this.audio.duration;
         this.durationChangeEvent.emit(this.duration);
-        console.log('🔍 AudioPlayer - Métadonnées chargées, durée:', this.duration);
       }
     });
 
@@ -121,21 +116,18 @@ export class AudioPlayerComponent implements OnInit, OnDestroy, OnChanges {
       this.isPlaying = true;
       this.isPaused = false;
       this.playEvent.emit();
-      console.log('🔍 AudioPlayer - Lecture démarrée');
     });
 
     this.audio.addEventListener('pause', () => {
       this.isPlaying = false;
       this.isPaused = true;
       this.pauseEvent.emit();
-      console.log('🔍 AudioPlayer - Lecture en pause');
     });
 
     this.audio.addEventListener('ended', () => {
       this.isPlaying = false;
       this.isPaused = false;
       this.endedEvent.emit();
-      console.log('🔍 AudioPlayer - Lecture terminée');
     });
 
     this.audio.addEventListener('error', (error) => {
@@ -148,16 +140,13 @@ export class AudioPlayerComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   play() {
-    console.log('🔍 AudioPlayer - play() appelé');
     if (this.audio && this.audioUrl) {
-      console.log('🔍 AudioPlayer - Tentative de lecture avec URL:', this.audioUrl);
       this.audio.play().catch(error => {
         console.error('🔍 AudioPlayer - Erreur lors de la lecture:', error);
       });
     } else if (this.audioRecordingService.getAudioUrl()) {
       this.audioRecordingService.playRecording();
     } else {
-      console.log('🔍 AudioPlayer - Pas d\'audio disponible pour la lecture');
     }
   }
 

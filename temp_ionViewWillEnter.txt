@@ -3,7 +3,6 @@
    * Cela permet de voir les nouveaux textes ajoutés
    */
   ionViewWillEnter() {
-    console.log('🔍 [SavedTextsList] Page devient visible, rechargement des données');
     this.loadTexts();
     this.loadGeneratedSessions();
   }

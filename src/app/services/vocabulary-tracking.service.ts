@@ -179,7 +179,6 @@ export class VocabularyTrackingService {
    */
   saveAllWords(words: WordMastery[]): void {
     try {
-      console.log('🔍 [VocabularyTracking] saveAllWords appelé avec', words.length, 'mots');
       
       // Trier par date de révision (du plus récent au plus ancien)
       words.sort((a, b) => b.lastReviewed - a.lastReviewed);
@@ -189,7 +188,6 @@ export class VocabularyTrackingService {
       
       // Sauvegarder dans le stockage
       this.storageService.set(this.STORAGE_KEY, limitedWords);
-      console.log('🔍 [VocabularyTracking] Mots sauvegardés dans le stockage');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des mots:', error);
     }

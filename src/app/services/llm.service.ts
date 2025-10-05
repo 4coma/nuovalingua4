@@ -477,7 +477,6 @@ export class LlmService {
           return JSON.parse(content) as T;
         } catch (error) {
           console.error('Erreur lors du parsing de la réponse JSON:', error);
-          console.log('Contenu reçu:', content);
           throw new Error('Format de réponse invalide');
         }
       })

@@ -126,27 +126,22 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     // Vérifie si le texte de compréhension est affiché
     if (!this.comprehensionText) return;
     const selection = window.getSelection();
-    console.log('[DEBUG] selectionchange event');
     if (!selection) {
-      console.log('[DEBUG] Pas de selection');
       this.selectedFragment = '';
       this.showTranslateButton = false;
       return;
     }
     if (selection.isCollapsed) {
-      console.log('[DEBUG] Selection is collapsed');
       this.selectedFragment = '';
       this.showTranslateButton = false;
       return;
     }
     const selectedText = selection.toString().trim();
-    console.log('[DEBUG] selectedText:', selectedText);
     if (selectedText.length > 0) {
       // Vérifie que la sélection est dans la div du texte
       const anchorNode = selection.anchorNode as HTMLElement;
       const focusNode = selection.focusNode as HTMLElement;
       const container = document.querySelector('.comprehension-text');
-      console.log('[DEBUG] anchorNode:', anchorNode, 'focusNode:', focusNode, 'container:', container);
       if (container && (container.contains(anchorNode) || container.contains(focusNode))) {
         this.selectedFragment = selectedText;
         // Calcule la position du bouton (fin de la sélection)
@@ -157,14 +152,11 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
           left: rect.right + window.scrollX - 40
         };
         this.showTranslateButton = true;
-        console.log('[DEBUG] Affichage du bouton Traduire à', this.translateButtonPosition);
       } else {
-        console.log('[DEBUG] Selection hors .comprehension-text');
         this.selectedFragment = '';
         this.showTranslateButton = false;
       }
     } else {
-      console.log('[DEBUG] Selection vide après trim');
       this.selectedFragment = '';
       this.showTranslateButton = false;
     }
@@ -302,7 +294,6 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
    * Gère un mot cliqué via la directive SafeHtmlDirective
    */
   onWordClicked(word: string): void {
-    console.log('Mot reçu de la directive:', word);
     this.getWordTranslation(word);
   }
 
@@ -578,9 +569,6 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
    * Sauvegarde le texte actuel
    */
   saveText() {
-    console.log('saveText() appelé');
-    console.log('comprehensionText:', this.comprehensionText);
-    console.log('sessionInfo:', this.sessionInfo);
     
     // Toast de test pour voir si le bouton est cliqué
     this.showSuccessToast('Bouton de sauvegarde cliqué !');
@@ -597,19 +585,16 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
       this.sessionInfo.category, 
       this.sessionInfo.topic
     )) {
-      console.log('Texte déjà sauvegardé');
       this.showErrorToast('Ce texte est déjà sauvegardé');
       return;
     }
 
-    console.log('Tentative de sauvegarde...');
     const success = this.savedTextsService.saveText(
       this.comprehensionText,
       this.sessionInfo.category,
       this.sessionInfo.topic
     );
 
-    console.log('Résultat de la sauvegarde:', success);
     if (success) {
       this.showSuccessToast('Texte sauvegardé avec succès !');
     } else {
@@ -658,13 +643,11 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
   private generateAudio() {
     if (!this.comprehensionText?.text) return;
     
-    console.log('🔍 ComprehensionExercise - Génération audio pour:', this.comprehensionText.text.substring(0, 50) + '...');
     
     this.isAudioLoading = true;
     
     this.speechService.generateSpeech(this.comprehensionText.text, 'nova', 0.9).subscribe({
       next: (audioUrl) => {
-        console.log('🔍 ComprehensionExercise - Audio généré avec succès:', audioUrl);
         this.audioUrl = audioUrl;
         this.isAudioLoading = false;
       },

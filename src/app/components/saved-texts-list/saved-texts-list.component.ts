@@ -61,7 +61,6 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
     
     // Écouter l'événement de sauvegarde de texte
     this.textSavedListener = () => {
-      console.log('🔍 [SavedTextsList] Événement text-saved reçu, rechargement de la liste');
       this.loadTexts();
     };
     window.addEventListener('text-saved', this.textSavedListener);
@@ -145,33 +144,26 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
     // Vérifie si la modale est ouverte et le texte affiché
     if (!this.selectedText) return;
     const selection = window.getSelection();
-    console.log('[DEBUG] selectionchange event');
     if (!selection) {
-      console.log('[DEBUG] Pas de selection');
       this.selectedFragment = '';
       return;
     }
     if (selection.isCollapsed) {
-      console.log('[DEBUG] Selection is collapsed');
       this.selectedFragment = '';
       return;
     }
     const selectedText = selection.toString().trim();
-    console.log('[DEBUG] selectedText:', selectedText);
     if (selectedText.length > 0) {
       // Vérifie que la sélection est dans la div du texte
       const anchorNode = selection.anchorNode as HTMLElement;
       const focusNode = selection.focusNode as HTMLElement;
       const container = document.querySelector('.comprehension-text');
-      console.log('[DEBUG] anchorNode:', anchorNode, 'focusNode:', focusNode, 'container:', container);
       if (container && (container.contains(anchorNode) || container.contains(focusNode))) {
         this.selectedFragment = selectedText;
       } else {
-        console.log('[DEBUG] Selection hors .comprehension-text');
         this.selectedFragment = '';
       }
     } else {
-      console.log('[DEBUG] Selection vide après trim');
       this.selectedFragment = '';
     }
   };
@@ -318,7 +310,6 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
       ).toPromise();
 
       // LOG: Session générée
-      console.log('[ASSO] Session générée:', session);
       if (session && session.wordPairs.length > 0) {
         // Sauvegarder la session dans le localStorage
         const sessions = JSON.parse(localStorage.getItem('associationSessions') || '[]');

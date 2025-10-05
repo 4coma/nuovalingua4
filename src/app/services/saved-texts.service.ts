@@ -13,15 +13,9 @@ export class SavedTextsService {
    * Sauvegarde un texte de compréhension
    */
   saveText(comprehensionText: ComprehensionText, category: string, topic: string, customTitle?: string): boolean {
-    console.log('SavedTextsService.saveText() appelé');
-    console.log('comprehensionText:', comprehensionText);
-    console.log('category:', category);
-    console.log('topic:', topic);
-    console.log('customTitle:', customTitle);
     
     try {
       const savedTexts = this.getAllTexts();
-      console.log('Textes déjà sauvegardés:', savedTexts.length);
       
       const newSavedText: SavedText = {
         id: this.generateId(),
@@ -38,12 +32,10 @@ export class SavedTextsService {
         isFavorite: false
       };
       
-      console.log('Nouveau texte à sauvegarder:', newSavedText);
       
       savedTexts.push(newSavedText);
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(savedTexts));
       
-      console.log('Sauvegarde réussie, total:', savedTexts.length);
       return true;
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du texte:', error);

@@ -105,7 +105,6 @@ export class AudioRecordingService {
    * Arrête l'enregistrement audio
    */
   stopRecording(): Promise<void> {
-    console.log('🔍 AudioRecordingService - stopRecording appelé');
     if (this.mediaRecorder && this.stateSubject.value.isRecording) {
       const recorder = this.mediaRecorder;
       return new Promise<void>((resolve) => {
@@ -114,10 +113,8 @@ export class AudioRecordingService {
           const originalOnStop = recorder.onstop;
           
           recorder.onstop = () => {
-            console.log('🔍 AudioRecordingService - mediaRecorder.onstop déclenché');
             this.audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
             this.audioUrl = URL.createObjectURL(this.audioBlob);
-            console.log('🔍 AudioRecordingService - audioBlob créé', this.audioBlob);
             this.updateState({ hasRecording: true, isRecording: false });
             this.stopStream();
             this.showToast('Enregistrement terminé');
@@ -131,7 +128,6 @@ export class AudioRecordingService {
           };
           
           recorder.stop();
-          console.log('🔍 AudioRecordingService - mediaRecorder.stop() appelé');
         } else {
           this.updateState({ isRecording: false });
           this.stopStream();
@@ -255,7 +251,6 @@ export class AudioRecordingService {
    * Obtient le blob de l'enregistrement
    */
   getAudioBlob(): Blob | null {
-    console.log('🔍 AudioRecordingService - getAudioBlob appelé, retourne:', this.audioBlob);
     return this.audioBlob;
   }
 

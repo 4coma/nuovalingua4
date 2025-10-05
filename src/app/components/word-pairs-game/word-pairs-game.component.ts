@@ -141,11 +141,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     const fullRevisionSessionId = localStorage.getItem('fullRevisionSessionId');
     const revisedWordsJson = localStorage.getItem('revisedWords');
     
-    console.log('🔍 [WordPairsGame] Chargement des données de session:');
-    console.log('🔍 [WordPairsGame] wordPairsJson:', wordPairsJson ? 'présent' : 'absent');
-    console.log('🔍 [WordPairsGame] sessionInfoJson:', sessionInfoJson ? 'présent' : 'absent');
-    console.log('🔍 [WordPairsGame] isPersonalRevision:', isPersonalRevision);
-    console.log('🔍 [WordPairsGame] revisedWordsJson:', revisedWordsJson ? 'présent' : 'absent');
     
     if (wordPairsJson && sessionInfoJson) {
       try {
@@ -166,39 +161,27 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         if (this.isPersonalDictionaryRevision) {
           const savedCount = localStorage.getItem('personalDictionaryWordsCount');
           this.maxPairsToReview = savedCount ? parseInt(savedCount) : 6;
-          console.log('🔍 [WordPairsGame] Nombre de paires à réviser:', this.maxPairsToReview);
           
           // Limiter les paires selon la configuration
           if (this.wordPairs.length > this.maxPairsToReview) {
             this.wordPairs = this.wordPairs.slice(0, this.maxPairsToReview);
-            console.log('🔍 [WordPairsGame] Paires limitées à:', this.maxPairsToReview);
           }
         }
         
         if (this.isFullRevisionSession) {
-          console.log('🔍 [WordPairsGame] Révision complète détectée. Nombre de paires:', this.wordPairs.length);
           this.fullRevisionService.assignQueuesFromWords();
         }
         
         // Charger les mots révisés si c'est une révision du dictionnaire personnel
         if (this.isPersonalDictionaryRevision && revisedWordsJson) {
           this.revisedWords = JSON.parse(revisedWordsJson);
-          console.log('🔍 [WordPairsGame] Mots révisés chargés:', this.revisedWords.length);
-          console.log('🔍 [WordPairsGame] Détail des mots révisés:', this.revisedWords);
         } else {
-          console.log('🔍 [WordPairsGame] Pas de mots révisés à charger');
-          console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision:', this.isPersonalDictionaryRevision);
-          console.log('🔍 [WordPairsGame] revisedWordsJson:', revisedWordsJson);
         }
         
         // Préparer le jeu
         this.totalPairs = this.wordPairs.length;
         this.setupCurrentGameRound();
         
-        console.log('🔍 [WordPairsGame] État final:');
-        console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision:', this.isPersonalDictionaryRevision);
-        console.log('🔍 [WordPairsGame] revisedWords.length:', this.revisedWords.length);
-        console.log('🔍 [WordPairsGame] gameComplete:', this.gameComplete);
         
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
@@ -226,7 +209,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Récupérer la clé API Google TTS depuis le StorageService
     this.googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
     if (!this.googleTtsApiKey && this.audioEnabled) {
-      console.log('❌ Aucune clé API Google TTS trouvée. Affichage de la modale d\'alerte.');
       await this.showApiKeyAlert();
       return;
     }
@@ -239,7 +221,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     const sessions = JSON.parse(localStorage.getItem('associationSessions') || '[]');
     this.generatedSessions = sessions;
     if (sessions.length > 0) {
-      console.log('Sessions générées disponibles:', sessions.length);
     }
   }
 
@@ -249,7 +230,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   checkForGeneratedSession() {
     const lastSessionId = localStorage.getItem('lastAssociationSessionId');
     if (lastSessionId) {
-      console.log('🔍 [WordPairsGame] Session générée détectée:', lastSessionId);
       this.loadGeneratedSession(lastSessionId);
       // Nettoyer l'ID pour éviter de recharger la même session
       localStorage.removeItem('lastAssociationSessionId');
@@ -302,7 +282,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Récupérer la clé API Google TTS depuis le StorageService
     this.googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
     if (!this.googleTtsApiKey && this.audioEnabled) {
-      console.log('❌ Aucune clé API Google TTS trouvée. Affichage de la modale d\'alerte.');
       await this.showApiKeyAlert();
       return;
     }
@@ -482,32 +461,23 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    */
   async playWordPronunciation(wordId: number, type: 'source' | 'target') {
     if (!this.audioEnabled) {
-      console.log('Prononciation désactivée. Ne pas jouer le mot.');
       return;
     }
 
     try {
-      console.log('=== DÉBUT playWordPronunciation ===');
-      console.log('wordId:', wordId);
-      console.log('type:', type);
       
       // Récupérer la paire de mots correspondante
       const wordPair = this.wordPairs[wordId];
-      console.log('wordPair trouvée:', wordPair);
       if (!wordPair) {
-        console.log('❌ Aucune wordPair trouvée pour wordId:', wordId);
         return;
       }
       
       // Déterminer le mot italien selon la direction de traduction
       const direction = this.sessionInfo?.translationDirection || 'fr2it';
       const italianWord = direction === 'fr2it' ? wordPair.it : wordPair.fr;
-      console.log('direction:', direction);
-      console.log('mot italien à prononcer:', italianWord);
       
       // Vérifier la clé API Google TTS
       if (!this.googleTtsApiKey) {
-        console.log('❌ Aucune clé API Google TTS trouvée. Affichage de la modale d\'alerte.');
         await this.showApiKeyAlert();
         return;
       }
@@ -517,18 +487,13 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         voice: { languageCode: 'it-IT', ssmlGender: "NEUTRAL" },
         audioConfig: { audioEncoding: "MP3" },
       };
-      console.log('request envoyé à l\'API:', request);
       
-      console.log('🔄 Envoi de la requête à l\'API Google TTS...');
       const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.googleTtsApiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),
       });
       
-      console.log('📡 Réponse reçue:', response);
-      console.log('Status:', response.status);
-      console.log('StatusText:', response.statusText);
       
       if (!response.ok) {
         console.error('❌ Erreur lors de la génération de l\'audio:', response.statusText);
@@ -538,9 +503,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       }
       
       const data = await response.json();
-      console.log('📦 Données reçues:', data);
-      console.log('audioContent présent:', !!data.audioContent);
-      console.log('Taille audioContent:', data.audioContent ? data.audioContent.length : 'null');
       
       const audioContent = data.audioContent;
       if (!audioContent) {
@@ -548,12 +510,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         return;
       }
       
-      console.log('🎵 Création de l\'élément audio...');
       const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
       
-      console.log('🔊 Tentative de lecture...');
       await audio.play();
-      console.log('✅ Lecture démarrée avec succès');
       
     } catch (error) {
       console.error('❌ Erreur lors de la prononciation:', error);
@@ -677,7 +636,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         if (sessionInfo) {
           localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
         }
-        console.log('🔍 [WordPairs] Exercice d\'encodage (full revision) préparé:', exercise);
       }
       this.fullRevisionService.setStage('encoding');
     } else if (this.wordPairs && this.wordPairs.length > 0 && this.sessionInfo) {
@@ -691,8 +649,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         topic: this.sessionInfo.topic || 'Général'
       };
       localStorage.setItem('vocabularyExercise', JSON.stringify(vocabularyExercise));
-      console.log('🔍 [WordPairs] Exercice d\'encodage préparé:', vocabularyExercise);
-      console.log('🔍 [WordPairs] Nombre d\'items:', vocabularyExercise.items.length);
     }
 
     this.router.navigate(['/vocabulary']);
@@ -819,9 +775,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           };
           localStorage.setItem('sessionInfo', JSON.stringify(sessionInfoWithThemes));
         }
-        console.log('generating speech now');
         this.speechService.generateSpeech(result.text, 'nova').subscribe(() => {
-          console.log('speech generated');
           this.isGenerating = false;
 
         });
@@ -886,14 +840,12 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    * Gère le changement de délai de révision pour un mot
    */
   onRevisionDelayChange(word: RevisedWord) {
-    console.log('Délai de révision changé pour:', word.sourceWord, '→', word.revisionDelay);
   }
 
   /**
    * Gère le changement de statut "connu" pour un mot
    */
   onKnownStatusChange(word: RevisedWord) {
-    console.log('Statut "connu" changé pour:', word.sourceWord, '→', word.isKnown);
   }
 
   /**
@@ -916,7 +868,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           const success = personalDictionaryService.setWordKnownStatus(word.id, word.isKnown);
           if (success) {
             knownCount++;
-            console.log(`Statut 'connu' sauvegardé pour ${word.sourceWord}: ${word.isKnown}`);
           }
         }
         
@@ -928,14 +879,12 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
             const success = personalDictionaryService.setMinRevisionDate(word.id, minRevisionDate);
             if (success) {
               savedCount++;
-              console.log(`Date de révision définie pour ${word.sourceWord}: ${new Date(minRevisionDate).toLocaleDateString()}`);
             }
           }
         }
       }
       
       if (savedCount > 0 || knownCount > 0) {
-        console.log(`🔍 [WordPairsGame] ${savedCount} délais de révision et ${knownCount} statuts 'connu' sauvegardés automatiquement`);
         
         // Vider la liste des mots révisés après sauvegarde
         this.revisedWords = [];
@@ -1025,17 +974,14 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   onPairsCountChange(event: any) {
     // Vérifier si l'utilisateur a déjà commencé à associer des paires
     if (this.matchedPairs > 0) {
-      console.log('🔍 [WordPairsGame] Changement bloqué: l\'utilisateur a déjà commencé l\'exercice');
       return;
     }
     
     // Convertir la valeur string en number
     const newValue = parseInt(event.detail.value);
-    console.log('🔍 [WordPairsGame] Nombre de paires changé:', newValue);
     
     // Valider la valeur
     if (newValue < 3 || newValue > 50) {
-      console.log('🔍 [WordPairsGame] Valeur invalide, retour à la valeur précédente');
       return;
     }
     
@@ -1061,8 +1007,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     
     // Si l'utilisateur demande plus de mots que disponibles, aller chercher plus dans le dictionnaire
     if (this.maxPairsToReview > revisedWords.length) {
-      console.log('🔍 [WordPairsGame] Demande de', this.maxPairsToReview, 'paires, mais seulement', revisedWords.length, 'disponibles');
-      console.log('🔍 [WordPairsGame] Récupération de plus de mots depuis le dictionnaire...');
       
       // Récupérer TOUS les mots du dictionnaire
       const allWords = this.personalDictionaryService.getAllWords();
@@ -1084,7 +1028,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           isKnown: word.isKnown || false
         }));
         
-        console.log('🔍 [WordPairsGame] Nouveaux mots récupérés:', revisedWords.length);
       }
     }
     
