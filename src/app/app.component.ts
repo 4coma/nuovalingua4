@@ -409,7 +409,7 @@ export class AppComponent {
   }
 
   /**
-   * Génère et lance une courte compréhension orale quotidienne
+   * Génère et lance une compréhension orale quotidienne avec les 10 derniers mots ajoutés
    */
   private async startDailyComprehension() {
     try {
@@ -425,7 +425,10 @@ export class AppComponent {
         return;
       }
 
-      const selected = this.shuffleArray(allWords).slice(0, 5);
+      // Trier les mots par date d'ajout (du plus récent au plus ancien) et prendre les 10 derniers ajoutés
+      const selected = [...allWords]
+        .sort((a, b) => b.dateAdded - a.dateAdded)
+        .slice(0, 10);
       const wordPairs = selected.map(w => ({
         it: w.sourceLang === 'it' ? w.sourceWord : w.targetWord,
         fr: w.sourceLang === 'fr' ? w.sourceWord : w.targetWord,
