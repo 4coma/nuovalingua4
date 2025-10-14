@@ -161,7 +161,8 @@ export class AddTextModalComponent implements OnInit {
       
     } catch (error) {
       console.error('🔍 [AddTextModal] Erreur lors de l\'extraction:', error);
-      await this.showToast(error.message || 'Erreur lors de l\'extraction du contenu');
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'extraction du contenu';
+      await this.showToast(errorMessage);
     } finally {
       this.isExtracting = false;
     }

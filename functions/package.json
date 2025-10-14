@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "firebase deploy --only functions",
-    "serve": "firebase emulators:start --only functions"
+    "serve": "firebase emulators:start --only functions",
+    "lint": "echo 'No linting configured'",
+    "build": "echo 'No build step required'"
   },
   "keywords": ["firebase", "functions", "content-extraction", "puppeteer"],
   "author": "NuovaLingua",
@@ -18,6 +20,6 @@
     "cheerio": "^1.0.0-rc.12"
   },
   "engines": {
-    "node": "18"
+    "node": "20"
   }
 }
