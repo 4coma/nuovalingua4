@@ -100,9 +100,9 @@ export class TextGeneratorService {
     const userLength = this.storageService.get('oralComprehensionLength') || 150;
     const targetLength = type === 'oral' ? userLength : 200; // Pour les textes écrits, on garde 200 mots
     
-    // Construire la partie thèmes si fournie
+    // Construire la partie thèmes/contexte si fournie
     const themesSection = themes && themes.length > 0 
-      ? `\nTHÈMES SPÉCIFIÉS: ${themes.join(', ')}\nLe texte doit être centré sur ces thèmes.`
+      ? `\n\nCONTEXTE ET CONSIGNES SPÉCIFIQUES:\n${themes.join('\n')}`
       : '';
     
     return `
@@ -115,17 +115,17 @@ export class TextGeneratorService {
       ${formattedPairs.join('\n')}${themesSection}
       
       Peux-tu créer un ${type === 'written' ? 'texte narratif' : 'dialogue'} original UNIQUEMENT EN ITALIEN d'environ ${targetLength} mots qui utilise tous ces mots italiens de manière naturelle?
-      Le texte doit être de niveau intermédiaire, facile à comprendre mais avec une structure correcte.
+      Le texte doit être de niveau intermédiaire, facile à comprendre mais avec une structure correcte.${themes && themes.length > 0 ? '\n      Respecte impérativement le contexte et les consignes spécifiques ci-dessus pour la création du texte.' : ''}
       
       De plus, génère 3 à 5 questions de compréhension en FRANÇAIS sur ce texte, qui permettent de vérifier si l'apprenant a bien compris le contenu.
       
       Important:
       - Utilise TOUS les mots italiens de la liste dans ton texte
       - Le texte DOIT être écrit INTÉGRALEMENT en italien (aucun mot ou phrase en français)
-      - Crée une histoire cohérente et intéressante${type === 'oral' ? ' sous forme de dialogue entre 2-3 personnes' : ''}
+      - Crée une histoire cohérente et intéressante${type === 'oral' ? ' sous forme de dialogue entre 2-3 personnes' : ''}${themes && themes.length > 0 ? ', en respectant parfaitement le contexte et les consignes spécifiques fournis' : ''}
       - Ne fais pas de liste, mais un texte narratif fluide
       - Ne mets PAS en évidence les mots, laisse-les intégrés naturellement dans le texte
-      - Les questions doivent être en français et porter sur la compréhension du texte${themes && themes.length > 0 ? '\n- Le texte doit être centré sur les thèmes spécifiés' : ''}
+      - Les questions doivent être en français et porter sur la compréhension du texte
       
       TRES IMPORTANT:
       - RETOURNE TA RÉPONSE SOUS FORME D'OBJET JSON AVEC LA STRUCTURE SUIVANTE:

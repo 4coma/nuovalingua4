@@ -303,6 +303,52 @@
     </ion-card-content>
   </ion-card>
 
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="bulb-outline" slot="start"></ion-icon>
+        Contextes personnalisés pour la compréhension quotidienne
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-text color="medium">
+        <p>Ajoutez des contextes ou scénarios pour guider la génération de la compréhension quotidienne. Un contexte sera sélectionné aléatoirement chaque jour.</p>
+      </ion-text>
+      
+      <div *ngFor="let theme of dailyComprehensionThemes; let i = index" class="theme-item">
+        <ion-item>
+          <ion-textarea 
+            [(ngModel)]="dailyComprehensionThemes[i]" 
+            placeholder="Ex: le texte doit être autour de deux personnes qui se disputent dans leur voiture sur un rond-point..."
+            rows="2"
+            class="theme-textarea">
+          </ion-textarea>
+          <ion-button 
+            fill="clear" 
+            color="danger" 
+            slot="end" 
+            (click)="removeDailyTheme(i)"
+            *ngIf="dailyComprehensionThemes.length > 1">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </div>
+      
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        color="primary" 
+        (click)="addDailyTheme()"
+        class="ion-margin-top">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Ajouter un contexte
+      </ion-button>
+      
+      <ion-text color="medium" class="ion-padding-top">
+        <p><small>Les contextes sont sauvegardés automatiquement. Si aucun contexte n'est défini, le texte sera généré sans consigne particulière.</small></p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
 
   <ion-card>
     <ion-card-header>

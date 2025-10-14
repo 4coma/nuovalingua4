@@ -50,6 +50,9 @@ export class PreferencesComponent implements OnInit {
   comprehensionNotificationsEnabled: boolean = false;
   comprehensionNotificationTime: string = '19:00';
   
+  // Thèmes personnalisés pour la compréhension quotidienne
+  dailyComprehensionThemes: string[] = [''];
+  
   constructor(
     private storageService: StorageService,
     private toastController: ToastController,
@@ -120,6 +123,17 @@ export class PreferencesComponent implements OnInit {
     const compSettings = this.notificationService.getComprehensionSettings();
     this.comprehensionNotificationsEnabled = compSettings.enabled;
     this.comprehensionNotificationTime = compSettings.time;
+    
+    // Charger les thèmes personnalisés pour la compréhension quotidienne
+    const savedThemes = this.storageService.get('dailyComprehensionThemes');
+    if (savedThemes) {
+      try {
+        const themes = JSON.parse(savedThemes);
+        this.dailyComprehensionThemes = themes.length > 0 ? themes : [''];
+      } catch (e) {
+        this.dailyComprehensionThemes = [''];
+      }
+    }
   }
 
   /**
@@ -200,6 +214,10 @@ export class PreferencesComponent implements OnInit {
     // Sauvegarder le nombre de mots pour la révision du dictionnaire personnel
     this.storageService.set('personalDictionaryWordsCount', this.personalDictionaryWordsCount);
     console.log('🔍 [Preferences] Sauvegarde personalDictionaryWordsCount:', this.personalDictionaryWordsCount);
+    
+    // Sauvegarder les thèmes personnalisés pour la compréhension quotidienne (filtrer les vides)
+    const validThemes = this.dailyComprehensionThemes.filter(t => t.trim() !== '');
+    this.storageService.set('dailyComprehensionThemes', JSON.stringify(validThemes));
 
     this.showToast('Préférences sauvegardées avec succès !');
   }
@@ -286,6 +304,22 @@ export class PreferencesComponent implements OnInit {
       position: 'bottom'
     });
     toast.present();
+  }
+
+  /**
+   * Ajoute un nouveau thème personnalisé pour la compréhension quotidienne
+   */
+  addDailyTheme() {
+    this.dailyComprehensionThemes.push('');
+  }
+
+  /**
+   * Supprime un thème personnalisé pour la compréhension quotidienne
+   */
+  removeDailyTheme(index: number) {
+    if (this.dailyComprehensionThemes.length > 1) {
+      this.dailyComprehensionThemes.splice(index, 1);
+    }
   }
 
   /**

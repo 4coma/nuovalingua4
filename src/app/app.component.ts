@@ -435,6 +435,24 @@ export class AppComponent {
         context: w.contextualMeaning
       }));
 
+      // Charger les thèmes personnalisés et en sélectionner un aléatoirement
+      const savedThemes = this.storageService.get('dailyComprehensionThemes');
+      let selectedContext: string[] | undefined;
+      
+      if (savedThemes) {
+        try {
+          const themes = JSON.parse(savedThemes);
+          const validThemes = themes.filter((t: string) => t.trim() !== '');
+          if (validThemes.length > 0) {
+            const randomIndex = Math.floor(Math.random() * validThemes.length);
+            selectedContext = [validThemes[randomIndex]];
+            console.log('🔍 [DailyComprehension] Contexte sélectionné:', validThemes[randomIndex]);
+          }
+        } catch (e) {
+          console.error('Erreur lors du chargement des thèmes personnalisés:', e);
+        }
+      }
+
       const sessionInfo = {
         category: 'Compréhension quotidienne',
         topic: 'Notification',
@@ -444,7 +462,7 @@ export class AppComponent {
 
       this.storageService.set('sessionInfo', sessionInfo);
 
-      this.textGeneratorService.generateComprehensionText(wordPairs, 'oral').subscribe({
+      this.textGeneratorService.generateComprehensionText(wordPairs, 'oral', selectedContext).subscribe({
         next: (result) => {
           localStorage.setItem('comprehensionText', JSON.stringify(result));
           this.router.navigate(['/comprehension']);
