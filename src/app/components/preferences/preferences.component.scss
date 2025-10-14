@@ -4,6 +4,11 @@ ion-card {
 
 ion-card-header {
   padding-bottom: 8px;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(var(--ion-color-primary-rgb), 0.05);
+  }
 }
 
 ion-card-title {
@@ -11,11 +16,17 @@ ion-card-title {
   align-items: center;
   font-size: 18px;
   font-weight: 600;
-}
-
-ion-card-title ion-icon {
-  margin-right: 8px;
-  color: var(--ion-color-primary);
+  
+  ion-icon:first-child {
+    margin-right: 8px;
+    color: var(--ion-color-primary);
+  }
+  
+  ion-icon:last-child {
+    margin-left: auto;
+    color: var(--ion-color-medium);
+    transition: transform 0.2s ease;
+  }
 }
 
 .api-key-input {

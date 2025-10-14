@@ -53,6 +53,19 @@ export class PreferencesComponent implements OnInit {
   // Thèmes personnalisés pour la compréhension quotidienne
   dailyComprehensionThemes: string[] = [''];
   
+  // État d'expansion des sections
+  expandedSections: { [key: string]: boolean } = {
+    openai: true,
+    comprehensionNotification: false,
+    googleTts: false,
+    firebase: false,
+    wordAssociations: false,
+    oralComprehension: false,
+    dailyThemes: false,
+    personalDictionary: false,
+    notifications: false
+  };
+  
   constructor(
     private storageService: StorageService,
     private toastController: ToastController,
@@ -304,6 +317,13 @@ export class PreferencesComponent implements OnInit {
       position: 'bottom'
     });
     toast.present();
+  }
+
+  /**
+   * Bascule l'état d'expansion d'une section
+   */
+  toggleSection(section: string) {
+    this.expandedSections[section] = !this.expandedSections[section];
   }
 
   /**

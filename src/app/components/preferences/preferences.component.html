@@ -11,13 +11,18 @@
 
 <ion-content class="ion-padding">
   <ion-card>
-    <ion-card-header>
+    <ion-card-header (click)="toggleSection('openai')" style="cursor: pointer;">
       <ion-card-title>
         <ion-icon name="key-outline" slot="start"></ion-icon>
         Clé API OpenAI
+        <ion-icon 
+          [name]="expandedSections['openai'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          slot="end" 
+          style="margin-left: auto;">
+        </ion-icon>
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content *ngIf="expandedSections['openai']">
       <ion-text color="medium">
         <p>Une clé API open AI est nécessaire pour la génération des textes de compréhension écrite et orale.</p>
       </ion-text>
@@ -50,13 +55,18 @@
   </ion-card>
 
   <ion-card>
-    <ion-card-header>
+    <ion-card-header (click)="toggleSection('comprehensionNotification')" style="cursor: pointer;">
       <ion-card-title>
         <ion-icon name="ear-outline" slot="start"></ion-icon>
         Notification compréhension orale
+        <ion-icon 
+          [name]="expandedSections['comprehensionNotification'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          slot="end" 
+          style="margin-left: auto;">
+        </ion-icon>
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content *ngIf="expandedSections['comprehensionNotification']">
       <ion-text color="medium">
         <p>Recevez chaque jour un court exercice de compréhension orale.</p>
       </ion-text>
@@ -74,13 +84,18 @@
   </ion-card>
 
   <ion-card>
-    <ion-card-header>
+    <ion-card-header (click)="toggleSection('googleTts')" style="cursor: pointer;">
       <ion-card-title>
         <ion-icon name="volume-high-outline" slot="start"></ion-icon>
         Clé API Google Text-to-Speech
+        <ion-icon 
+          [name]="expandedSections['googleTts'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          slot="end" 
+          style="margin-left: auto;">
+        </ion-icon>
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content *ngIf="expandedSections['googleTts']">
       <ion-text color="medium">
         <p>Entrez votre clé API Google Text-to-Speech pour activer la prononciation des mots italiens dans le jeu d'association.</p>
       </ion-text>
@@ -113,13 +128,18 @@
   </ion-card>
 
   <ion-card>
-    <ion-card-header>
+    <ion-card-header (click)="toggleSection('firebase')" style="cursor: pointer;">
       <ion-card-title>
         <ion-icon name="cloud-outline" slot="start"></ion-icon>
         Synchronisation Firebase
+        <ion-icon 
+          [name]="expandedSections['firebase'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          slot="end" 
+          style="margin-left: auto;">
+        </ion-icon>
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content *ngIf="expandedSections['firebase']">
       <ion-text color="medium">
         <p>Configurez Firebase pour synchroniser vos données (dictionnaire personnel, statistiques) entre vos appareils.</p>
       </ion-text>
@@ -244,13 +264,18 @@
   </ion-card>
 
   <ion-card>
-    <ion-card-header>
+    <ion-card-header (click)="toggleSection('wordAssociations')" style="cursor: pointer;">
       <ion-card-title>
         <ion-icon name="game-controller-outline" slot="start"></ion-icon>
         Nombre d'associations de mots
+        <ion-icon 
+          [name]="expandedSections['wordAssociations'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          slot="end" 
+          style="margin-left: auto;">
+        </ion-icon>
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content *ngIf="expandedSections['wordAssociations']">
       <ion-text color="medium">
         <p>Choisissez le nombre de paires de mots générées lors du démarrage d'une session d'apprentissage.</p>
       </ion-text>
@@ -274,13 +299,18 @@
   </ion-card>
 
   <ion-card>
-    <ion-card-header>
+    <ion-card-header (click)="toggleSection('oralComprehension')" style="cursor: pointer;">
       <ion-card-title>
         <ion-icon name="mic-outline" slot="start"></ion-icon>
         Longueur des compréhensions orales
+        <ion-icon 
+          [name]="expandedSections['oralComprehension'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          slot="end" 
+          style="margin-left: auto;">
+        </ion-icon>
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content *ngIf="expandedSections['oralComprehension']">
       <ion-text color="medium">
         <p>Définissez la longueur des textes générés pour les exercices de compréhension orale.</p>
       </ion-text>
@@ -304,13 +334,18 @@
   </ion-card>
 
   <ion-card>
-    <ion-card-header>
+    <ion-card-header (click)="toggleSection('dailyThemes')" style="cursor: pointer;">
       <ion-card-title>
         <ion-icon name="bulb-outline" slot="start"></ion-icon>
         Contextes personnalisés pour la compréhension quotidienne
+        <ion-icon 
+          [name]="expandedSections['dailyThemes'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          slot="end" 
+          style="margin-left: auto;">
+        </ion-icon>
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content *ngIf="expandedSections['dailyThemes']">
       <ion-text color="medium">
         <p>Ajoutez des contextes ou scénarios pour guider la génération de la compréhension quotidienne. Un contexte sera sélectionné aléatoirement chaque jour.</p>
       </ion-text>
@@ -351,13 +386,18 @@
   </ion-card>
 
   <ion-card>
-    <ion-card-header>
+    <ion-card-header (click)="toggleSection('personalDictionary')" style="cursor: pointer;">
       <ion-card-title>
         <ion-icon name="book-outline" slot="start"></ion-icon>
         Révision du dictionnaire personnel
+        <ion-icon 
+          [name]="expandedSections['personalDictionary'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          slot="end" 
+          style="margin-left: auto;">
+        </ion-icon>
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content *ngIf="expandedSections['personalDictionary']">
       <ion-text color="medium">
         <p>Définissez le nombre de mots sélectionnés aléatoirement lors de la révision de votre dictionnaire personnel.</p>
       </ion-text>
@@ -381,13 +421,18 @@
   </ion-card>
 
   <ion-card>
-    <ion-card-header>
+    <ion-card-header (click)="toggleSection('notifications')" style="cursor: pointer;">
       <ion-card-title>
         <ion-icon name="notifications-outline" slot="start"></ion-icon>
         Notifications quotidiennes
+        <ion-icon 
+          [name]="expandedSections['notifications'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          slot="end" 
+          style="margin-left: auto;">
+        </ion-icon>
       </ion-card-title>
     </ion-card-header>
-    <ion-card-content>
+    <ion-card-content *ngIf="expandedSections['notifications']">
       <ion-text color="medium">
         <p>Recevez une notification quotidienne pour vous rappeler de pratiquer votre italien.</p>
       </ion-text>
