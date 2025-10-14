@@ -1,0 +1,23 @@
+.availability {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.75rem 0;
+}
+
+.theme-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hint {
+  color: var(--ion-color-medium-shade);
+  font-size: 0.85rem;
+  margin: 0.75rem 0;
+}
+
+ion-chip[color="primary"] {
+  color: white;
+}
+

@@ -1,0 +1,72 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Révision personnalisée</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Préparer ta session</ion-card-title>
+      <ion-card-subtitle>Choisis combien de mots et les thèmes à réviser</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item lines="full">
+        <ion-label position="stacked">Nombre de mots</ion-label>
+        <ion-input
+          type="number"
+          min="{{ minWordCount }}"
+          max="{{ maxWordCount }}"
+          [(ngModel)]="wordCount"
+          inputmode="numeric"></ion-input>
+        <ion-note slot="helper">Entre {{ minWordCount }} et {{ maxWordCount }} mots</ion-note>
+      </ion-item>
+
+      <div class="availability">
+        <ion-chip color="medium">
+          <ion-label>{{ totalAvailableWords }} mots dans ton dictionnaire</ion-label>
+        </ion-chip>
+        <ion-chip color="primary">
+          <ion-label>{{ wordsMatchingSelection }} disponibles avec ta sélection</ion-label>
+        </ion-chip>
+      </div>
+
+      <ion-item lines="full">
+        <ion-label>Thèmes</ion-label>
+      </ion-item>
+
+      <p class="hint" *ngIf="availableThemes.length === 0">
+        Aucun thème détecté dans ton dictionnaire pour l'instant.
+      </p>
+
+      <div class="theme-grid" *ngIf="availableThemes.length > 0">
+        <ion-chip
+          *ngFor="let theme of availableThemes"
+          [color]="isThemeSelected(theme) ? 'primary' : 'medium'"
+          (click)="toggleTheme(theme)">
+          <ion-icon *ngIf="isThemeSelected(theme)" name="checkmark-circle" color="light"></ion-icon>
+          <ion-label>{{ theme }}</ion-label>
+        </ion-chip>
+      </div>
+
+      <p class="hint" *ngIf="selectedThemes.length === 0">
+        Aucun thème sélectionné - tous les mots seront pris en compte
+      </p>
+
+      <ion-button
+        expand="block"
+        color="tertiary"
+        class="ion-margin-top"
+        (click)="startPersonalRevision()"
+        [disabled]="isStarting">
+        <ion-spinner slot="start" *ngIf="isStarting"></ion-spinner>
+        Lancer la révision
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+

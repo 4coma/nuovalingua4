@@ -19,6 +19,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/full-revision-setup/full-revision-setup.component').then(m => m.FullRevisionSetupComponent)
   },
   {
+    path: 'personal-revision-setup',
+    loadComponent: () => import('./components/personal-revision-setup/personal-revision-setup.component').then(m => m.PersonalRevisionSetupComponent)
+  },
+  {
     path: 'vocabulary',
     loadComponent: () => import('./components/vocabulary-exercise/vocabulary-exercise.component').then(m => m.VocabularyExerciseComponent)
   },
