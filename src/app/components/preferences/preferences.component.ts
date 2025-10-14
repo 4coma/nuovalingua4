@@ -327,6 +327,13 @@ export class PreferencesComponent implements OnInit {
   }
 
   /**
+   * TrackBy function pour éviter le re-rendu des éléments de la liste
+   */
+  trackByIndex(index: number): number {
+    return index;
+  }
+
+  /**
    * Met à jour un thème personnalisé pour la compréhension quotidienne
    */
   updateDailyTheme(index: number, event: any) {

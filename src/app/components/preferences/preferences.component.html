@@ -350,7 +350,7 @@
         <p>Ajoutez des contextes ou scénarios pour guider la génération de la compréhension quotidienne. Un contexte sera sélectionné aléatoirement chaque jour.</p>
       </ion-text>
       
-      <div *ngFor="let theme of dailyComprehensionThemes; let i = index" class="theme-item">
+      <div *ngFor="let theme of dailyComprehensionThemes; let i = index; trackBy: trackByIndex" class="theme-item">
         <ion-item>
           <ion-textarea 
             [value]="dailyComprehensionThemes[i]"
