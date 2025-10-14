@@ -327,6 +327,13 @@ export class PreferencesComponent implements OnInit {
   }
 
   /**
+   * Met à jour un thème personnalisé pour la compréhension quotidienne
+   */
+  updateDailyTheme(index: number, event: any) {
+    this.dailyComprehensionThemes[index] = event.target.value;
+  }
+
+  /**
    * Ajoute un nouveau thème personnalisé pour la compréhension quotidienne
    */
   addDailyTheme() {

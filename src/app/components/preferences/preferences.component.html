@@ -353,7 +353,8 @@
       <div *ngFor="let theme of dailyComprehensionThemes; let i = index" class="theme-item">
         <ion-item>
           <ion-textarea 
-            [(ngModel)]="dailyComprehensionThemes[i]" 
+            [value]="dailyComprehensionThemes[i]"
+            (ionInput)="updateDailyTheme(i, $event)"
             placeholder="Ex: le texte doit être autour de deux personnes qui se disputent dans leur voiture sur un rond-point..."
             rows="2"
             class="theme-textarea">
