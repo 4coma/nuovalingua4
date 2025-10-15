@@ -1,2 +1,344 @@
-// For information on how to create your own theme, please see:
-// http://ionicframework.com/docs/theming/
+/**
+ * NuovaLingua - Design System Variables
+ * Version 2.0 - Design Moderne & Minimaliste
+ * 
+ * Ce fichier contient tous les tokens de design réutilisables dans l'application.
+ * Inspiré par Linear, Notion, Raycast et les meilleures pratiques modernes.
+ */
+
+:root {
+  /* ============================================
+     COULEURS - PALETTE PRINCIPALE
+     ============================================ */
+  
+  // Primaire - Actions principales, CTA
+  --ion-color-primary: #2563EB;
+  --ion-color-primary-rgb: 37, 99, 235;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #2156cf;
+  --ion-color-primary-tint: #3b73ed;
+
+  // Secondaire - Accentuation, états actifs
+  --ion-color-secondary: #7C3AED;
+  --ion-color-secondary-rgb: 124, 58, 237;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #6d33d1;
+  --ion-color-secondary-tint: #894eef;
+
+  // Tertiaire - Callouts, onboarding
+  --ion-color-tertiary: #F97316;
+  --ion-color-tertiary-rgb: 249, 115, 22;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #db6513;
+  --ion-color-tertiary-tint: #fa822d;
+
+  // Succès - Validations, feedback positif
+  --ion-color-success: #16A34A;
+  --ion-color-success-rgb: 22, 163, 74;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #138f41;
+  --ion-color-success-tint: #2dac5c;
+
+  // Avertissement - États intermédiaires
+  --ion-color-warning: #FACC15;
+  --ion-color-warning-rgb: 250, 204, 21;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: #dcb412;
+  --ion-color-warning-tint: #fbd12c;
+
+  // Danger - Erreurs, alertes
+  --ion-color-danger: #EF4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d23c3c;
+  --ion-color-danger-tint: #f15757;
+
+  // Medium - États neutres
+  --ion-color-medium: #667085;
+  --ion-color-medium-rgb: 102, 112, 133;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #5a6275;
+  --ion-color-medium-tint: #757f91;
+
+  // Light - Backgrounds clairs
+  --ion-color-light: #F7F9FC;
+  --ion-color-light-rgb: 247, 249, 252;
+  --ion-color-light-contrast: #000000;
+  --ion-color-light-contrast-rgb: 0, 0, 0;
+  --ion-color-light-shade: #d9dbde;
+  --ion-color-light-tint: #f8fafc;
+
+  // Dark - Textes sombres
+  --ion-color-dark: #101828;
+  --ion-color-dark-rgb: 16, 24, 40;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #0e1523;
+  --ion-color-dark-tint: #282f3e;
+
+  /* ============================================
+     COULEURS SÉMANTIQUES
+     ============================================ */
+  
+  // Backgrounds
+  --color-background: #F7F9FC;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F1F5F9;
+  --color-surface-inverse: #101828;
+  
+  // Bordures
+  --color-border-subtle: #E4E7EC;
+  --color-border-strong: #D0D5DD;
+  --color-border-focus: #2563EB;
+  
+  // Textes
+  --color-text-primary: #101828;
+  --color-text-secondary: #475467;
+  --color-text-muted: #667085;
+  --color-text-inverse: #F8FAFC;
+  
+  // Focus ring
+  --color-focus-ring: rgba(37, 99, 235, 0.3);
+
+  /* ============================================
+     TYPOGRAPHIE
+     ============================================ */
+  
+  // Familles de police
+  --ds-font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ds-font-family-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ds-font-family-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  
+  // Tailles de police
+  --ds-font-size-h1: 2rem;        // 32px
+  --ds-font-size-h2: 1.5rem;      // 24px
+  --ds-font-size-h3: 1.25rem;     // 20px
+  --ds-font-size-body-lg: 1.125rem; // 18px
+  --ds-font-size-body: 1rem;      // 16px
+  --ds-font-size-body-sm: 0.875rem; // 14px
+  --ds-font-size-caption: 0.75rem;  // 12px
+  
+  // Poids de police
+  --ds-font-weight-regular: 400;
+  --ds-font-weight-medium: 500;
+  --ds-font-weight-semibold: 600;
+  --ds-font-weight-bold: 700;
+  --ds-font-weight-extrabold: 800;
+  
+  // Line heights
+  --ds-line-height-tight: 1.2;
+  --ds-line-height-snug: 1.3;
+  --ds-line-height-normal: 1.5;
+  --ds-line-height-relaxed: 1.6;
+  --ds-line-height-loose: 1.8;
+
+  /* ============================================
+     ESPACEMENTS (Système 8px)
+     ============================================ */
+  
+  --ds-space-3xs: 4px;
+  --ds-space-xxs: 8px;
+  --ds-space-xs: 16px;
+  --ds-space-sm: 24px;
+  --ds-space-md: 32px;
+  --ds-space-lg: 40px;
+  --ds-space-xl: 48px;
+  --ds-space-xxl: 64px;
+  --ds-space-3xl: 96px;
+
+  /* ============================================
+     RAYONS DE BORDURE
+     ============================================ */
+  
+  --ds-radius-xs: 6px;
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 12px;
+  --ds-radius-lg: 16px;
+  --ds-radius-xl: 20px;
+  --ds-radius-2xl: 24px;
+  --ds-radius-full: 9999px;
+
+  /* ============================================
+     OMBRES MULTICOUCHES
+     ============================================ */
+  
+  // Ombres douces (repos)
+  --ds-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --ds-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04), 
+                  0 1px 2px rgba(0, 0, 0, 0.06);
+  
+  // Ombres moyennes (interactif)
+  --ds-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 
+                  0 2px 4px rgba(0, 0, 0, 0.08);
+  
+  // Ombres fortes (hover)
+  --ds-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08), 
+                  0 4px 8px rgba(0, 0, 0, 0.1);
+  
+  // Ombres élevées (modales, menus)
+  --ds-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12), 
+                  0 8px 16px rgba(0, 0, 0, 0.08);
+  
+  // Ombre glass
+  --ds-shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+
+  /* ============================================
+     TRANSITIONS & ANIMATIONS
+     ============================================ */
+  
+  // Durées
+  --ds-duration-fast: 150ms;
+  --ds-duration-base: 300ms;
+  --ds-duration-slow: 500ms;
+  
+  // Courbes d'animation (easing)
+  --ds-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ds-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ds-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ds-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  // Transitions complètes
+  --ds-transition-fast: all 200ms ease-out;
+  --ds-transition-base: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ds-transition-slow: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ds-transition-bounce: all 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ============================================
+     Z-INDEX
+     ============================================ */
+  
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+
+  /* ============================================
+     GRADIENTS MODERNES
+     ============================================ */
+  
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-accent: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --gradient-glass: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.95) 0%, 
+    rgba(255, 255, 255, 0.85) 100%);
+
+  /* ============================================
+     GLASSMORPHISM
+     ============================================ */
+  
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-blur: blur(20px);
+
+  /* ============================================
+     BREAKPOINTS (pour référence dans le code)
+     ============================================ */
+  
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    // Backgrounds inversés
+    --color-background: #0f1117;
+    --color-surface: rgba(30, 30, 45, 0.9);
+    --color-surface-subtle: rgba(40, 40, 55, 0.9);
+    --color-surface-inverse: #F8FAFC;
+    
+    // Bordures inversées
+    --color-border-subtle: rgba(255, 255, 255, 0.08);
+    --color-border-strong: rgba(255, 255, 255, 0.12);
+    
+    // Textes inversés
+    --color-text-primary: #F8FAFC;
+    --color-text-secondary: #CBD5E1;
+    --color-text-muted: #94A3B8;
+    --color-text-inverse: #101828;
+    
+    // Glass inversé
+    --glass-bg: rgba(20, 20, 30, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    
+    // Ionic colors (légèrement ajustés pour dark)
+    --ion-color-primary: #3B82F6;
+    --ion-color-light: #1e1e2e;
+    --ion-color-light-rgb: 30, 30, 46;
+    
+    // Background global
+    --ion-background-color: #0f1117;
+    --ion-text-color: #F8FAFC;
+  }
+  
+  // Ajustements pour les ombres en dark mode
+  body {
+    --ds-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3), 
+                    0 1px 2px rgba(0, 0, 0, 0.4);
+    --ds-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 
+                    0 2px 4px rgba(0, 0, 0, 0.5);
+    --ds-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5), 
+                    0 4px 8px rgba(0, 0, 0, 0.6);
+    --ds-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6), 
+                    0 8px 16px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ============================================
+   POLICE INTER (Import depuis Google Fonts)
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-font-size-body);
+  line-height: var(--ds-line-height-normal);
+  color: var(--color-text-primary);
+  background: var(--color-background);
+}
+
+// Amélioration de la performance des animations
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+// Respecter les préférences d'accessibilité
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

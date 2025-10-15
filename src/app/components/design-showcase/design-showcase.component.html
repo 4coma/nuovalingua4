@@ -1,0 +1,209 @@
+<ion-header class="showcase-header">
+  <ion-toolbar class="glass-toolbar">
+    <ion-title class="showcase-title">
+      <div class="title-wrapper">
+        <span class="title-main">Design Moderne</span>
+        <span class="title-subtitle">Principes & Composants</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleLoading()" class="icon-button">
+        <ion-icon [name]="isLoading ? 'pause' : 'refresh'" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="showcase-content">
+  <div class="showcase-container">
+    
+    <!-- Hero Section avec Glassmorphism -->
+    <section class="hero-section">
+      <div class="hero-glass-card">
+        <div class="hero-content">
+          <h1 class="hero-title">
+            Design System
+            <span class="gradient-text">Ultra-Moderne</span>
+          </h1>
+          <p class="hero-description">
+            Une interface minimaliste qui allie élégance, performance et expérience utilisateur exceptionnelle
+          </p>
+          <div class="hero-actions">
+            <ion-button class="primary-button" expand="block">
+              <ion-icon name="rocket-outline" slot="start"></ion-icon>
+              Commencer
+            </ion-button>
+            <ion-button class="secondary-button" fill="outline" expand="block">
+              <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+              En savoir plus
+            </ion-button>
+          </div>
+        </div>
+        <div class="hero-decoration"></div>
+      </div>
+    </section>
+
+    <!-- Stats Cards avec Micro-interactions -->
+    <section class="stats-section">
+      <h2 class="section-title">Vos statistiques</h2>
+      <div class="stats-grid">
+        <div 
+          *ngFor="let stat of statCards" 
+          class="stat-card"
+          [class.loading]="isLoading">
+          <div class="stat-icon" [style.--stat-color]="'var(--ion-color-' + stat.color + ')'">
+            <ion-icon [name]="stat.icon"></ion-icon>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" *ngIf="!isLoading">{{ stat.value }}</div>
+            <div class="skeleton-loader skeleton-value" *ngIf="isLoading"></div>
+            <div class="stat-label" *ngIf="!isLoading">{{ stat.label }}</div>
+            <div class="skeleton-loader skeleton-label" *ngIf="isLoading"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cards Interactives avec États Sophistiqués -->
+    <section class="cards-section">
+      <div class="section-header">
+        <h2 class="section-title">Activités récentes</h2>
+        <ion-chip class="status-chip">
+          <ion-icon name="flash-outline"></ion-icon>
+          <ion-label>{{ showcaseCards.length }} actives</ion-label>
+        </ion-chip>
+      </div>
+
+      <div class="cards-grid">
+        <div 
+          *ngFor="let card of showcaseCards" 
+          class="modern-card"
+          [class.selected]="selectedCard?.id === card.id"
+          [class.loading]="isLoading"
+          (click)="selectCard(card)">
+          
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="card-icon-wrapper" [style.--card-color]="'var(--ion-color-' + getStatusColor(card.status) + ')'">
+              <ion-icon [name]="card.icon"></ion-icon>
+            </div>
+            <div class="card-status">
+              <ion-badge [color]="getStatusColor(card.status)" class="status-badge">
+                <ion-icon [name]="getStatusIcon(card.status)"></ion-icon>
+                <span>{{ card.status }}</span>
+              </ion-badge>
+            </div>
+          </div>
+
+          <!-- Card Content -->
+          <div class="card-body">
+            <div class="card-title-group" *ngIf="!isLoading">
+              <h3 class="card-title">{{ card.title }}</h3>
+              <p class="card-subtitle">{{ card.subtitle }}</p>
+            </div>
+            <div *ngIf="isLoading">
+              <div class="skeleton-loader skeleton-title"></div>
+              <div class="skeleton-loader skeleton-subtitle"></div>
+            </div>
+
+            <p class="card-description" *ngIf="!isLoading">{{ card.description }}</p>
+            <div class="skeleton-loader skeleton-description" *ngIf="isLoading"></div>
+
+            <!-- Progress Bar -->
+            <div class="progress-wrapper" *ngIf="card.progress !== undefined && !isLoading">
+              <div class="progress-header">
+                <span class="progress-label">Progression</span>
+                <span class="progress-value">{{ card.progress }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div 
+                  class="progress-fill" 
+                  [style.--progress]="card.progress + '%'"
+                  [style.--progress-color]="'var(--ion-color-' + getStatusColor(card.status) + ')'">
+                </div>
+              </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="card-tags" *ngIf="card.tags && !isLoading">
+              <ion-chip *ngFor="let tag of card.tags" class="tag-chip">
+                {{ tag }}
+              </ion-chip>
+            </div>
+          </div>
+
+          <!-- Card Actions (visible on hover/selection) -->
+          <div class="card-actions">
+            <ion-button size="small" fill="clear" class="action-button">
+              <ion-icon name="play-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button size="small" fill="clear" class="action-button">
+              <ion-icon name="share-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button size="small" fill="clear" class="action-button">
+              <ion-icon name="ellipsis-horizontal" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Design Principles Section -->
+    <section class="principles-section">
+      <h2 class="section-title">Principes appliqués</h2>
+      <div class="principles-grid">
+        <div class="principle-item">
+          <div class="principle-icon">
+            <ion-icon name="color-palette-outline"></ion-icon>
+          </div>
+          <h4>Glassmorphism</h4>
+          <p>Effets de verre avec transparence et flou d'arrière-plan</p>
+        </div>
+        <div class="principle-item">
+          <div class="principle-icon">
+            <ion-icon name="flash-outline"></ion-icon>
+          </div>
+          <h4>Micro-interactions</h4>
+          <p>Animations fluides et feedback visuel instantané</p>
+        </div>
+        <div class="principle-item">
+          <div class="principle-icon">
+            <ion-icon name="expand-outline"></ion-icon>
+          </div>
+          <h4>Espace généreux</h4>
+          <p>Respiration visuelle pour une lecture optimale</p>
+        </div>
+        <div class="principle-item">
+          <div class="principle-icon">
+            <ion-icon name="layers-outline"></ion-icon>
+          </div>
+          <h4>Hiérarchie claire</h4>
+          <p>Typographie progressive et contraste maîtrisé</p>
+        </div>
+        <div class="principle-item">
+          <div class="principle-icon">
+            <ion-icon name="git-branch-outline"></ion-icon>
+          </div>
+          <h4>Gradients subtils</h4>
+          <p>Profondeur et dimension sans surcharge</p>
+        </div>
+        <div class="principle-item">
+          <div class="principle-icon">
+            <ion-icon name="cube-outline"></ion-icon>
+          </div>
+          <h4>Ombres multicouches</h4>
+          <p>Élévation réaliste et matérialité</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="showcase-footer">
+      <p class="footer-text">
+        Design System NuovaLingua · Version 2.0
+      </p>
+    </footer>
+
+  </div>
+</ion-content>
+

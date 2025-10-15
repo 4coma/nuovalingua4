@@ -75,6 +75,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/discussion-active/discussion-active.component').then(m => m.DiscussionActiveComponent)
   },
   {
+    path: 'design-showcase',
+    loadComponent: () => import('./components/design-showcase/design-showcase.component').then(m => m.DesignShowcaseComponent)
+  },
+  {
     path: '**',
     redirectTo: '/home'
   }
