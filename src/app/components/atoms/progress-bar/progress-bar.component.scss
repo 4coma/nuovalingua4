@@ -1,0 +1,128 @@
+/**
+ * Modern Progress Bar Component
+ * Styles basés sur le design-showcase
+ */
+
+.progress-wrapper {
+  width: 100%;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  font-size: 0.75rem;
+  font-weight: var(--ds-font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.progress-value {
+  font-size: 0.875rem;
+  font-weight: var(--ds-font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.modern-progress {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: var(--ds-radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: var(--ds-radius-full);
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+// Shimmer effect
+.modern-progress--shimmer .progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.3) 50%, 
+    transparent 100%
+  );
+  animation: shimmer-progress 2s infinite;
+}
+
+@keyframes shimmer-progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+// Colors
+.modern-progress--primary .progress-fill {
+  background: linear-gradient(
+    90deg, 
+    var(--ion-color-primary) 0%, 
+    color-mix(in srgb, var(--ion-color-primary) 70%, white) 100%
+  );
+}
+
+.modern-progress--secondary .progress-fill {
+  background: linear-gradient(
+    90deg, 
+    var(--ion-color-secondary) 0%, 
+    color-mix(in srgb, var(--ion-color-secondary) 70%, white) 100%
+  );
+}
+
+.modern-progress--success .progress-fill {
+  background: linear-gradient(
+    90deg, 
+    var(--ion-color-success) 0%, 
+    color-mix(in srgb, var(--ion-color-success) 70%, white) 100%
+  );
+}
+
+.modern-progress--warning .progress-fill {
+  background: linear-gradient(
+    90deg, 
+    var(--ion-color-warning) 0%, 
+    color-mix(in srgb, var(--ion-color-warning) 70%, white) 100%
+  );
+}
+
+.modern-progress--danger .progress-fill {
+  background: linear-gradient(
+    90deg, 
+    var(--ion-color-danger) 0%, 
+    color-mix(in srgb, var(--ion-color-danger) 70%, white) 100%
+  );
+}
+
+// Sizes
+.modern-progress--small {
+  height: 4px;
+}
+
+.modern-progress--medium {
+  height: 8px;
+}
+
+.modern-progress--large {
+  height: 12px;
+}
+
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  .modern-progress {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+

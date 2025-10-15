@@ -1,0 +1,46 @@
+/**
+ * Modern Empty State Component
+ * Styles basés sur le design-showcase
+ */
+
+.empty-state {
+  text-align: center;
+  padding: var(--ds-space-3xl) var(--ds-space-md);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.empty-state-icon {
+  margin: 0 auto var(--ds-space-lg);
+  opacity: 0.6;
+  
+  ::ng-deep .icon-wrapper {
+    width: 80px;
+    height: 80px;
+    
+    ion-icon {
+      font-size: 40px;
+    }
+  }
+}
+
+.empty-state-title {
+  font-size: var(--ds-font-size-h2);
+  font-weight: var(--ds-font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--ds-space-xxs);
+  line-height: var(--ds-line-height-tight);
+}
+
+.empty-state-description {
+  font-size: var(--ds-font-size-body);
+  color: var(--color-text-secondary);
+  line-height: var(--ds-line-height-relaxed);
+  margin: 0 auto var(--ds-space-lg);
+  max-width: 400px;
+}
+
+.empty-state-action {
+  margin: 0 auto;
+}
+

@@ -1,0 +1,5 @@
+<div [class]="badgeClasses">
+  <ion-icon *ngIf="icon" [name]="icon"></ion-icon>
+  <span *ngIf="!iconOnly"><ng-content></ng-content></span>
+</div>
+

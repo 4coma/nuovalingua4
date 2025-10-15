@@ -79,6 +79,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/design-showcase/design-showcase.component').then(m => m.DesignShowcaseComponent)
   },
   {
+    path: 'atoms-showcase',
+    loadComponent: () => import('./components/atoms-showcase/atoms-showcase.component').then(m => m.AtomsShowcaseComponent)
+  },
+  {
     path: '**',
     redirectTo: '/home'
   }

@@ -1,0 +1,14 @@
+<div class="progress-wrapper">
+  <div class="progress-header" *ngIf="showLabel || showPercentage">
+    <span class="progress-label" *ngIf="showLabel && label">{{ label }}</span>
+    <span class="progress-value" *ngIf="showPercentage">{{ percentage.toFixed(0) }}%</span>
+  </div>
+  
+  <div [class]="progressClasses">
+    <div 
+      class="progress-fill" 
+      [style.width.%]="percentage">
+    </div>
+  </div>
+</div>
+

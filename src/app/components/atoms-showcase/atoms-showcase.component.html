@@ -1,0 +1,263 @@
+<ion-header class="showcase-header">
+  <ion-toolbar>
+    <ion-title>Bibliothèque de Composants Atomiques</ion-title>
+    <ion-buttons slot="end">
+      <app-button variant="ghost" icon="refresh-outline" (clicked)="toggleLoading()">
+        {{ isLoading ? 'Stop' : 'Test Loading' }}
+      </app-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="showcase-container">
+
+    <!-- Section: Buttons -->
+    <section class="showcase-section">
+      <h2 class="section-title">Buttons</h2>
+      <div class="component-grid">
+        <div class="component-demo">
+          <h4>Variants</h4>
+          <div class="demo-group">
+            <app-button variant="primary">Primary</app-button>
+            <app-button variant="secondary">Secondary</app-button>
+            <app-button variant="outline">Outline</app-button>
+            <app-button variant="ghost">Ghost</app-button>
+            <app-button variant="danger">Danger</app-button>
+          </div>
+        </div>
+
+        <div class="component-demo">
+          <h4>With Icons</h4>
+          <div class="demo-group">
+            <app-button variant="primary" icon="add-outline">Add Item</app-button>
+            <app-button variant="secondary" icon="download-outline">Download</app-button>
+            <app-button variant="outline" icon="share-outline" iconSlot="end">Share</app-button>
+          </div>
+        </div>
+
+        <div class="component-demo">
+          <h4>Sizes & States</h4>
+          <div class="demo-group">
+            <app-button variant="primary" size="small">Small</app-button>
+            <app-button variant="primary" size="medium">Medium</app-button>
+            <app-button variant="primary" size="large">Large</app-button>
+            <app-button variant="primary" [disabled]="true">Disabled</app-button>
+            <app-button variant="primary" [loading]="isLoading">Loading</app-button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Cards -->
+    <section class="showcase-section">
+      <h2 class="section-title">Cards</h2>
+      <div class="cards-grid">
+        <app-card variant="default" [interactive]="true" [selected]="selectedCard === 'card1'" (cardClick)="selectCard('card1')">
+          <div class="card-content">
+            <app-icon-wrapper icon="book-outline" color="primary" size="medium"></app-icon-wrapper>
+            <h3>Card Default</h3>
+            <p>Card interactive avec sélection</p>
+          </div>
+        </app-card>
+
+        <app-card variant="glass" padding="large">
+          <div class="card-content">
+            <app-icon-wrapper icon="flash-outline" color="secondary" size="medium"></app-icon-wrapper>
+            <h3>Card Glass</h3>
+            <p>Effet glassmorphism</p>
+          </div>
+        </app-card>
+
+        <app-card variant="elevated" [loading]="isLoading">
+          <div class="card-content" *ngIf="!isLoading">
+            <app-icon-wrapper icon="star-outline" color="success" size="medium"></app-icon-wrapper>
+            <h3>Card Elevated</h3>
+            <p>Ombre plus prononcée</p>
+          </div>
+          <div class="card-content" *ngIf="isLoading">
+            <app-skeleton-loader type="circle"></app-skeleton-loader>
+            <app-skeleton-loader type="title"></app-skeleton-loader>
+            <app-skeleton-loader type="text"></app-skeleton-loader>
+          </div>
+        </app-card>
+
+        <app-card variant="outlined" padding="medium">
+          <div class="card-content">
+            <app-icon-wrapper icon="heart-outline" color="danger" size="medium"></app-icon-wrapper>
+            <h3>Card Outlined</h3>
+            <p>Bordure sans ombre</p>
+          </div>
+        </app-card>
+      </div>
+    </section>
+
+    <!-- Section: Badges -->
+    <section class="showcase-section">
+      <h2 class="section-title">Badges</h2>
+      <div class="component-grid">
+        <div class="component-demo">
+          <h4>Colors</h4>
+          <div class="demo-group demo-group--wrap">
+            <app-badge color="primary">Primary</app-badge>
+            <app-badge color="secondary">Secondary</app-badge>
+            <app-badge color="success">Success</app-badge>
+            <app-badge color="warning">Warning</app-badge>
+            <app-badge color="danger">Danger</app-badge>
+            <app-badge color="medium">Medium</app-badge>
+          </div>
+        </div>
+
+        <div class="component-demo">
+          <h4>With Icons</h4>
+          <div class="demo-group demo-group--wrap">
+            <app-badge color="primary" icon="checkmark-circle">Completed</app-badge>
+            <app-badge color="warning" icon="time">Pending</app-badge>
+            <app-badge color="success" icon="trending-up">Active</app-badge>
+          </div>
+        </div>
+
+        <div class="component-demo">
+          <h4>Sizes & Variants</h4>
+          <div class="demo-group demo-group--wrap">
+            <app-badge size="small" color="primary">Small</app-badge>
+            <app-badge size="medium" color="primary">Medium</app-badge>
+            <app-badge size="large" color="primary">Large</app-badge>
+            <app-badge color="primary" [outlined]="true">Outlined</app-badge>
+            <app-badge color="primary" icon="star" [iconOnly]="true"></app-badge>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Progress Bars -->
+    <section class="showcase-section">
+      <h2 class="section-title">Progress Bars</h2>
+      <div class="component-grid">
+        <div class="component-demo component-demo--full">
+          <h4>Colors & Labels</h4>
+          <div class="demo-stack">
+            <app-progress-bar [value]="progressValue" color="primary" [showLabel]="true" [showPercentage]="true" label="Primary Progress"></app-progress-bar>
+            <app-progress-bar [value]="85" color="success" [showLabel]="true" [showPercentage]="true" label="Success"></app-progress-bar>
+            <app-progress-bar [value]="45" color="warning" [showLabel]="true" [showPercentage]="true" label="Warning"></app-progress-bar>
+            <app-progress-bar [value]="30" color="danger" [showLabel]="true" [showPercentage]="true" label="Danger"></app-progress-bar>
+          </div>
+        </div>
+
+        <div class="component-demo component-demo--full">
+          <h4>Sizes</h4>
+          <div class="demo-stack">
+            <app-progress-bar [value]="65" size="small" color="primary"></app-progress-bar>
+            <app-progress-bar [value]="65" size="medium" color="primary"></app-progress-bar>
+            <app-progress-bar [value]="65" size="large" color="primary"></app-progress-bar>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Icon Wrappers -->
+    <section class="showcase-section">
+      <h2 class="section-title">Icon Wrappers</h2>
+      <div class="component-grid">
+        <div class="component-demo">
+          <h4>Solid (Gradient)</h4>
+          <div class="demo-group">
+            <app-icon-wrapper icon="rocket-outline" color="primary" variant="solid" size="large"></app-icon-wrapper>
+            <app-icon-wrapper icon="flash-outline" color="secondary" variant="solid" size="large"></app-icon-wrapper>
+            <app-icon-wrapper icon="checkmark-circle" color="success" variant="solid" size="large"></app-icon-wrapper>
+          </div>
+        </div>
+
+        <div class="component-demo">
+          <h4>Soft (Background)</h4>
+          <div class="demo-group">
+            <app-icon-wrapper icon="heart" color="danger" variant="soft" size="large"></app-icon-wrapper>
+            <app-icon-wrapper icon="star" color="warning" variant="soft" size="large"></app-icon-wrapper>
+            <app-icon-wrapper icon="bulb" color="primary" variant="soft" size="large"></app-icon-wrapper>
+          </div>
+        </div>
+
+        <div class="component-demo">
+          <h4>Outlined & Interactive</h4>
+          <div class="demo-group">
+            <app-icon-wrapper icon="share-social" color="primary" variant="outlined" size="large"></app-icon-wrapper>
+            <app-icon-wrapper icon="download" color="secondary" variant="outlined" size="large"></app-icon-wrapper>
+            <app-icon-wrapper icon="settings" color="medium" variant="soft" size="large" [interactive]="true"></app-icon-wrapper>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Skeleton Loaders -->
+    <section class="showcase-section">
+      <h2 class="section-title">Skeleton Loaders</h2>
+      <div class="component-grid">
+        <div class="component-demo component-demo--full">
+          <h4>Text Types</h4>
+          <div class="demo-stack">
+            <app-skeleton-loader type="title"></app-skeleton-loader>
+            <app-skeleton-loader type="subtitle"></app-skeleton-loader>
+            <app-skeleton-loader type="text"></app-skeleton-loader>
+            <app-skeleton-loader type="text"></app-skeleton-loader>
+          </div>
+        </div>
+
+        <div class="component-demo">
+          <h4>Shapes</h4>
+          <div class="demo-group">
+            <app-skeleton-loader type="circle"></app-skeleton-loader>
+            <div style="flex: 1;">
+              <app-skeleton-loader type="title"></app-skeleton-loader>
+              <app-skeleton-loader type="subtitle"></app-skeleton-loader>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-demo component-demo--full">
+          <h4>Custom Sizes</h4>
+          <app-skeleton-loader type="custom" width="200px" height="120px"></app-skeleton-loader>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Empty State -->
+    <section class="showcase-section">
+      <h2 class="section-title">Empty State</h2>
+      <app-card variant="outlined">
+        <app-empty-state
+          icon="folder-open-outline"
+          title="Aucun fichier"
+          description="Vous n'avez pas encore ajouté de fichiers. Commencez par importer votre premier document."
+          [showAction]="true"
+          actionLabel="Importer un fichier"
+          actionIcon="add-outline"
+          (action)="onActionClick()">
+        </app-empty-state>
+      </app-card>
+    </section>
+
+    <!-- Usage Guide -->
+    <section class="showcase-section">
+      <h2 class="section-title">Comment Utiliser</h2>
+      <app-card variant="glass" padding="large">
+        <div class="usage-guide">
+          <h3>Import</h3>
+          <pre><code>import {{ '{' }} ButtonComponent {{ '}' }} from '@app/components/atoms';</code></pre>
+          
+          <h3>Template</h3>
+          <pre><code>&lt;app-button variant="primary" icon="add-outline"&gt;
+  Ajouter
+&lt;/app-button&gt;</code></pre>
+          
+          <h3>Tous les composants sont standalone</h3>
+          <p>Ajoutez-les simplement dans le tableau <code>imports</code> de votre composant.</p>
+          
+          <h3>Documentation complète</h3>
+          <p>Consultez <code>/src/app/components/atoms/README.md</code> pour plus de détails.</p>
+        </div>
+      </app-card>
+    </section>
+
+  </div>
+</ion-content>
+

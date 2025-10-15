@@ -1,0 +1,196 @@
+/**
+ * Modern Icon Wrapper Component
+ * Styles basés sur le design-showcase
+ */
+
+.icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ds-radius-md);
+  transition: var(--ds-transition-bounce);
+  flex-shrink: 0;
+  
+  ion-icon {
+    color: white;
+  }
+}
+
+// Variants
+.icon-wrapper--solid {
+  // Gradient background par défaut
+  
+  &.icon-wrapper--primary {
+    background: linear-gradient(
+      135deg, 
+      var(--ion-color-primary) 0%, 
+      color-mix(in srgb, var(--ion-color-primary) 70%, black) 100%
+    );
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--ion-color-primary) 30%, transparent);
+  }
+  
+  &.icon-wrapper--secondary {
+    background: linear-gradient(
+      135deg, 
+      var(--ion-color-secondary) 0%, 
+      color-mix(in srgb, var(--ion-color-secondary) 70%, black) 100%
+    );
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--ion-color-secondary) 30%, transparent);
+  }
+  
+  &.icon-wrapper--success {
+    background: linear-gradient(
+      135deg, 
+      var(--ion-color-success) 0%, 
+      color-mix(in srgb, var(--ion-color-success) 70%, black) 100%
+    );
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--ion-color-success) 30%, transparent);
+  }
+  
+  &.icon-wrapper--warning {
+    background: linear-gradient(
+      135deg, 
+      var(--ion-color-warning) 0%, 
+      color-mix(in srgb, var(--ion-color-warning) 70%, black) 100%
+    );
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--ion-color-warning) 30%, transparent);
+  }
+  
+  &.icon-wrapper--danger {
+    background: linear-gradient(
+      135deg, 
+      var(--ion-color-danger) 0%, 
+      color-mix(in srgb, var(--ion-color-danger) 70%, black) 100%
+    );
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--ion-color-danger) 30%, transparent);
+  }
+  
+  &.icon-wrapper--medium {
+    background: linear-gradient(
+      135deg, 
+      var(--ion-color-medium) 0%, 
+      color-mix(in srgb, var(--ion-color-medium) 70%, black) 100%
+    );
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--ion-color-medium) 30%, transparent);
+  }
+}
+
+.icon-wrapper--soft {
+  box-shadow: none;
+  
+  &.icon-wrapper--primary {
+    background: rgba(var(--ion-color-primary-rgb), 0.12);
+    ion-icon { color: var(--ion-color-primary); }
+  }
+  
+  &.icon-wrapper--secondary {
+    background: rgba(var(--ion-color-secondary-rgb), 0.12);
+    ion-icon { color: var(--ion-color-secondary); }
+  }
+  
+  &.icon-wrapper--success {
+    background: rgba(var(--ion-color-success-rgb), 0.12);
+    ion-icon { color: var(--ion-color-success); }
+  }
+  
+  &.icon-wrapper--warning {
+    background: rgba(var(--ion-color-warning-rgb), 0.12);
+    ion-icon { color: var(--ion-color-warning); }
+  }
+  
+  &.icon-wrapper--danger {
+    background: rgba(var(--ion-color-danger-rgb), 0.12);
+    ion-icon { color: var(--ion-color-danger); }
+  }
+  
+  &.icon-wrapper--medium {
+    background: rgba(var(--ion-color-medium-rgb), 0.12);
+    ion-icon { color: var(--ion-color-medium); }
+  }
+}
+
+.icon-wrapper--outlined {
+  background: transparent;
+  box-shadow: none;
+  
+  &.icon-wrapper--primary {
+    border: 2px solid var(--ion-color-primary);
+    ion-icon { color: var(--ion-color-primary); }
+  }
+  
+  &.icon-wrapper--secondary {
+    border: 2px solid var(--ion-color-secondary);
+    ion-icon { color: var(--ion-color-secondary); }
+  }
+  
+  &.icon-wrapper--success {
+    border: 2px solid var(--ion-color-success);
+    ion-icon { color: var(--ion-color-success); }
+  }
+  
+  &.icon-wrapper--warning {
+    border: 2px solid var(--ion-color-warning);
+    ion-icon { color: var(--ion-color-warning); }
+  }
+  
+  &.icon-wrapper--danger {
+    border: 2px solid var(--ion-color-danger);
+    ion-icon { color: var(--ion-color-danger); }
+  }
+  
+  &.icon-wrapper--medium {
+    border: 2px solid var(--ion-color-medium);
+    ion-icon { color: var(--ion-color-medium); }
+  }
+}
+
+// Sizes
+.icon-wrapper--small {
+  width: 32px;
+  height: 32px;
+  
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+.icon-wrapper--medium {
+  width: 48px;
+  height: 48px;
+  
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.icon-wrapper--large {
+  width: 64px;
+  height: 64px;
+  
+  ion-icon {
+    font-size: 32px;
+  }
+}
+
+.icon-wrapper--xlarge {
+  width: 80px;
+  height: 80px;
+  
+  ion-icon {
+    font-size: 40px;
+  }
+}
+
+// Interactive state
+.icon-wrapper--interactive {
+  cursor: pointer;
+  
+  &:hover {
+    transform: scale(1.1) rotate(5deg);
+  }
+  
+  &:active {
+    transform: scale(1.05) rotate(2deg);
+  }
+}
+

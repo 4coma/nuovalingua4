@@ -1,0 +1,22 @@
+<div class="empty-state">
+  <app-icon-wrapper 
+    [icon]="icon" 
+    size="xlarge" 
+    variant="soft" 
+    color="primary"
+    class="empty-state-icon">
+  </app-icon-wrapper>
+  
+  <h3 class="empty-state-title">{{ title }}</h3>
+  <p class="empty-state-description">{{ description }}</p>
+  
+  <app-button 
+    *ngIf="showAction && actionLabel"
+    variant="primary"
+    [icon]="actionIcon"
+    (clicked)="onAction()"
+    class="empty-state-action">
+    {{ actionLabel }}
+  </app-button>
+</div>
+

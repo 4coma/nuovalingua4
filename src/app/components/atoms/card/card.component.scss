@@ -1,0 +1,131 @@
+/**
+ * Modern Card Component
+ * Styles basés sur le design-showcase
+ */
+
+:host {
+  display: block;
+}
+
+.card-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.modern-card {
+  background: var(--color-surface);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-sm);
+  border: 1px solid var(--color-border-subtle);
+  transition: var(--ds-transition-base);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+    opacity: 0;
+    transition: var(--ds-transition-base);
+  }
+}
+
+// Variants
+.modern-card--default {
+  // Style par défaut déjà défini ci-dessus
+}
+
+.modern-card--glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--ds-shadow-glass);
+}
+
+.modern-card--elevated {
+  box-shadow: var(--ds-shadow-md);
+}
+
+.modern-card--outlined {
+  box-shadow: none;
+  border: 2px solid var(--color-border-strong);
+}
+
+// Interactive state
+.modern-card--interactive {
+  cursor: pointer;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--ds-shadow-md);
+    
+    &::before {
+      opacity: 1;
+    }
+  }
+  
+  &:active {
+    transform: translateY(-2px);
+  }
+}
+
+// Selected state
+.modern-card--selected {
+  border-color: var(--ion-color-primary);
+  box-shadow: 0 0 0 2px var(--ion-color-primary), var(--ds-shadow-md);
+  
+  &::before {
+    opacity: 1;
+  }
+}
+
+// Loading state
+.modern-card--loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+// Padding variants
+.modern-card--padding-none {
+  .card-container {
+    padding: 0;
+  }
+}
+
+.modern-card--padding-small {
+  .card-container {
+    padding: var(--ds-space-xs);
+  }
+}
+
+.modern-card--padding-medium {
+  .card-container {
+    padding: var(--ds-space-md);
+  }
+}
+
+.modern-card--padding-large {
+  .card-container {
+    padding: var(--ds-space-lg);
+  }
+}
+
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  .modern-card {
+    background: rgba(30, 30, 45, 0.9);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  
+  .modern-card--glass {
+    background: rgba(20, 20, 30, 0.85);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+

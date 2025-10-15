@@ -1,0 +1,125 @@
+/**
+ * Modern Button Component
+ * Styles basés sur le design-showcase
+ */
+
+.modern-button {
+  --border-radius: var(--ds-radius-md);
+  --box-shadow: none;
+  font-family: var(--ds-font-family-sans);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  transition: var(--ds-transition-base);
+  
+  &:hover:not([disabled]) {
+    transform: translateY(-2px);
+    box-shadow: var(--ds-shadow-sm);
+  }
+  
+  &:active:not([disabled]) {
+    transform: translateY(0);
+  }
+  
+  &::part(native) {
+    border-radius: var(--ds-radius-md);
+  }
+}
+
+// Variants
+.modern-button--primary {
+  --background: var(--ion-color-primary);
+  --color: white;
+  
+  &:hover:not([disabled]) {
+    filter: brightness(1.05);
+  }
+}
+
+.modern-button--secondary {
+  --background: var(--ion-color-secondary);
+  --color: white;
+  
+  &:hover:not([disabled]) {
+    filter: brightness(1.05);
+  }
+}
+
+.modern-button--outline {
+  --border-width: 2px;
+  --border-color: var(--color-border-strong);
+  --color: var(--color-text-primary);
+  --background: transparent;
+  
+  &:hover:not([disabled]) {
+    --background: rgba(var(--ion-color-primary-rgb), 0.08);
+    --border-color: var(--ion-color-primary);
+    --color: var(--ion-color-primary);
+  }
+}
+
+.modern-button--ghost {
+  --background: transparent;
+  --color: var(--color-text-secondary);
+  --box-shadow: none;
+  
+  &:hover:not([disabled]) {
+    --background: rgba(var(--ion-color-primary-rgb), 0.08);
+    --color: var(--ion-color-primary);
+    box-shadow: none;
+  }
+}
+
+.modern-button--danger {
+  --background: var(--ion-color-danger);
+  --color: white;
+  
+  &:hover:not([disabled]) {
+    filter: brightness(1.05);
+  }
+}
+
+// Sizes
+.modern-button--small {
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  font-size: 0.875rem;
+}
+
+.modern-button--medium {
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  --padding-start: 24px;
+  --padding-end: 24px;
+  font-size: 1rem;
+}
+
+.modern-button--large {
+  --padding-top: 18px;
+  --padding-bottom: 18px;
+  --padding-start: 32px;
+  --padding-end: 32px;
+  font-size: 1.125rem;
+}
+
+// Loading state
+.modern-button--loading {
+  pointer-events: none;
+  opacity: 0.7;
+  
+  ion-spinner {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// Disabled state
+.modern-button[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
