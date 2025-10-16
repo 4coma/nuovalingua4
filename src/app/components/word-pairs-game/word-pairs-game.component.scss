@@ -1,23 +1,67 @@
+// Design System Moderne pour Word Pairs Game
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
 }
 
-.game-header {
+// Section de configuration pliable
+.configuration-section {
   margin-bottom: 20px;
   
-  h2 {
+  .configuration-toggle {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 10px;
+    justify-content: space-between;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     
-    ion-icon {
-      font-size: 24px;
+    &:hover {
+      color: #ffffff;
     }
+    
+    .configuration-title {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      font-weight: 500;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .toggle-icon {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 16px;
+      transition: transform 0.2s ease;
+    }
+  }
+  
+  .configuration-options {
+    padding: 16px 0;
+    animation: slideDown 0.3s ease-out;
+  }
+}
+
+// Titre du jeu (seulement pour gameComplete)
+.game-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.02em;
+  
+  ion-icon {
+    font-size: 20px;
+    color: var(--ion-color-primary);
   }
 }
 
@@ -25,22 +69,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 12px;
   
   .pairs-input {
-    --background: transparent;
-    --border: none;
+    --background: rgba(255, 255, 255, 0.1);
+    --border: 1px solid rgba(255, 255, 255, 0.2);
     --box-shadow: none;
-    --padding-start: 0;
-    --padding-end: 0;
-    --color: var(--ion-color-dark);
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --color: #ffffff;
     font-size: 24px;
     font-weight: 600;
     text-align: center;
-    width: 60px;
+    width: 80px;
+    border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     
     &[disabled] {
-      --color: var(--ion-color-medium);
+      --color: rgba(255, 255, 255, 0.5);
       opacity: 0.7;
     }
   }
@@ -48,7 +94,8 @@
   .pairs-label {
     font-size: 24px;
     font-weight: 600;
-    color: var(--ion-color-dark);
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 }
 
@@ -133,114 +180,184 @@
 }
 
 .game-header {
-  .audio-toggle-btn {
-    margin-left: 10px;
-    --padding-start: 8px;
-    --padding-end: 8px;
-    --border-radius: 50%;
-    
-    ion-icon {
-      font-size: 18px;
-      color: var(--ion-color-primary);
-    }
-    
-    &:hover {
-      --background: rgba(var(--ion-color-primary-rgb), 0.1);
-    }
+// Bouton audio
+.audio-toggle-btn {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --border-radius: 50%;
+  --min-height: 32px;
+  --min-width: 32px;
+  
+  ion-icon {
+    font-size: 18px;
+    color: var(--ion-color-primary);
   }
   
-  .game-info {
-    p {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 5px;
-    }
-    
-    ion-progress-bar {
-      margin-bottom: 20px;
-    }
+  &:hover {
+    --background: rgba(var(--ion-color-primary-rgb), 0.1);
   }
+}
+  
+// Informations du jeu
+.game-info {
+  margin-bottom: 20px;
+  
+  p {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    gap: 8px;
+  }
+  
+  ion-progress-bar {
+    margin-bottom: 0;
+    --background: rgba(255, 255, 255, 0.1);
+    --progress-background: var(--ion-color-primary);
+    border-radius: 6px;
+    height: 6px;
+  }
+}
   
   .game-complete {
-    padding: 20px 0;
+    padding: 32px 0;
+    text-align: center;
+    
+    p {
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
     
     ion-badge {
-      padding: 10px;
+      padding: 12px 20px;
       font-size: 16px;
+      font-weight: 600;
+      border-radius: 12px;
+      background: var(--ion-color-success);
+      color: #ffffff;
     }
   }
 }
 
 .pairs-grid {
-  margin-bottom: 30px;
+  margin-bottom: 40px;
   
   .word-card {
     margin-bottom: 12px;
     border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     cursor: pointer;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     
     ion-card-content {
-      padding: 12px 10px;
+      padding: 12px 8px;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       text-align: center;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      background: rgba(255, 255, 255, 0.08);
     }
     
     &.selected {
-      background-color: #4d8dff;
+      background: var(--ion-color-primary);
       transform: translateY(-4px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      border: 2px solid #3171e0;
-      color: white;
+      box-shadow: 0 16px 48px rgba(var(--ion-color-primary-rgb), 0.3);
+      border: 2px solid var(--ion-color-primary);
+      color: #ffffff;
     }
     
     &.matched {
-      background-color: #2dd36f;
-      border: 2px solid #28ba62;
+      background: var(--ion-color-success);
+      border: 2px solid var(--ion-color-success);
       opacity: 0.9;
-      color: white;
+      color: #ffffff;
+      transform: scale(0.98);
     }
     
     &.error {
-      background-color: #eb445a;
-      border: 2px solid #cf3c4f;
-      color: white;
+      background: var(--ion-color-danger);
+      border: 2px solid var(--ion-color-danger);
+      color: #ffffff;
+      animation: shake 0.5s ease-in-out;
     }
   }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 .source-words, .target-words {
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
 .actions-section {
-  margin-top: 30px;
+  margin-top: 40px;
   
   h3 {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
   
   ion-button {
-    margin-bottom: 15px;
+    margin-bottom: 16px;
+    --border-radius: 12px;
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
   }
 }
 
 .no-data-message {
   ion-card {
     text-align: center;
-    padding: 20px;
+    padding: 32px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     
     ion-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
+      font-size: 64px;
+      margin-bottom: 20px;
+      color: var(--ion-color-primary);
     }
     
     p {
       font-size: 18px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
   }
 }
@@ -455,50 +572,77 @@
 .main-actions {
   margin-top: 20px;
   
-  .more-button {
-    --border-color: var(--ion-color-medium);
-    --color: var(--ion-color-dark);
-    margin-bottom: 16px;
+  .more-options-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
     font-weight: 500;
+    padding: 12px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 16px;
     
-    ion-icon {
-      transition: transform 0.2s ease;
+    &:hover {
+      color: #ffffff;
+      transform: translateX(4px);
     }
   }
   
   .additional-options {
     margin-bottom: 20px;
     padding: 16px;
-    background: var(--ion-color-light);
-    border-radius: 12px;
-    border: 1px solid var(--ion-color-light-shade);
     
-    .option-button {
-      --border-color: var(--ion-color-medium);
-      --color: var(--ion-color-dark);
-      margin-bottom: 8px;
-      font-weight: 400;
+    .option-text {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       
-      &:last-child {
-        margin-bottom: 0;
+      &:hover {
+        color: #ffffff;
+        transform: translateX(4px);
       }
       
-      &[disabled] {
-        --color: var(--ion-color-medium);
-        --border-color: var(--ion-color-light-shade);
-        opacity: 0.5;
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      &.disabled {
+        color: rgba(255, 255, 255, 0.4);
+        cursor: not-allowed;
+        
+        &:hover {
+          color: rgba(255, 255, 255, 0.4);
+          transform: none;
+        }
       }
     }
   }
   
-  .main-button {
-    --border-color: var(--ion-color-medium);
-    --color: var(--ion-color-dark);
-    margin-bottom: 12px;
+  .main-option-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
     font-weight: 500;
+    padding: 12px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 12px;
+    
+    &:hover {
+      color: #ffffff;
+      transform: translateX(4px);
+    }
     
     &:last-child {
       margin-bottom: 0;
+      border-bottom: none;
     }
   }
 }

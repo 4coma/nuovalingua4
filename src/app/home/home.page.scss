@@ -1,85 +1,89 @@
-#container {
-  text-align: center;
+/**
+ * Home Page - Design Moderne
+ * Styles mis à jour avec le nouveau design system
+ */
 
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+.home-content {
+  --background: linear-gradient(180deg, #f8f9fc 0%, #ffffff 100%);
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
-}
-
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
-}
-
-.container {
-  max-width: 1200px;
+.home-container {
+  max-width: 600px;
   margin: 0 auto;
-  padding: 16px;
+  padding: var(--ds-space-xl) var(--ds-space-sm);
+  min-height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .welcome-card {
-  margin: 20px 0;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.welcome-title {
+  font-size: var(--ds-font-size-h2);
+  font-weight: var(--ds-font-weight-bold);
+  color: var(--color-text-primary);
+  text-align: center;
+  margin: 0 0 var(--ds-space-lg) 0;
+  line-height: var(--ds-line-height-tight);
+  letter-spacing: -0.02em;
+}
+
+.actions-grid {
+  display: grid;
+  gap: var(--ds-space-sm);
+}
+
+.action-link {
+  text-decoration: none;
+  display: block;
+}
+
+// Styles pour les boutons Ionic directs (warning et success)
+.modern-action-button {
+  --border-radius: var(--ds-radius-md);
+  --padding-top: 18px;
+  --padding-bottom: 18px;
+  --padding-start: 24px;
+  --padding-end: 24px;
+  --box-shadow: none;
+  font-family: var(--ds-font-family-sans);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  transition: var(--ds-transition-base);
+  height: auto;
+  font-size: 1.125rem;
   
-  ion-card-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--ion-color-primary);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ds-shadow-sm);
   }
   
-  ion-card-subtitle {
-    font-size: 1.2rem;
-    margin-top: 8px;
+  &:active {
+    transform: translateY(0);
   }
   
-  p {
-    margin: 16px 0;
-    font-size: 1.1rem;
-    line-height: 1.5;
+  ion-icon {
+    margin-right: 8px;
   }
 }
 
-.features {
-  margin: 20px 0;
-  
-  h3 {
-    font-size: 1.5rem;
-    color: var(--ion-color-dark);
-    margin-bottom: 20px;
+// Responsive
+@media (max-width: 768px) {
+  .home-container {
+    padding: var(--ds-space-md) var(--ds-space-xs);
   }
   
-  ion-item {
-    --padding-start: 16px;
-    margin-bottom: 8px;
-    
-    ion-icon {
-      font-size: 1.8rem;
-      margin-right: 16px;
-    }
-    
-    h2 {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    
-    p {
-      color: var(--ion-color-medium);
-    }
+  .welcome-title {
+    font-size: 1.5rem;
+  }
+}
+
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  .home-content {
+    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
   }
 }

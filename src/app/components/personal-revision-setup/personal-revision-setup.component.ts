@@ -31,6 +31,11 @@ export class PersonalRevisionSetupComponent implements OnInit {
   totalAvailableWords = 0;
   wordsMatchingSelection = 0;
   isStarting = false;
+  
+  // Propriétés pour la recherche avec autocomplétion
+  themeInput = '';
+  filteredThemes: string[] = [];
+  showAutocomplete = false;
 
   constructor(
     private personalDictionary: PersonalDictionaryService,
@@ -177,6 +182,55 @@ export class PersonalRevisionSetupComponent implements OnInit {
     } finally {
       this.isStarting = false;
     }
+  }
+
+  /**
+   * Gère la saisie dans le champ de thèmes
+   */
+  onThemeInputChange(event: any) {
+    const value = event.detail.value;
+    this.themeInput = value;
+    
+    if (value.length > 0) {
+      // Filtrer les thèmes disponibles
+      this.filteredThemes = this.availableThemes.filter(theme => 
+        theme.toLowerCase().includes(value.toLowerCase()) &&
+        !this.selectedThemes.includes(theme)
+      );
+      this.showAutocomplete = true;
+    } else {
+      this.filteredThemes = [];
+      this.showAutocomplete = false;
+    }
+  }
+
+  /**
+   * Sélectionne un thème depuis l'autocomplete
+   */
+  selectTheme(theme: string) {
+    if (!this.selectedThemes.includes(theme)) {
+      this.selectedThemes.push(theme);
+      this.themeInput = '';
+      this.showAutocomplete = false;
+      this.countWords();
+    }
+  }
+
+  /**
+   * Supprime un thème sélectionné
+   */
+  removeTheme(theme: string) {
+    this.selectedThemes = this.selectedThemes.filter(t => t !== theme);
+    this.countWords();
+  }
+
+  /**
+   * Masque l'autocomplete
+   */
+  hideAutocomplete() {
+    setTimeout(() => {
+      this.showAutocomplete = false;
+    }, 200);
   }
 
   private async presentToast(message: string, color: 'primary' | 'success' | 'warning' | 'danger'): Promise<void> {

@@ -1,23 +1,238 @@
+// Design System Moderne pour Personal Revision Setup
+ion-content {
+  --background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+}
+
+
+// Section nombre de mots
+.word-count-section {
+  margin-top: 16px;
+  margin-bottom: 32px;
+  
+  .word-count-item {
+    --background: rgba(255, 255, 255, 0.05);
+    --border-radius: 12px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      --background: rgba(255, 255, 255, 0.08);
+      border-color: var(--ion-color-primary);
+    }
+    
+    &:focus-within {
+      border-color: var(--ion-color-primary);
+      box-shadow: 0 0 0 2px rgba(var(--ion-color-primary-rgb), 0.2);
+    }
+    
+    ion-label {
+      color: #ffffff;
+      font-weight: 600;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    ion-input {
+      --color: #ffffff;
+      --placeholder-color: rgba(255, 255, 255, 0.6);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    ion-note {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+  }
+}
+
+// Texte de disponibilité
 .availability {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin: 0.75rem 0;
+  margin: 16px 0;
+  text-align: center;
+  
+  .availability-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    margin: 4px 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.4;
+    
+    &.highlight {
+      color: var(--ion-color-primary);
+      font-weight: 600;
+    }
+  }
 }
 
-.theme-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+// Section thèmes
+.themes-section {
+  margin-bottom: 32px;
+  
+  .themes-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  .hint {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin: 16px 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.5;
+  }
 }
 
-.hint {
-  color: var(--ion-color-medium-shade);
-  font-size: 0.85rem;
-  margin: 0.75rem 0;
+// Recherche de thèmes avec autocomplétion
+.theme-search {
+  margin-bottom: 16px;
+  position: relative;
+  
+  .theme-search-item {
+    --background: rgba(255, 255, 255, 0.05);
+    --border-radius: 12px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      --background: rgba(255, 255, 255, 0.08);
+      border-color: var(--ion-color-primary);
+    }
+    
+    &:focus-within {
+      border-color: var(--ion-color-primary);
+      box-shadow: 0 0 0 2px rgba(var(--ion-color-primary-rgb), 0.2);
+    }
+    
+    ion-label {
+      color: #ffffff;
+      font-weight: 600;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .theme-search-input {
+      --color: #ffffff;
+      --placeholder-color: rgba(255, 255, 255, 0.6);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  }
+  
+  .autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(30, 30, 46, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    
+    .autocomplete-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      transition: background 0.2s ease;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      
+      &:hover {
+        background: rgba(var(--ion-color-primary-rgb), 0.1);
+        color: #ffffff;
+      }
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+  
+  .selected-themes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    
+    .selected-theme-chip {
+      --background: var(--ion-color-primary);
+      --color: #ffffff;
+      font-size: 12px;
+      height: 28px;
+      border-radius: 14px;
+      font-weight: 500;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      
+      &:hover {
+        --background: var(--ion-color-primary-shade);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
+      }
+      
+      ion-icon {
+        font-size: 14px;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.8);
+        transition: color 0.2s ease;
+        
+        &:hover {
+          color: #ffffff;
+        }
+      }
+    }
+  }
 }
 
-ion-chip[color="primary"] {
-  color: white;
+// Section d'action
+.action-section {
+  margin-top: 40px;
+  margin-bottom: 20px; // Ajouter de la marge en bas pour éviter que le bouton soit caché
+  
+  .start-button {
+    --background: var(--ion-color-primary);
+    --color: #ffffff;
+    --border-radius: 12px;
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-shadow: 0 8px 32px rgba(var(--ion-color-primary-rgb), 0.3);
+    transition: all 0.3s ease;
+    min-height: 56px; // S'assurer que le bouton a une hauteur minimale
+    z-index: 10; // S'assurer que le bouton est au-dessus des autres éléments
+    
+    &:hover {
+      --background: var(--ion-color-primary-shade);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(var(--ion-color-primary-rgb), 0.4);
+    }
+    
+    &[disabled] {
+      --background: rgba(255, 255, 255, 0.1);
+      --color: rgba(255, 255, 255, 0.4);
+      box-shadow: none;
+      transform: none;
+    }
+  }
 }
 

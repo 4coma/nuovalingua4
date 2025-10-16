@@ -2,15 +2,25 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 
+interface StatCard {
+  id: string;
+  title: string;
+  value: string;
+  label: string;
+  trend: string;
+  color: string;
+  icon: string;
+}
+
 interface ShowcaseCard {
   id: string;
   title: string;
-  subtitle: string;
   description: string;
-  icon: string;
-  status: 'active' | 'pending' | 'completed';
+  subtitle: string;
+  status: 'active' | 'pending' | 'completed' | 'error';
   progress?: number;
   tags?: string[];
+  icon: string;
 }
 
 @Component({
@@ -18,78 +28,103 @@ interface ShowcaseCard {
   templateUrl: './design-showcase.component.html',
   styleUrls: ['./design-showcase.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule]
+  imports: [
+    CommonModule,
+    IonicModule
+  ]
 })
 export class DesignShowcaseComponent {
   isLoading = false;
   selectedCard: ShowcaseCard | null = null;
 
-  showcaseCards: ShowcaseCard[] = [
+  statCards: StatCard[] = [
     {
       id: '1',
-      title: 'Apprentissage actif',
-      subtitle: 'Session quotidienne',
-      description: 'Révision de 12 nouveaux mots avec exercices interactifs',
-      icon: 'book-outline',
-      status: 'active',
-      progress: 65,
-      tags: ['Vocabulaire', 'Avancé']
+      title: 'Utilisateurs Actifs',
+      value: '2,847',
+      label: '+12% ce mois',
+      trend: 'up',
+      color: 'success',
+      icon: 'people'
     },
     {
       id: '2',
-      title: 'Conversation guidée',
-      subtitle: 'Niveau intermédiaire',
-      description: 'Dialogue sur les voyages et la culture',
-      icon: 'chatbubbles-outline',
-      status: 'pending',
-      progress: 0,
-      tags: ['Discussion', 'Culture']
+      title: 'Conversions',
+      value: '94.2%',
+      label: '+3.1% cette semaine',
+      trend: 'up',
+      color: 'primary',
+      icon: 'trending-up'
     },
     {
       id: '3',
-      title: 'Grammaire contextuelle',
-      subtitle: 'Complété aujourd\'hui',
-      description: 'Maîtrise des temps composés en contexte',
-      icon: 'checkmark-circle-outline',
+      title: 'Temps de Réponse',
+      value: '1.2s',
+      label: '-0.3s vs hier',
+      trend: 'down',
+      color: 'warning',
+      icon: 'speedometer'
+    }
+  ];
+
+  showcaseCards: ShowcaseCard[] = [
+    {
+      id: '1',
+      title: 'Interface Moderne',
+      description: 'Design system avec glassmorphism et micro-interactions',
+      subtitle: 'Système de design unifié',
+      status: 'active',
+      progress: 85,
+      tags: ['UI/UX', 'Design System'],
+      icon: 'color-palette'
+    },
+    {
+      id: '2',
+      title: 'Performance',
+      description: 'Optimisation des performances et temps de chargement',
+      subtitle: 'Optimisation avancée',
       status: 'completed',
       progress: 100,
-      tags: ['Grammaire']
+      tags: ['Performance', 'Optimisation'],
+      icon: 'rocket'
+    },
+    {
+      id: '3',
+      title: 'Accessibilité',
+      description: 'Amélioration de l\'accessibilité et navigation',
+      subtitle: 'Navigation améliorée',
+      status: 'pending',
+      progress: 45,
+      tags: ['Accessibilité', 'Navigation'],
+      icon: 'accessibility'
     }
   ];
 
-  statCards = [
-    { label: 'Mots appris', value: '1,247', icon: 'trending-up-outline', color: 'primary' },
-    { label: 'Temps total', value: '42h', icon: 'time-outline', color: 'secondary' },
-    { label: 'Série actuelle', value: '12 jours', icon: 'flame-outline', color: 'tertiary' }
-  ];
-
-  toggleLoading = () => {
+  toggleLoading() {
     this.isLoading = !this.isLoading;
-    if (this.isLoading) {
-      setTimeout(() => this.isLoading = false, 3000);
+  }
+
+  selectCard(card: ShowcaseCard) {
+    this.selectedCard = card;
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case 'active': return 'primary';
+      case 'pending': return 'warning';
+      case 'completed': return 'success';
+      case 'error': return 'danger';
+      default: return 'medium';
     }
-  };
+  }
 
-  selectCard = (card: ShowcaseCard) => {
-    this.selectedCard = this.selectedCard?.id === card.id ? null : card;
-  };
-
-  getStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-      active: 'primary',
-      pending: 'medium',
-      completed: 'success'
-    };
-    return colors[status] || 'medium';
-  };
-
-  getStatusIcon = (status: string): string => {
-    const icons: Record<string, string> = {
-      active: 'play-circle',
-      pending: 'time',
-      completed: 'checkmark-circle'
-    };
-    return icons[status] || 'ellipse';
-  };
+  getStatusIcon(status: string): string {
+    switch (status) {
+      case 'active': return 'play-circle';
+      case 'pending': return 'time';
+      case 'completed': return 'checkmark-circle';
+      case 'error': return 'alert-circle';
+      default: return 'help-circle';
+    }
+  }
 }
-

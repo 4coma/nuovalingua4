@@ -1,66 +1,342 @@
-// Styles spécifiques pour le composant app-root
+/**
+ * App Component - Design Moderne
+ * Remplacement du bleu basique par un design moderne et sophistiqué
+ */
 
-// Assure que le bouton FAB est toujours accessible
-.safe-area-fab {
-  margin-bottom: var(--ion-safe-area-bottom, 20px);
+// ============================================
+// HEADER MODERNE
+// ============================================
+
+.modern-header {
+  box-shadow: var(--ds-shadow-sm);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
-// Ajuste le contenu pour éviter qu'il soit masqué par la barre de navigation
+.modern-toolbar {
+  --background: var(--glass-bg);
+  --color: var(--color-text-primary);
+  --border-width: 0;
+  --padding-start: var(--ds-space-xs);
+  --padding-end: var(--ds-space-xs);
+  --min-height: 64px;
+  font-family: var(--ds-font-family-sans);
+}
+
+.modern-title {
+  font-size: var(--ds-font-size-h3);
+  font-weight: var(--ds-font-weight-bold);
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.modern-menu-button {
+  --color: var(--color-text-primary);
+  --background: transparent;
+  --border-radius: var(--ds-radius-md);
+  --padding-start: 12px;
+  --padding-end: 12px;
+  transition: var(--ds-transition-fast);
+  
+  &:hover {
+    --background: rgba(var(--ion-color-primary-rgb), 0.08);
+    transform: scale(1.05);
+  }
+}
+
+.modern-back-button {
+  --color: var(--color-text-primary);
+  --background: transparent;
+  --border-radius: var(--ds-radius-md);
+  --padding-start: 12px;
+  --padding-end: 12px;
+  transition: var(--ds-transition-fast);
+  
+  &:hover {
+    --background: rgba(var(--ion-color-primary-rgb), 0.08);
+    transform: scale(1.05);
+  }
+}
+
+// ============================================
+// MENU MODERNE
+// ============================================
+
+.modern-menu {
+  --width: 320px;
+  --background: var(--color-surface);
+  --border: none;
+  box-shadow: var(--ds-shadow-xl);
+  
+  @media (max-width: 768px) {
+    --width: 85vw;
+    max-width: 320px;
+  }
+}
+
+.modern-menu-content {
+  --background: var(--color-surface);
+  --padding-top: var(--ds-space-sm);
+  --padding-bottom: var(--ds-space-sm);
+  background: linear-gradient(180deg, 
+    var(--color-surface) 0%, 
+    rgba(var(--ion-color-primary-rgb), 0.02) 100%);
+}
+
+.modern-menu-header {
+  background: var(--gradient-primary);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.modern-menu-toolbar {
+  --background: transparent;
+  --color: white;
+  --border-width: 0;
+  --padding-start: var(--ds-space-md);
+  --padding-end: var(--ds-space-md);
+  --min-height: 72px;
+}
+
+.modern-menu-title {
+  font-size: var(--ds-font-size-h2);
+  font-weight: var(--ds-font-weight-bold);
+  color: white;
+  letter-spacing: -0.02em;
+}
+
+.modern-menu-content {
+  --background: var(--color-surface);
+  --padding-top: var(--ds-space-sm);
+  --padding-bottom: var(--ds-space-sm);
+}
+
+.modern-menu-list {
+  padding: 0;
+  background: transparent;
+  margin: 0;
+}
+
+.modern-menu-item {
+  --background: rgba(255, 255, 255, 0.02);
+  --color: var(--color-text-primary);
+  --padding-start: var(--ds-space-md);
+  --padding-end: var(--ds-space-md);
+  --min-height: 56px;
+  --border-radius: 0;
+  --inner-border-width: 0;
+  --inner-padding-top: var(--ds-space-xs);
+  --inner-padding-bottom: var(--ds-space-xs);
+  margin: 0;
+  border-radius: 0;
+  transition: var(--ds-transition-fast);
+  border: none;
+  position: relative;
+  
+  // Ligne subtile à gauche au hover
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    background: var(--ion-color-primary);
+    border-radius: 0 2px 2px 0;
+    transition: var(--ds-transition-fast);
+  }
+  
+  &:hover {
+    --background: rgba(var(--ion-color-primary-rgb), 0.08);
+    transform: translateX(4px);
+    
+    &::before {
+      height: 24px;
+    }
+  }
+  
+  &.ion-activated {
+    --background: rgba(var(--ion-color-primary-rgb), 0.12);
+    --color: var(--ion-color-primary);
+    
+    &::before {
+      height: 32px;
+      background: var(--ion-color-primary);
+    }
+  }
+}
+
+.modern-menu-icon {
+  font-size: 20px;
+  color: var(--color-text-primary);
+  margin-right: var(--ds-space-sm);
+  transition: var(--ds-transition-fast);
+  opacity: 0.8;
+}
+
+.modern-menu-item:hover .modern-menu-icon {
+  transform: scale(1.1);
+  color: var(--ion-color-primary);
+  opacity: 1;
+}
+
+.modern-menu-label {
+  font-size: var(--ds-font-size-body);
+  font-weight: var(--ds-font-weight-semibold);
+  color: var(--color-text-primary);
+  transition: var(--ds-transition-fast);
+  opacity: 0.9;
+}
+
+.modern-menu-item:hover .modern-menu-label {
+  color: var(--ion-color-primary);
+  opacity: 1;
+}
+
+// ============================================
+// FAB MODERNE
+// ============================================
+
+.safe-area-fab {
+  margin-bottom: var(--ion-safe-area-bottom, 20px);
+  
+  ion-fab-button {
+    --background: var(--gradient-primary);
+    --color: white;
+    --box-shadow: var(--ds-shadow-md);
+    --border-radius: 50%;
+    transition: var(--ds-transition-base);
+    
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: var(--ds-shadow-lg);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+// ============================================
+// CONTENU PRINCIPAL
+// ============================================
+
 .ion-padding-bottom {
   --padding-bottom: calc(var(--ion-safe-area-bottom, 20px) + 20px);
 }
 
-// Pour les appareils Android et iOS, on s'assure que les éléments interactifs
-// en bas de l'écran sont bien accessibles
 ion-content {
   --keyboard-offset: var(--ion-safe-area-bottom, 0);
 }
 
-// Styles spécifiques pour le menu sur Android
-ion-menu {
-  --width: 280px;
-  
-  // Assure que le menu est visible sur Android
-  @media (max-width: 768px) {
-    --width: 85vw;
-  }
-}
-
-// Style pour le bouton menu sur mobile
-ion-menu-button {
-  --color: var(--ion-color-light);
-  
-  @media (max-width: 768px) {
-    --padding-start: 8px;
-    --padding-end: 8px;
-  }
-}
-
-// Assure que le contenu principal ne déborde pas
 #main-content {
   width: 100%;
   height: 100%;
 }
 
-// Styles spécifiques pour le header sur mobile
-ion-header {
-  // Assure que le header est visible sur mobile
-  z-index: 1000;
+// ============================================
+// RESPONSIVE
+// ============================================
+
+@media (max-width: 768px) {
+  .modern-toolbar {
+    --min-height: 56px;
+  }
   
-  ion-toolbar {
-    // Assure que la toolbar est bien visible
-    --background: var(--ion-color-primary);
-    --color: var(--ion-color-light);
-    
-    // Assure que le bouton menu est visible
-    ion-menu-button {
-      --color: var(--ion-color-light);
-      --background: transparent;
-    }
+  .modern-title {
+    font-size: var(--ds-font-size-body-lg);
+  }
+  
+  .modern-menu-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
   }
 }
 
-// Assure que le menu est bien positionné
+// ============================================
+// DARK MODE
+// ============================================
+
+@media (prefers-color-scheme: dark) {
+  .modern-toolbar {
+    --background: rgba(30, 30, 45, 0.9);
+    --color: var(--color-text-inverse);
+  }
+  
+  .modern-menu {
+    --background: rgba(20, 20, 30, 0.98);
+  }
+  
+  .modern-menu-content {
+    --background: rgba(20, 20, 30, 0.98);
+    background: linear-gradient(180deg, 
+      rgba(20, 20, 30, 0.98) 0%, 
+      rgba(30, 30, 45, 0.95) 100%);
+  }
+  
+  .modern-menu-item {
+    --color: #E2E8F0;
+    --background: rgba(255, 255, 255, 0.03);
+    
+    &:hover {
+      --background: rgba(var(--ion-color-primary-rgb), 0.12);
+    }
+  }
+  
+  .modern-menu-label {
+    color: #E2E8F0;
+    font-weight: var(--ds-font-weight-semibold);
+    opacity: 0.95;
+  }
+  
+  .modern-menu-icon {
+    color: #CBD5E1;
+    opacity: 0.9;
+  }
+  
+  .modern-menu-item:hover .modern-menu-icon {
+    color: var(--ion-color-primary);
+    opacity: 1;
+  }
+  
+  .modern-menu-item:hover .modern-menu-label {
+    color: var(--ion-color-primary);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// ANIMATIONS
+// ============================================
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.modern-menu {
+  animation: slideInFromLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ============================================
+// Z-INDEX MANAGEMENT
+// ============================================
+
+ion-header {
+  z-index: 1000;
+}
+
 ion-menu {
   z-index: 999;
+}
+
+ion-fab {
+  z-index: 998;
 }

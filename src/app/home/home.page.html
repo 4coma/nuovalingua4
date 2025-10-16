@@ -1,44 +1,35 @@
-<ion-content [fullscreen]="true">
-  <div class="container">
-    <ion-card class="welcome-card">
-      <ion-card-header>
-        <ion-card-subtitle class="ion-text-center">Quel type de révision veux-tu faire ?</ion-card-subtitle>
-      </ion-card-header>
+<ion-content [fullscreen]="true" class="home-content">
+  <div class="home-container">
+    <app-card variant="glass" padding="large" class="welcome-card">
+      <h2 class="welcome-title">Quel type de révision veux-tu faire ?</h2>
 
-      <ion-card-content>
-        <!-- <p class="ion-text-center">
-          Bienvenue dans NuovaLingua, votre application d'apprentissage de l'italien assistée par Intelligence Artificielle.
-        </p> -->
-        
+      <div class="actions-grid">
+        <a routerLink="/category" class="action-link">
+          <app-button variant="primary" size="large" icon="apps-outline" expand="block">
+            Apprendre
+          </app-button>
+        </a>
 
-        
-        <ion-button expand="block" routerLink="/category" class="ion-margin-top">
-          <ion-icon slot="start" name="apps-outline"></ion-icon>
-          Apprendre 
-        </ion-button>
+        <a routerLink="/personal-revision-setup" class="action-link">
+          <app-button variant="secondary" size="large" icon="book-outline" expand="block">
+            Réviser
+          </app-button>
+        </a>
 
-        <ion-button expand="block" routerLink="/personal-revision-setup" class="ion-margin-top" color="tertiary">
-          <ion-icon slot="start" name="book-outline"></ion-icon>
-          Réviser
-        </ion-button>
+        <a routerLink="/full-revision-setup" class="action-link">
+          <ion-button expand="block" color="warning" class="modern-action-button">
+            <ion-icon slot="start" name="flag-outline"></ion-icon>
+            Révision complète
+          </ion-button>
+        </a>
 
-        <ion-button expand="block" routerLink="/full-revision-setup" class="ion-margin-top" color="warning">
-          <ion-icon slot="start" name="flag-outline"></ion-icon>
-          Révision complète
-        </ion-button>
-
-
-        <ion-button expand="block" routerLink="/discussion-context-selection" class="ion-margin-top" color="success">
-          <ion-icon slot="start" name="chatbubbles-outline"></ion-icon>
-          Discuter
-        </ion-button>
-        
-        
-        <!-- <ion-button expand="block" (click)="forceOpenMenu()" class="ion-margin-top" color="warning">
-          <ion-icon slot="start" name="menu-outline"></ion-icon>
-          Forcer le menu
-        </ion-button> -->
-      </ion-card-content>
-    </ion-card>
+        <a routerLink="/discussion-context-selection" class="action-link">
+          <ion-button expand="block" color="success" class="modern-action-button">
+            <ion-icon slot="start" name="chatbubbles-outline"></ion-icon>
+            Discuter
+          </ion-button>
+        </a>
+      </div>
+    </app-card>
   </div>
 </ion-content>

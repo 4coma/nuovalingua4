@@ -1,9 +1,23 @@
 <ion-content>
   <div class="container ion-padding">
-    <!-- En-tête du jeu -->
-    <div class="game-header ion-text-center">
-      <h2 *ngIf="!gameComplete">
-        <div *ngIf="isPersonalDictionaryRevision" class="pairs-title">
+    <!-- Titre du jeu -->
+    <h2 class="game-title" *ngIf="gameComplete">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      Bravo !
+    </h2>
+
+    <!-- Configuration pliable (si révision personnelle et jeu pas terminé) -->
+    <div *ngIf="isPersonalDictionaryRevision && !gameComplete" class="configuration-section">
+      <!-- Titre discret pour déplier/replier -->
+      <div class="configuration-toggle" (click)="toggleConfiguration()">
+        <span class="configuration-title">Options</span>
+        <ion-icon [name]="showConfiguration ? 'chevron-up' : 'chevron-down'" class="toggle-icon"></ion-icon>
+      </div>
+      
+      <!-- Options de configuration (dépliables) -->
+      <div *ngIf="showConfiguration" class="configuration-options">
+        <!-- Input pour le nombre de paires -->
+        <div class="pairs-title">
           <ion-input 
             type="number" 
             [(ngModel)]="maxPairsToReview" 
@@ -15,8 +29,50 @@
           </ion-input>
           <span class="pairs-label">paires</span>
         </div>
-        
-        <!-- Bouton mute/unmute -->
+
+        <!-- Filtrage par thèmes -->
+        <div *ngIf="availableThemes.length > 0" class="theme-filter-inline">
+          <ion-item lines="none">
+            <ion-label position="stacked">Thèmes</ion-label>
+            <ion-input 
+              [(ngModel)]="themeInput" 
+              (ionInput)="onThemeInputChange($event)"
+              (ionFocus)="showAutocomplete = true"
+              (ionBlur)="hideAutocomplete()"
+              placeholder="Thème..."
+              [disabled]="matchedPairs > 0">
+            </ion-input>
+          </ion-item>
+          
+          <!-- Autocomplete dropdown -->
+          <div *ngIf="showAutocomplete && filteredThemes.length > 0" class="autocomplete-dropdown">
+            <div 
+              *ngFor="let theme of filteredThemes" 
+              class="autocomplete-item"
+              (click)="selectTheme(theme)">
+              {{ theme }}
+            </div>
+          </div>
+          
+          <!-- Chiplist des thèmes sélectionnés -->
+          <div *ngIf="selectedThemes.length > 0" class="selected-themes">
+            <ion-chip 
+              *ngFor="let theme of selectedThemes" 
+              color="primary"
+              (click)="removeTheme(theme)">
+              {{ theme }}
+              <ion-icon name="close-circle" slot="end"></ion-icon>
+            </ion-chip>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Informations du jeu -->
+    <div class="game-info" *ngIf="!gameComplete && currentPairs && currentPairs.length > 0">
+      <p>
+        <span class="set-indicator">Set {{ currentPairsSet }}/{{ getTotalSets() }}</span>
+        <!-- Bouton mute/unmute entre le set et les paires -->
         <ion-button 
           fill="clear" 
           size="small" 
@@ -24,64 +80,16 @@
           class="audio-toggle-btn">
           <ion-icon [name]="audioEnabled ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
         </ion-button>
-      </h2>
-      <h2 *ngIf="gameComplete">
-        <ion-icon name="checkmark-circle-outline"></ion-icon>
-        Bravo !
-      </h2>
-      <h2 *ngIf="isPersonalDictionaryRevision">
-                <!-- Filtrage par thèmes - sur la ligne en dessous -->
-                <div *ngIf="isPersonalDictionaryRevision && availableThemes.length > 0" class="theme-filter-inline">
-                  <ion-item lines="none">
-                    <ion-label position="stacked">Thèmes</ion-label>
-                    <ion-input 
-                      [(ngModel)]="themeInput" 
-                      (ionInput)="onThemeInputChange($event)"
-                      (ionFocus)="showAutocomplete = true"
-                      (ionBlur)="hideAutocomplete()"
-                      placeholder="Thème..."
-                      [disabled]="matchedPairs > 0">
-                    </ion-input>
-                  </ion-item>
-                  
-                  <!-- Autocomplete dropdown -->
-                  <div *ngIf="showAutocomplete && filteredThemes.length > 0" class="autocomplete-dropdown">
-                    <div 
-                      *ngFor="let theme of filteredThemes" 
-                      class="autocomplete-item"
-                      (click)="selectTheme(theme)">
-                      {{ theme }}
-                    </div>
-                  </div>
-                  
-                  <!-- Chiplist des thèmes sélectionnés -->
-                  <div *ngIf="selectedThemes.length > 0" class="selected-themes">
-                    <ion-chip 
-                      *ngFor="let theme of selectedThemes" 
-                      color="primary"
-                      (click)="removeTheme(theme)">
-                      {{ theme }}
-                      <ion-icon name="close-circle" slot="end"></ion-icon>
-                    </ion-chip>
-                  </div>
-                </div>
-      </h2>
-      
-
-      <div class="game-info" *ngIf="!gameComplete && currentPairs && currentPairs.length > 0">
-        <p>
-          <span class="set-indicator">Set {{ currentPairsSet }}/{{ getTotalSets() }}</span>
-          <span class="progress-indicator">{{ matchedPairs }} / {{ currentPairs.length / 2 }} paires</span>
-        </p>
-        <ion-progress-bar [value]="matchedPairs / (currentPairs.length / 2)"></ion-progress-bar>
-      </div>
-      
-      <div class="game-complete" *ngIf="gameComplete">
-        <p>Vous avez terminé l'exercice d'association !</p>
-        <ion-badge color="success">
-          {{ totalPairs }} paires associées | {{ attempts }} tentatives
-        </ion-badge>
-      </div>
+        <span class="progress-indicator">{{ matchedPairs }} / {{ currentPairs.length / 2 }} paires</span>
+      </p>
+      <ion-progress-bar [value]="matchedPairs / (currentPairs.length / 2)"></ion-progress-bar>
+    </div>
+    
+    <div class="game-complete" *ngIf="gameComplete">
+      <p>Vous avez terminé l'exercice d'association !</p>
+      <ion-badge color="success">
+        {{ totalPairs }} paires associées | {{ attempts }} tentatives
+      </ion-badge>
     </div>
 
     <!-- Grille de jeu -->
@@ -196,57 +204,42 @@
         </ion-note>
 
         <!-- Bouton Plus pour afficher/masquer les options -->
-        <ion-button 
-          (click)="toggleMoreOptions()" 
-          expand="block" 
-          fill="outline" 
-          class="more-button">
-          <ion-icon [name]="showMoreOptions ? 'chevron-up' : 'chevron-down'" slot="end"></ion-icon>
+        <div class="more-options-text" (click)="toggleMoreOptions()">
           {{ showMoreOptions ? 'Moins d\'options' : 'Plus d\'options' }}
-        </ion-button>
+        </div>
         
         <!-- Options supplémentaires (affichées conditionnellement) -->
         <div class="additional-options" *ngIf="showMoreOptions">
-          <!-- Bouton pour ajouter au dictionnaire personnel (masqué si révision du dictionnaire personnel) -->
-          <ion-button 
-            (click)="openDictionaryModal()" 
-            expand="block" 
-            fill="outline" 
-            class="option-button">
-            <ion-icon name="bookmark-outline" slot="start"></ion-icon>
+          <!-- Options sous forme de texte simple -->
+          <div class="option-text" (click)="openDictionaryModal()">
             Ajouter au dictionnaire personnel
-          </ion-button>
+          </div>
           
-          <!-- Boutons de recommencement -->
-          <ion-button (click)="restartExercise()" expand="block" fill="outline" class="option-button">
-            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          <div class="option-text" (click)="restartExercise()">
             Recommencer l'exercice
-          </ion-button>
+          </div>
           
-          <ion-button 
-            (click)="restartFailedWords()" 
-            expand="block" 
-            fill="outline" 
-            class="option-button"
-            [disabled]="!hasFailedWords">
-            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+          <div class="option-text" 
+               (click)="restartFailedWords()" 
+               [class.disabled]="!hasFailedWords">
             Recommencer les mots ratés ({{ failedWords.length }})
-          </ion-button>
+          </div>
           
-          <ion-button (click)="generateWrittenComprehension()" expand="block" fill="outline" class="option-button" [disabled]="isGenerating">
-            <ion-icon name="book-outline" slot="start"></ion-icon>
+          <div class="option-text" 
+               (click)="generateWrittenComprehension()" 
+               [class.disabled]="isGenerating">
             Compréhension écrite
-          </ion-button>
+          </div>
           
-          <ion-button (click)="generateOralComprehension()" expand="block" fill="outline" class="option-button" [disabled]="isGenerating">
-            <ion-icon name="mic-outline" slot="start"></ion-icon>
+          <div class="option-text" 
+               (click)="generateOralComprehension()" 
+               [class.disabled]="isGenerating">
             Compréhension orale
-          </ion-button>
+          </div>
           
-          <ion-button (click)="goToVocabularyExercise()" expand="block" fill="outline" class="option-button">
-            <ion-icon name="create-outline" slot="start"></ion-icon>
+          <div class="option-text" (click)="goToVocabularyExercise()">
             Exercice d'encodage
-          </ion-button>
+          </div>
           
           <!-- Indicateur de chargement pour la génération -->
           <div *ngIf="isGenerating" class="loading-container ion-text-center ion-margin-vertical">
@@ -256,15 +249,13 @@
         </div>
         
         <!-- Boutons principaux toujours visibles -->
-        <ion-button routerLink="/category" expand="block" fill="outline" class="main-button">
-          <ion-icon name="list-outline" slot="start"></ion-icon>
+        <div class="main-option-text" (click)="navigateToCategory()">
           Retour aux catégories
-        </ion-button>
+        </div>
         
-        <ion-button routerLink="/home" expand="block" fill="outline" class="main-button">
-          <ion-icon name="home-outline" slot="start"></ion-icon>
+        <div class="main-option-text" (click)="navigateToHome()">
           Retour à l'accueil
-        </ion-button>
+        </div>
       </div>
     </div>
   </div>

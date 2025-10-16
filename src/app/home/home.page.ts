@@ -4,6 +4,7 @@ import { IonicModule, MenuController } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PersonalDictionaryService } from '../services/personal-dictionary.service';
+import { ButtonComponent, CardComponent } from '../components/atoms';
 
 @Component({
   selector: 'app-home',
@@ -13,7 +14,9 @@ import { PersonalDictionaryService } from '../services/personal-dictionary.servi
   imports: [
     CommonModule,
     IonicModule,
-    RouterModule
+    RouterModule,
+    ButtonComponent,
+    CardComponent
   ]
 })
 export class HomePage implements OnInit, OnDestroy {

@@ -227,6 +227,46 @@ export class FullRevisionService {
     return session.aiQueue[0];
   }
 
+  /**
+   * Synchronise les mots de l'exercice d'association avec la session
+   */
+  syncWordsFromAssociation(associationWords: Array<{it: string, fr: string, context?: string}>): void {
+    const session = this.getSession();
+    if (!session) {
+      return;
+    }
+
+    // Mettre à jour les mots de la session avec ceux de l'exercice d'association
+    const updatedWords = session.words.map(word => {
+      const associationWord = associationWords.find(aw => 
+        aw.it.toLowerCase() === word.it.toLowerCase() && 
+        aw.fr.toLowerCase() === word.fr.toLowerCase()
+      );
+      
+      if (associationWord) {
+        // Le mot a été vu dans l'exercice d'association
+        return {
+          ...word,
+          context: associationWord.context || word.context,
+          usedByUser: false, // Reset pour la conversation
+          usedByAi: false
+        };
+      } else {
+        // Le mot n'a pas été vu dans l'exercice d'association
+        return {
+          ...word,
+          assignedTo: 'ai' as const, // Assigner à l'IA
+          usedByUser: false,
+          usedByAi: false
+        };
+      }
+    });
+
+    session.words = updatedWords;
+    this.assignQueuesFromWords();
+    this.storage.set(this.storageKey, session);
+  }
+
   private generateSessionId(): string {
     return 'fullrev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   }

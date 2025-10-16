@@ -1,72 +1,86 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Révision personnalisée</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content class="ion-padding">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Préparer ta session</ion-card-title>
-      <ion-card-subtitle>Choisis combien de mots et les thèmes à réviser</ion-card-subtitle>
-    </ion-card-header>
 
-    <ion-card-content>
-      <ion-item lines="full">
-        <ion-label position="stacked">Nombre de mots</ion-label>
+  <!-- Nombre de mots -->
+  <div class="word-count-section">
+    <ion-item lines="none" class="word-count-item">
+      <ion-label position="stacked">Nombre de mots</ion-label>
+      <ion-input
+        type="number"
+        min="{{ minWordCount }}"
+        max="{{ maxWordCount }}"
+        [(ngModel)]="wordCount"
+        inputmode="numeric"
+        class="word-count-input"></ion-input>
+      <ion-note slot="helper">Entre {{ minWordCount }} et {{ maxWordCount }} mots</ion-note>
+    </ion-item>
+
+    <div class="availability">
+      <p class="availability-text">{{ totalAvailableWords }} mots dans ton dictionnaire</p>
+      <p class="availability-text highlight">{{ wordsMatchingSelection }} disponibles avec ta sélection</p>
+    </div>
+  </div>
+
+  <!-- Thèmes -->
+  <div class="themes-section">
+    <h3 class="themes-title">Thèmes</h3>
+    
+    <p class="hint" *ngIf="availableThemes.length === 0">
+      Aucun thème détecté dans ton dictionnaire pour l'instant.
+    </p>
+
+    <!-- Recherche avec autocomplétion -->
+    <div *ngIf="availableThemes.length > 0" class="theme-search">
+      <ion-item lines="none" class="theme-search-item">
+        <ion-label position="stacked">Rechercher un thème</ion-label>
         <ion-input
-          type="number"
-          min="{{ minWordCount }}"
-          max="{{ maxWordCount }}"
-          [(ngModel)]="wordCount"
-          inputmode="numeric"></ion-input>
-        <ion-note slot="helper">Entre {{ minWordCount }} et {{ maxWordCount }} mots</ion-note>
+          [(ngModel)]="themeInput"
+          (ionInput)="onThemeInputChange($event)"
+          (ionFocus)="showAutocomplete = true"
+          (ionBlur)="hideAutocomplete()"
+          placeholder="Tapez pour rechercher..."
+          class="theme-search-input">
+        </ion-input>
       </ion-item>
-
-      <div class="availability">
-        <ion-chip color="medium">
-          <ion-label>{{ totalAvailableWords }} mots dans ton dictionnaire</ion-label>
-        </ion-chip>
-        <ion-chip color="primary">
-          <ion-label>{{ wordsMatchingSelection }} disponibles avec ta sélection</ion-label>
-        </ion-chip>
+      
+      <!-- Autocomplete dropdown -->
+      <div *ngIf="showAutocomplete && filteredThemes.length > 0" class="autocomplete-dropdown">
+        <div
+          *ngFor="let theme of filteredThemes"
+          class="autocomplete-item"
+          (click)="selectTheme(theme)">
+          {{ theme }}
+        </div>
       </div>
-
-      <ion-item lines="full">
-        <ion-label>Thèmes</ion-label>
-      </ion-item>
-
-      <p class="hint" *ngIf="availableThemes.length === 0">
-        Aucun thème détecté dans ton dictionnaire pour l'instant.
-      </p>
-
-      <div class="theme-grid" *ngIf="availableThemes.length > 0">
+      
+      <!-- Thèmes sélectionnés -->
+      <div *ngIf="selectedThemes.length > 0" class="selected-themes">
         <ion-chip
-          *ngFor="let theme of availableThemes"
-          [color]="isThemeSelected(theme) ? 'primary' : 'medium'"
-          (click)="toggleTheme(theme)">
-          <ion-icon *ngIf="isThemeSelected(theme)" name="checkmark-circle" color="light"></ion-icon>
-          <ion-label>{{ theme }}</ion-label>
+          *ngFor="let theme of selectedThemes"
+          color="primary"
+          (click)="removeTheme(theme)"
+          class="selected-theme-chip">
+          {{ theme }}
+          <ion-icon name="close-circle" slot="end"></ion-icon>
         </ion-chip>
       </div>
+    </div>
 
-      <p class="hint" *ngIf="selectedThemes.length === 0">
-        Aucun thème sélectionné - tous les mots seront pris en compte
-      </p>
+    <p class="hint" *ngIf="selectedThemes.length === 0">
+      Aucun thème sélectionné - tous les mots seront pris en compte
+    </p>
+  </div>
 
-      <ion-button
-        expand="block"
-        color="tertiary"
-        class="ion-margin-top"
-        (click)="startPersonalRevision()"
-        [disabled]="isStarting">
-        <ion-spinner slot="start" *ngIf="isStarting"></ion-spinner>
-        Lancer la révision
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
+  <!-- Bouton d'action -->
+  <div class="action-section">
+    <ion-button
+      expand="block"
+      color="primary"
+      class="start-button"
+      (click)="startPersonalRevision()"
+      [disabled]="isStarting">
+      <ion-spinner slot="start" *ngIf="isStarting"></ion-spinner>
+      Lancer la révision
+    </ion-button>
+  </div>
 </ion-content>
 

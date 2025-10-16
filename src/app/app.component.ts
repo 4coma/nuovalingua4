@@ -50,12 +50,13 @@ export class AppComponent {
 
   // Mapping des routes aux titres
   pageTitles: { [key: string]: string } = {
-    '/home': 'Accueil',
+    '/home': 'Mode d\'entrainement',
     '/category': 'Catégories',
     '/vocabulary': 'Vocabulaire',
     '/comprehension': 'Compréhension',
     '/questions': 'Questions',
     '/personal-dictionary': 'Mon dictionnaire personnel',
+    '/personal-revision-setup': 'Révision personnalisée',
     '/saved-conversations': 'Mes conversations',
     '/saved-texts': 'Textes sauvegardés',
     '/preferences': 'Préférences'

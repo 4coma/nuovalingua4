@@ -70,6 +70,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   filteredThemes: string[] = []; // Thèmes filtrés pour l'autocomplete
   showAutocomplete: boolean = false; // Afficher l'autocomplete
   
+  // Configuration pliable
+  showConfiguration: boolean = false; // Afficher/masquer les options de configuration
+  
   // État du jeu
   selectedPair: GamePair | null = null;
   selectedWordId: number | null = null;
@@ -711,6 +714,16 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Synchroniser les mots de l'exercice d'association avec la session
+    const associationWords = this.wordPairs.map(pair => ({
+      it: pair.it,
+      fr: pair.fr,
+      context: pair.context
+    }));
+    
+    this.fullRevisionService.syncWordsFromAssociation(associationWords);
+    console.log('🔍 [WordPairsGame] Mots synchronisés avec la session:', associationWords);
+
     const session = this.fullRevisionService.setStage('conversation');
     if (!session) {
       this.showToast('Session de révision complète introuvable.');
@@ -1252,6 +1265,27 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.setupCurrentGameRound();
     
     this.showToast(`${wordPairs.length} mots trouvés pour ces thèmes`);
+  }
+
+  /**
+   * Navigation vers les catégories
+   */
+  navigateToCategory() {
+    this.router.navigate(['/category']);
+  }
+
+  /**
+   * Navigation vers l'accueil
+   */
+  navigateToHome() {
+    this.router.navigate(['/home']);
+  }
+
+  /**
+   * Basculer l'affichage des options de configuration
+   */
+  toggleConfiguration() {
+    this.showConfiguration = !this.showConfiguration;
   }
 
   ngOnDestroy() {

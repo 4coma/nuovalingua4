@@ -1,9 +1,7 @@
 <ion-content class="category-content">
   <div class="container">
-    <!-- Header compact -->
+    <!-- Header compact et simplifié -->
     <div class="header-section">
-      <h1 class="page-title">Choisissez une catégorie</h1>
-      
       <!-- Sélection de la direction de traduction compacte -->
       <div class="direction-selector">
         <ion-segment [(ngModel)]="translationDirection" (ionChange)="changeTranslationDirection($event.detail.value)" class="compact-segment">
@@ -16,10 +14,10 @@
         </ion-segment>
       </div>
       
-      <!-- Contrôle du nombre de mots à générer -->
+      <!-- Contrôle du nombre de mots à générer - ligne compacte -->
       <div class="words-count-selector">
-        <ion-item lines="none">
-          <ion-label>Nombre de mots à générer:</ion-label>
+        <ion-item lines="none" class="compact-words-item">
+          <ion-label slot="start">Mots:</ion-label>
           <ion-input 
             type="number" 
             [(ngModel)]="wordsToGenerate" 
@@ -44,7 +42,6 @@
           </div>
           <div class="category-content">
             <h3 class="category-title">{{ category.name }}</h3>
-            <p class="category-description">{{ category.description }}</p>
           </div>
           <div class="category-arrow">
             <ion-icon name="chevron-forward"></ion-icon>
@@ -56,10 +53,6 @@
     <!-- Étape 2: Affichage des sous-catégories -->
     <div *ngIf="showTopics && selectedCategory" class="topics-section">
       <div class="topics-header">
-        <ion-button fill="clear" (click)="backToCategories()" class="back-button">
-          <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-          Retour
-        </ion-button>
         <h2 class="topics-title">Choisissez un sujet</h2>
       </div>
       
