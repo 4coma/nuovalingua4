@@ -256,6 +256,26 @@ ion-card-header {
     --background: rgba(var(--ion-color-success-rgb), 0.2);
     --color: var(--ion-color-success-shade);
   }
+
+  &[color="medium"] {
+    --background: rgba(255, 255, 255, 0.08);
+    --color: #ffffff;
+  }
+
+  ion-label {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .target-word {
+    font-weight: 600;
+  }
+
+  .translation {
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
 }
 
 .remaining-user-words {
@@ -271,6 +291,11 @@ ion-card-header {
   display: block;
   text-align: center;
   margin: 12px 0;
+}
+
+.target-vocabulary-card ion-note {
+  margin-top: 12px;
+  display: block;
 }
 
 ion-card-title {
