@@ -259,7 +259,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
           translation: item.translation,
           context: item.context
         }))
-        .filter(item => !!item.word && !!item.translation);
+        .filter((item: any) => !!item.word && !!item.translation);
 
       if (items.length === 0) {
         return null;
