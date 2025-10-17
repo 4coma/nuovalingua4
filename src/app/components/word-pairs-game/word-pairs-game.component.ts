@@ -197,7 +197,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         // Préparer le jeu
         this.totalPairs = this.wordPairs.length;
         this.setupCurrentGameRound();
-        
+        this.updateConversationTargetVocabularyStorage();
+
         console.log('🔍 [WordPairsGame] État final:');
         console.log('🔍 [WordPairsGame] isPersonalDictionaryRevision:', this.isPersonalDictionaryRevision);
         console.log('🔍 [WordPairsGame] revisedWords.length:', this.revisedWords.length);
@@ -282,7 +283,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       // Préparer le jeu
       this.totalPairs = this.wordPairs.length;
       this.setupCurrentGameRound();
-      
+      this.updateConversationTargetVocabularyStorage();
+
       this.showToast(`Session "${session.title}" chargée`);
     } else {
       this.showToast('Session non trouvée');
@@ -477,6 +479,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     if (this.isPersonalDictionaryRevision) {
       await this.saveRevisionDelays();
     }
+    this.updateConversationTargetVocabularyStorage();
   }
 
   
@@ -1130,7 +1133,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     
     // Redémarrer le jeu
     this.setupCurrentGameRound();
-    
+    this.updateConversationTargetVocabularyStorage();
+
     // Forcer la détection de changement
     this.cdr.detectChanges();
   }
@@ -1263,7 +1267,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     
     // Initialiser le jeu
     this.setupCurrentGameRound();
-    
+    this.updateConversationTargetVocabularyStorage();
+
     this.showToast(`${wordPairs.length} mots trouvés pour ces thèmes`);
   }
 
@@ -1288,7 +1293,40 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.showConfiguration = !this.showConfiguration;
   }
 
+  /**
+   * Sauvegarde le vocabulaire ciblé pour la prochaine conversation
+   */
+  private updateConversationTargetVocabularyStorage() {
+    try {
+      if (!this.sessionInfo || !this.wordPairs || this.wordPairs.length === 0) {
+        localStorage.removeItem('conversationTargetVocabulary');
+        return;
+      }
+
+      const direction = this.sessionInfo.translationDirection || 'fr2it';
+      const items = this.wordPairs.map(pair => ({
+        word: direction === 'fr2it' ? pair.it : pair.fr,
+        translation: direction === 'fr2it' ? pair.fr : pair.it,
+        context: pair.context || ''
+      }));
+
+      const payload = {
+        items,
+        session: {
+          category: this.sessionInfo.category,
+          topic: this.sessionInfo.topic,
+          translationDirection: this.sessionInfo.translationDirection
+        },
+        updatedAt: new Date().toISOString()
+      };
+
+      localStorage.setItem('conversationTargetVocabulary', JSON.stringify(payload));
+    } catch (error) {
+      console.error('🔍 [WordPairsGame] Erreur lors de la sauvegarde du vocabulaire de conversation:', error);
+    }
+  }
+
   ngOnDestroy() {
     this.saveRevisionDelays();
   }
-} 
+}

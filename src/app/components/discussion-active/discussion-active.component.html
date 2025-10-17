@@ -37,6 +37,31 @@
       </ion-card-content>
     </ion-card>
 
+    <ion-card *ngIf="!fullRevisionActive && targetVocabulary.length > 0" class="target-vocabulary-card">
+      <ion-card-header>
+        <ion-card-title>Vocabulaire ciblé</ion-card-title>
+        <ion-card-subtitle *ngIf="targetVocabularyMeta">
+          {{ targetVocabularyMeta.category }} - {{ targetVocabularyMeta.topic }}
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="chip-list">
+          <ion-chip *ngFor="let vocab of targetVocabulary"
+                    class="word-chip"
+                    [color]="vocab.used ? 'success' : 'medium'"
+                    [outline]="!vocab.used">
+            <ion-label>
+              <span class="target-word">{{ vocab.word }}</span>
+              <span class="translation" *ngIf="vocab.translation">· {{ vocab.translation }}</span>
+            </ion-label>
+          </ion-chip>
+        </div>
+        <ion-note color="medium" *ngIf="targetVocabularyMeta">
+          {{ targetVocabularyMeta.totalCount }} mot(s) enregistrés pour cette session
+        </ion-note>
+      </ion-card-content>
+    </ion-card>
+
     <!-- Chargement initial -->
     <ion-card *ngIf="isStarting">
       <ion-card-content>
