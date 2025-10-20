@@ -134,13 +134,11 @@ export class AppComponent {
       // Forcer la réinitialisation du menu
       setTimeout(async () => {
         await this.menuController.enable(true);
-        console.log('Menu re-enabled after timeout');
         
         // Ajouter un écouteur pour les gestes de balayage
         this.setupSwipeGesture();
       }, 1000);
       
-      console.log('Menu initialized successfully');
     } catch (error) {
       console.error('Error initializing menu:', error);
     }
@@ -179,7 +177,6 @@ export class AppComponent {
   async testMenuOpen() {
     try {
       await this.menuController.open();
-      console.log('Menu opened successfully');
     } catch (error) {
       console.error('Error opening menu:', error);
     }
@@ -191,7 +188,6 @@ export class AppComponent {
   async closeMenu() {
     try {
       await this.menuController.close();
-      console.log('Menu closed successfully');
     } catch (error) {
       console.error('Error closing menu:', error);
     }
@@ -202,10 +198,8 @@ export class AppComponent {
    */
   async forceOpenMenu() {
     try {
-      console.log('Forcing menu to open...');
       await this.menuController.enable(true);
       await this.menuController.open();
-      console.log('Menu forced open successfully');
     } catch (error) {
       console.error('Error forcing menu open:', error);
     }
@@ -302,35 +296,29 @@ export class AppComponent {
   private setupNotificationHandling() {
     // Écouter les clics sur les notifications
     LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
-      console.log('🔔 [Notification] Action effectuée:', notificationAction);
       
       // Vérifier l'action associée
       const extra = notificationAction.notification.extra;
 
       if (extra && extra.action === 'start_revision') {
-        console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
         this.startPersonalDictionaryRevision();
       }
 
       if (extra && extra.action === 'start_comprehension') {
-        console.log('🔔 [Notification] Lancement de la compréhension quotidienne');
         this.startDailyComprehension();
       }
     });
 
     // Écouter les notifications reçues (quand l'app est fermée)
     LocalNotifications.addListener('localNotificationReceived', (notification) => {
-      console.log('🔔 [Notification] Notification reçue:', notification);
       
       const extra = notification.extra;
 
       if (extra && extra.action === 'start_revision') {
-        console.log('🔔 [Notification] Lancement de la révision du dictionnaire personnel');
         this.startPersonalDictionaryRevision();
       }
 
       if (extra && extra.action === 'start_comprehension') {
-        console.log('🔔 [Notification] Lancement de la compréhension quotidienne');
         this.startDailyComprehension();
       }
     });
@@ -376,7 +364,6 @@ export class AppComponent {
         isKnown: word.isKnown || false // Récupérer le statut existant ou false par défaut
       }));
 
-      console.log('🔔 [Notification] Mots révisés créés:', revisedWords.length);
 
       // Sauvegarder les données de session
       const sessionInfo = {
@@ -392,7 +379,6 @@ export class AppComponent {
       this.storageService.set('isPersonalDictionaryRevision', true);
       this.storageService.set('revisedWords', revisedWords);
 
-      console.log('🔔 [Notification] Données sauvegardées, navigation vers l\'exercice');
 
       // Naviguer vers l'exercice d'association
       this.router.navigate(['/word-pairs-game']);
@@ -447,7 +433,6 @@ export class AppComponent {
           if (validThemes.length > 0) {
             const randomIndex = Math.floor(Math.random() * validThemes.length);
             selectedContext = [validThemes[randomIndex]];
-            console.log('🔍 [DailyComprehension] Contexte sélectionné:', validThemes[randomIndex]);
           }
         } catch (e) {
           console.error('Erreur lors du chargement des thèmes personnalisés:', e);
@@ -499,7 +484,6 @@ export class AppComponent {
    * Ouvre l'action sheet de sélection d'action pour le bouton +
    */
   async openActionSelection() {
-    console.log('🔍 [AppComponent] openActionSelection() appelé');
     
     const actionSheet = await this.actionSheetController.create({
       header: 'Que voulez-vous faire ?',
@@ -508,7 +492,6 @@ export class AppComponent {
           text: 'Ajouter un mot',
           icon: 'add-circle-outline',
           handler: () => {
-            console.log('🔍 [AppComponent] Ajouter un mot sélectionné');
             this.openAddWordModal();
           }
         },
@@ -516,7 +499,6 @@ export class AppComponent {
           text: 'Ajouter un texte',
           icon: 'document-text-outline',
           handler: () => {
-            console.log('🔍 [AppComponent] Ajouter un texte sélectionné');
             this.openAddTextModal();
           }
         },
@@ -536,7 +518,6 @@ export class AppComponent {
    * Ouvre le modal d'ajout de texte
    */
   async openAddTextModal() {
-    console.log('🔍 [AppComponent] openAddTextModal() appelé');
     
     try {
       const modal = await this.modalController.create({
@@ -544,15 +525,11 @@ export class AppComponent {
         cssClass: 'add-text-modal'
       });
 
-      console.log('🔍 [AppComponent] Modal AddTextModal créé');
       await modal.present();
-      console.log('🔍 [AppComponent] Modal AddTextModal présenté');
 
       const { data } = await modal.onDidDismiss();
-      console.log('🔍 [AppComponent] Modal AddTextModal fermé avec data:', data);
       
       if (data && data.action === 'preview') {
-        console.log('🔍 [AppComponent] Ouverture du modal de prévisualisation');
         this.openTextPreviewModal(data.text);
       }
     } catch (error) {
@@ -564,7 +541,6 @@ export class AppComponent {
    * Ouvre le modal de prévisualisation du texte
    */
   async openTextPreviewModal(text: string) {
-    console.log('🔍 [AppComponent] openTextPreviewModal() appelé avec text:', text);
     
     try {
       const modal = await this.modalController.create({
@@ -575,15 +551,11 @@ export class AppComponent {
         }
       });
 
-      console.log('🔍 [AppComponent] Modal TextPreview créé');
       await modal.present();
-      console.log('🔍 [AppComponent] Modal TextPreview présenté');
 
       const { data } = await modal.onDidDismiss();
-      console.log('🔍 [AppComponent] Modal TextPreview fermé avec data:', data);
       
       if (data && data.action === 'edit') {
-        console.log('🔍 [AppComponent] Retour à l\'édition du texte');
         this.openAddTextModal();
       }
     } catch (error) {

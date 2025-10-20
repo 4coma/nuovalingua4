@@ -83,7 +83,7 @@ firebase emulators:start --only functions
 ```typescript
 // Dans votre composant Angular
 const result = await this.webExtractionService.extractContent('https://example.com').toPromise();
-console.log(result);
+// Traitez le résultat selon vos besoins (par exemple en l'affichant dans l'interface)
 ```
 
 ## 📝 Utilisation

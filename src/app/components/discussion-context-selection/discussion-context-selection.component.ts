@@ -35,11 +35,9 @@ export class DiscussionContextSelectionComponent implements OnInit {
     private router: Router,
     private modalCtrl: ModalController
   ) {
-    console.log('🔍 DiscussionContextSelectionComponent - Constructor appelé');
   }
 
   ngOnInit() {
-    console.log('🔍 DiscussionContextSelectionComponent - ngOnInit appelé');
     this.loadContexts();
   }
 
@@ -79,7 +77,6 @@ export class DiscussionContextSelectionComponent implements OnInit {
   }
 
   selectContext(context: DiscussionContext, idx?: number) {
-    console.log('🔍 [CTX] Sélection du contexte:', {
       id: context.id,
       titre: context.title,
       index: idx,
@@ -137,7 +134,6 @@ export class DiscussionContextSelectionComponent implements OnInit {
   }
 
   async openCreateContextModal() {
-    console.log('🔍 [CTX] Ouverture du modal de création de contexte');
     const modal = await this.modalCtrl.create({
       component: CreateCustomContextModalComponent,
       cssClass: 'custom-context-modal'
@@ -153,7 +149,6 @@ export class DiscussionContextSelectionComponent implements OnInit {
   }
 
   async openSavedConversations() {
-    console.log('🔍 [CTX] Ouverture de la liste des conversations sauvegardées');
     const modal = await this.modalCtrl.create({
       component: SavedConversationsListComponent,
       cssClass: 'saved-conversations-modal'

@@ -26,7 +26,6 @@ exports.extractWebContent = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('invalid-argument', 'URL invalide');
     }
 
-    console.log(`Extraction du contenu pour l'URL: ${url}`);
 
     // Configuration de Puppeteer
     const browser = await puppeteer.launch({
@@ -124,7 +123,6 @@ exports.extractWebContent = functions.https.onCall(async (data, context) => {
       // Extraire le titre de la page
       const title = $('title').text().trim() || $('h1').first().text().trim() || 'Sans titre';
 
-      console.log(`Contenu extrait: ${content.length} caractères`);
 
       return {
         success: true,

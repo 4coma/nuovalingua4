@@ -111,10 +111,8 @@ export class PreferencesComponent implements OnInit {
 
     // Charger le nombre de mots pour la révision du dictionnaire personnel
     const savedPersonalDictionaryCount = this.storageService.get('personalDictionaryWordsCount');
-    console.log('🔍 [Preferences] Chargement personalDictionaryWordsCount:', savedPersonalDictionaryCount);
     if (savedPersonalDictionaryCount !== null && savedPersonalDictionaryCount !== undefined) {
       this.personalDictionaryWordsCount = parseInt(savedPersonalDictionaryCount);
-      console.log('🔍 [Preferences] Valeur convertie:', this.personalDictionaryWordsCount);
     }
 
     // Charger la configuration Firebase
@@ -153,7 +151,6 @@ export class PreferencesComponent implements OnInit {
    * Sauvegarde les préférences dans le localStorage
    */
   savePreferences() {
-    console.log('🔍 [Preferences] savePreferences() appelée');
     
     // Valider le nombre d'associations
     if (this.wordAssociationsCount < 1 || this.wordAssociationsCount > 100) {
@@ -226,7 +223,6 @@ export class PreferencesComponent implements OnInit {
 
     // Sauvegarder le nombre de mots pour la révision du dictionnaire personnel
     this.storageService.set('personalDictionaryWordsCount', this.personalDictionaryWordsCount);
-    console.log('🔍 [Preferences] Sauvegarde personalDictionaryWordsCount:', this.personalDictionaryWordsCount);
     
     // Sauvegarder les thèmes personnalisés pour la compréhension quotidienne (filtrer les vides)
     const validThemes = this.dailyComprehensionThemes.filter(t => t.trim() !== '');
@@ -680,7 +676,6 @@ Note : Vos données locales seront conservées.`,
   private openAppSettings() {
     // Cette fonction pourrait être implémentée avec Capacitor App
     // pour ouvrir les paramètres système de l'application
-    console.log('Ouverture des paramètres de l\'application...');
     // Pour l'instant, on affiche juste un message
     this.showToast('Allez dans Paramètres > Applications > NuovaLingua > Notifications');
   }

@@ -45,7 +45,6 @@ export class AtomsShowcaseComponent {
   };
 
   onActionClick = (): void => {
-    console.log('Action clicked!');
   };
 }
 

@@ -104,10 +104,8 @@ export class PersonalDictionaryService {
    * Ajoute un mot au dictionnaire personnel
    */
   addWord(word: DictionaryWord): boolean {
-    console.log('🔍 [PersonalDictionary] Tentative d\'ajout du mot:', word);
     
     const words = this.getAllWords();
-    console.log('🔍 [PersonalDictionary] Mots existants dans le dictionnaire:', words.length);
     
     // Vérifier si le mot existe déjà (même mot dans les mêmes langues)
     const exists = words.some(w => 
@@ -116,10 +114,8 @@ export class PersonalDictionaryService {
       w.targetLang === word.targetLang
     );
     
-    console.log('🔍 [PersonalDictionary] Le mot existe déjà?', exists);
     
     if (exists) {
-      console.log('🔍 [PersonalDictionary] Mot déjà existant, ajout refusé');
       return false; // Le mot existe déjà
     }
     
@@ -127,13 +123,11 @@ export class PersonalDictionaryService {
     word.id = Date.now().toString();
     word.dateAdded = Date.now();
     
-    console.log('🔍 [PersonalDictionary] Mot avec ID généré:', word);
     
     // Ajouter le mot et sauvegarder
     words.push(word);
     localStorage.setItem(this.storageKey, JSON.stringify(words));
     
-    console.log('🔍 [PersonalDictionary] Mot sauvegardé dans localStorage, total mots:', words.length);
     
     // Émettre la mise à jour via le BehaviorSubject
     this.dictionaryWordsSubject.next(words);
@@ -147,7 +141,6 @@ export class PersonalDictionaryService {
     // Synchroniser avec Firebase si activé
     this.syncToFirebase();
     
-    console.log('🔍 [PersonalDictionary] Mot ajouté avec succès');
     return true;
   }
 
@@ -176,11 +169,9 @@ export class PersonalDictionaryService {
    * Met à jour un mot du dictionnaire personnel
    */
   updateWord(updatedWord: DictionaryWord): boolean {
-    console.log('Tentative de mise à jour du mot:', updatedWord);
     const words = this.getAllWords();
     const wordIndex = words.findIndex(w => w.id === updatedWord.id);
     
-    console.log('Index du mot trouvé:', wordIndex);
     
     if (wordIndex !== -1) {
       // Préserver la date d'ajout originale
@@ -195,7 +186,6 @@ export class PersonalDictionaryService {
       // Émettre la mise à jour via le BehaviorSubject
       this.dictionaryWordsSubject.next(words);
       
-      console.log('Mot mis à jour avec succès');
       
       // Mettre à jour également le tracking SM-2 si nécessaire
       this.updateWordInSM2Tracking(updatedWord);
@@ -206,7 +196,6 @@ export class PersonalDictionaryService {
       return true;
     }
     
-    console.log('Mot non trouvé pour la mise à jour');
     return false; // Mot non trouvé
   }
 
@@ -220,11 +209,9 @@ export class PersonalDictionaryService {
     if (wordIndex !== -1) {
       words[wordIndex].minRevisionDate = minRevisionDate;
       localStorage.setItem(this.storageKey, JSON.stringify(words));
-      console.log('Date minimum de révision mise à jour pour le mot:', words[wordIndex].sourceWord);
       return true;
     }
     
-    console.log('Mot non trouvé pour la mise à jour de la date de révision');
     return false;
   }
 
@@ -238,11 +225,9 @@ export class PersonalDictionaryService {
     if (wordIndex !== -1) {
       words[wordIndex].isKnown = isKnown;
       localStorage.setItem(this.storageKey, JSON.stringify(words));
-      console.log(`Statut 'connu' mis à jour pour ${words[wordIndex].sourceWord}: ${isKnown}`);
       return true;
     }
     
-    console.log('Mot non trouvé pour la mise à jour du statut connu');
     return false;
   }
 
@@ -510,7 +495,6 @@ export class PersonalDictionaryService {
       
       if (existingIndex >= 0) {
         // Le mot existe déjà, ne pas le remplacer
-        console.log('Mot déjà présent dans le tracking SM-2:', wordMastery.word);
         return;
       }
       
@@ -518,7 +502,6 @@ export class PersonalDictionaryService {
       allWords.push(wordMastery);
       this.vocabularyTrackingService.saveAllWords(allWords);
       
-      console.log('Mot ajouté au tracking SM-2:', wordMastery.word);
     } catch (error) {
       console.error('Erreur lors de l\'ajout au tracking SM-2:', error);
     }
@@ -554,7 +537,6 @@ export class PersonalDictionaryService {
           timesCorrect: allWords[existingIndex].timesCorrect + (updatedWord.contextualMeaning ? 1 : 0) // Incrémenter si le mot a une signification contextuelle
         };
         this.vocabularyTrackingService.saveAllWords(allWords);
-        console.log('Mot mis à jour dans le tracking SM-2:', wordToUpdate);
       } else {
         console.warn('Mot non trouvé dans le tracking SM-2 pour la mise à jour:', wordToUpdate);
       }
@@ -682,7 +664,6 @@ export class PersonalDictionaryService {
       this.syncToFirebase();
     }
     
-    console.log(`Mots ajoutés: ${addedCount}, Doublons ignorés: ${duplicatesCount}`);
     
     return { added: addedCount, duplicates: duplicatesCount };
   }
@@ -698,7 +679,6 @@ export class PersonalDictionaryService {
     try {
       const words = this.getAllWords();
       await this.firebaseSync.syncPersonalDictionary(words);
-      console.log('🔍 [PersonalDictionary] Synchronisation vers Firebase réussie');
     } catch (error) {
       console.error('🔍 [PersonalDictionary] Erreur de synchronisation vers Firebase:', error);
     }
@@ -723,7 +703,6 @@ export class PersonalDictionaryService {
         localStorage.setItem(this.storageKey, JSON.stringify(mergedWords));
         this.dictionaryWordsSubject.next(mergedWords);
         
-        console.log('🔍 [PersonalDictionary] Synchronisation depuis Firebase réussie:', mergedWords.length, 'mots');
       }
     } catch (error) {
       console.error('🔍 [PersonalDictionary] Erreur de synchronisation depuis Firebase:', error);
@@ -768,7 +747,6 @@ export class PersonalDictionaryService {
       // Récupérer depuis Firebase
       await this.syncFromFirebase();
       
-      console.log('🔍 [PersonalDictionary] Synchronisation complète réussie');
     } catch (error) {
       console.error('🔍 [PersonalDictionary] Erreur de synchronisation complète:', error);
       throw error;

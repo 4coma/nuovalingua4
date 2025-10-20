@@ -35,7 +35,6 @@ export class HomePage implements OnInit, OnDestroy {
     // S'abonner aux changements du dictionnaire pour mettre à jour les statistiques
     this.dictionarySubscription = this.personalDictionaryService.dictionaryWords$.subscribe(() => {
       // Les statistiques peuvent être mises à jour ici si nécessaire
-      console.log('Dictionnaire mis à jour - statistiques actualisées');
     });
   }
 
@@ -48,15 +47,12 @@ export class HomePage implements OnInit, OnDestroy {
 
 
   onDiscussionClick() {
-    console.log('🔍 HomePage - Bouton Discussion cliqué');
   }
 
   async forceOpenMenu() {
     try {
-      console.log('Forcing menu to open from home page...');
       await this.menuController.enable(true);
       await this.menuController.open();
-      console.log('Menu forced open successfully');
     } catch (error) {
       console.error('Error forcing menu open:', error);
     }

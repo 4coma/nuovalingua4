@@ -186,7 +186,6 @@ export class DiscussionService {
    * Reprend une session de discussion sauvegardée
    */
   resumeSession(session: DiscussionSession): void {
-    console.log('🔍 DiscussionService - Reprise de session:', session.id);
     
     // Déterminer le dernier tour pour l'affichage
     const lastTurn = session.turns.length > 0 ? session.turns[session.turns.length - 1] : undefined;
@@ -199,7 +198,6 @@ export class DiscussionService {
       currentTurn: lastTurn
     });
     
-    console.log('🔍 DiscussionService - État mis à jour pour la reprise de session');
   }
 
   /**
@@ -297,7 +295,6 @@ export class DiscussionService {
     }
 
     this.updateState({ isProcessing: true });
-    console.log('🔍 DiscussionService - Début processUserResponse');
 
     try {
       // S'assurer que l'enregistrement est bien arrêté et le blob prêt
@@ -310,10 +307,8 @@ export class DiscussionService {
         this.showToast('Aucun enregistrement à traiter');
         return;
       }
-      console.log('🔍 DiscussionService - audioBlob récupéré', audioBlob);
 
       // Transcrire l'audio
-      console.log('🔍 DiscussionService - Début de la transcription...');
       const transcription = await this.transcribeAudio(audioBlob);
       if (!transcription) {
         console.warn('🔍 DiscussionService - Transcription échouée');
@@ -321,7 +316,6 @@ export class DiscussionService {
         this.showToast('Erreur lors de la transcription');
         return;
       }
-      console.log('🔍 DiscussionService - Transcription obtenue', transcription);
 
       // Créer le tour de l'utilisateur
       const userTurn: DiscussionTurn = {
@@ -331,11 +325,9 @@ export class DiscussionService {
         audioUrl: this.audioRecordingService.getAudioUrl() || undefined,
         transcription: transcription.text
       };
-      console.log('🔍 DiscussionService - Tour utilisateur créé', userTurn);
 
       // Ajouter le tour à la session
       currentState.currentSession.turns.push(userTurn);
-      console.log('🔍 DiscussionService - Tour utilisateur ajouté à la session');
 
       const userHighlights = this.handleUserWordsForFullRevision(userTurn.message);
       if (userHighlights.length > 0) {
@@ -349,13 +341,11 @@ export class DiscussionService {
       });
 
       // Générer la réponse de l'IA
-      console.log('🔍 DiscussionService - Début génération réponse IA...');
       const aiResponseData = await this.generateAIResponse(
         currentState.currentSession.context,
         transcription.text,
         currentState.currentSession.turns
       );
-      console.log('🔍 DiscussionService - Réponse IA générée', aiResponseData);
 
       // Ajouter le feedback au message utilisateur précédent
       if (userTurn && aiResponseData.feedback) {
@@ -374,7 +364,6 @@ export class DiscussionService {
       }
 
       currentState.currentSession.turns.push(aiTurn);
-      console.log('🔍 DiscussionService - Tour IA ajouté à la session');
 
       this.updateState({
         isProcessing: false,
@@ -382,7 +371,6 @@ export class DiscussionService {
         currentTurn: aiTurn
       });
       this.savedConversations.saveConversation(currentState.currentSession);
-      console.log('🔍 DiscussionService - State mis à jour');
 
     } catch (error) {
       console.error('🔍 DiscussionService - Erreur processUserResponse:', error);
@@ -402,7 +390,6 @@ export class DiscussionService {
     }
 
     this.updateState({ isProcessing: true });
-    console.log('🔍 DiscussionService - Début processTextResponse avec message:', userMessage);
 
     try {
       // Créer le tour de l'utilisateur
@@ -411,11 +398,9 @@ export class DiscussionService {
         message: userMessage,
         timestamp: new Date()
       };
-      console.log('🔍 DiscussionService - Tour utilisateur créé', userTurn);
 
       // Ajouter le tour à la session
       currentState.currentSession.turns.push(userTurn);
-      console.log('🔍 DiscussionService - Tour utilisateur ajouté à la session');
 
       const userHighlights = this.handleUserWordsForFullRevision(userTurn.message);
       if (userHighlights.length > 0) {
@@ -429,13 +414,11 @@ export class DiscussionService {
       });
 
       // Générer la réponse de l'IA
-      console.log('🔍 DiscussionService - Début génération réponse IA...');
       const aiResponseData = await this.generateAIResponse(
         currentState.currentSession.context,
         userMessage,
         currentState.currentSession.turns
       );
-      console.log('🔍 DiscussionService - Réponse IA générée', aiResponseData);
 
       // Ajouter le feedback au message utilisateur précédent
       if (userTurn && aiResponseData.feedback) {
@@ -454,7 +437,6 @@ export class DiscussionService {
       }
 
       currentState.currentSession.turns.push(aiTurn);
-      console.log('🔍 DiscussionService - Tour IA ajouté à la session');
 
       this.updateState({
         isProcessing: false,
@@ -462,7 +444,6 @@ export class DiscussionService {
         currentTurn: aiTurn
       });
       this.savedConversations.saveConversation(currentState.currentSession);
-      console.log('🔍 DiscussionService - State mis à jour');
 
     } catch (error) {
       console.error('🔍 DiscussionService - Erreur processTextResponse:', error);
@@ -475,11 +456,9 @@ export class DiscussionService {
    * Arrête l'enregistrement en cours
    */
   async stopRecording(): Promise<void> {
-    console.log('🔍 DiscussionService - stopRecording appelé');
     try {
       await this.audioRecordingService.stopRecording();
       this.updateState({ isRecording: false });
-      console.log('🔍 DiscussionService - stopRecording terminé');
     } catch (error) {
       console.error('🔍 DiscussionService - Erreur stopRecording:', error);
     this.updateState({ isRecording: false });
@@ -524,10 +503,8 @@ export class DiscussionService {
     const prompt = isFullRevisionConversation 
       ? this.buildFullRevisionDiscussionPrompt(context, userMessage, previousTurns)
       : this.buildDiscussionPrompt(context, userMessage, previousTurns);
-    console.log('🔍 Prompt envoyé au modèle IA :\n', prompt);
     try {
       const response: any = await this.llmService.generateDiscussionResponse(prompt).toPromise();
-      console.log('LA REPONSE EST :', response);
       let text = '';
       // Cas 1 : la réponse est déjà un objet avec reponse et feedback
       if (response && typeof response === 'object' && response.reponse && response.feedback) {

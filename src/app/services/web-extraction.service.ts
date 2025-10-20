@@ -24,7 +24,6 @@ export interface TestResponse {
 })
 export class WebExtractionService {
   constructor() {
-    console.log('🔍 [WebExtractionService] Service initialisé');
   }
 
   /**
@@ -32,7 +31,6 @@ export class WebExtractionService {
    * Version simulée réaliste - remplace par la vraie Firebase Function quand tu upgrade vers Blaze
    */
   extractContent(url: string): Observable<WebExtractionResponse> {
-    console.log('🔍 [WebExtractionService] Extraction du contenu pour:', url);
     
     // Simulation d'extraction avec délai réaliste
     return of({
@@ -91,7 +89,6 @@ export class WebExtractionService {
    * Version simulée en attendant la configuration Firebase Functions
    */
   testConnection(): Observable<TestResponse> {
-    console.log('🔍 [WebExtractionService] Test de connexion Firebase Functions');
     
     return of({
       message: 'Service d\'extraction web opérationnel (version simulée)',
