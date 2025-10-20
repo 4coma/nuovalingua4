@@ -191,41 +191,159 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
 
   private loadTargetVocabulary(): void {
     try {
-      const stored = localStorage.getItem('conversationTargetVocabulary');
-      if (!stored) {
-        this.targetVocabulary = [];
-        this.targetVocabularyMeta = undefined;
+      const stored = this.readStoredTargetVocabulary();
+      if (stored) {
+        this.applyTargetVocabulary(stored.items, stored.meta);
         return;
       }
 
-      const parsed = JSON.parse(stored);
-      if (!parsed || !Array.isArray(parsed.items) || parsed.items.length === 0) {
-        this.targetVocabulary = [];
-        this.targetVocabularyMeta = undefined;
+      const rebuilt = this.rebuildTargetVocabularyFromSession();
+      if (rebuilt) {
+        this.applyTargetVocabulary(rebuilt.items, rebuilt.meta);
+        this.persistTargetVocabulary(rebuilt.payload);
         return;
       }
 
-      this.targetVocabulary = parsed.items.map((item: any) => ({
-        word: item.word,
-        translation: item.translation,
-        context: item.context,
-        used: false
-      }));
-
-      const sessionMeta = parsed.session || {};
-      this.targetVocabularyMeta = {
-        category: sessionMeta.category || 'Vocabulaire',
-        topic: sessionMeta.topic || 'Session récente',
-        translationDirection: sessionMeta.translationDirection || 'fr2it',
-        updatedAt: parsed.updatedAt || new Date().toISOString(),
-        totalCount: parsed.items.length
-      };
-
-      this.updateTargetVocabularyUsageFromSession();
+      this.targetVocabulary = [];
+      this.targetVocabularyMeta = undefined;
     } catch (error) {
       console.error('🔍 DiscussionActiveComponent - Erreur chargement vocabulaire ciblé:', error);
       this.targetVocabulary = [];
       this.targetVocabularyMeta = undefined;
+    }
+  }
+
+  private readStoredTargetVocabulary(): { items: TargetVocabularyItem[]; meta: TargetVocabularyMeta } | null {
+    const stored = localStorage.getItem('conversationTargetVocabulary');
+    if (!stored) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(stored);
+      if (!parsed || !Array.isArray(parsed.items) || parsed.items.length === 0) {
+        return null;
+      }
+
+      const sessionMeta = parsed.session || {};
+      const meta: TargetVocabularyMeta = {
+        category: sessionMeta.category || 'Vocabulaire',
+        topic: sessionMeta.topic || 'Session récente',
+        translationDirection: (sessionMeta.translationDirection as TranslationDirection) || 'fr2it',
+        updatedAt: parsed.updatedAt || new Date().toISOString(),
+        totalCount: parsed.items.length
+      };
+
+      const items: TargetVocabularyItem[] = parsed.items
+        .map((item: any) => ({
+          word: item.word,
+          translation: item.translation,
+          context: item.context
+        }))
+        .filter((item: any) => !!item.word && !!item.translation);
+
+      if (items.length === 0) {
+        return null;
+      }
+
+      return { items, meta };
+    } catch (error) {
+      console.error('🔍 DiscussionActiveComponent - Erreur parsing vocabulaire stocké:', error);
+      return null;
+    }
+  }
+
+  private rebuildTargetVocabularyFromSession(): {
+    items: TargetVocabularyItem[];
+    meta: TargetVocabularyMeta;
+    payload: {
+      items: { word: string; translation: string; context?: string }[];
+      session: { category: string; topic: string; translationDirection: TranslationDirection };
+      updatedAt: string;
+    };
+  } | null {
+    const wordPairsRaw = localStorage.getItem('wordPairs');
+    if (!wordPairsRaw) {
+      return null;
+    }
+
+    const sessionInfoRaw = localStorage.getItem('sessionInfo');
+
+    try {
+      const wordPairs = JSON.parse(wordPairsRaw);
+      if (!Array.isArray(wordPairs) || wordPairs.length === 0) {
+        return null;
+      }
+
+      const sessionInfo = sessionInfoRaw ? JSON.parse(sessionInfoRaw) : null;
+      const direction: TranslationDirection = (sessionInfo?.translationDirection as TranslationDirection) || 'fr2it';
+
+      const items = wordPairs
+        .map((pair: any) => {
+          const italian = pair?.it ?? pair?.word ?? pair?.italian ?? pair?.sourceWord ?? '';
+          const french = pair?.fr ?? pair?.translation ?? pair?.french ?? pair?.targetWord ?? '';
+          if (!italian && !french) {
+            return null;
+          }
+
+          const context = pair?.context || pair?.example || '';
+          return {
+            word: direction === 'fr2it' ? italian : french,
+            translation: direction === 'fr2it' ? french : italian,
+            context
+          } as TargetVocabularyItem;
+        })
+        .filter((item): item is TargetVocabularyItem => !!item && !!item.word && !!item.translation);
+
+      if (items.length === 0) {
+        return null;
+      }
+
+      const updatedAt = new Date().toISOString();
+      const meta: TargetVocabularyMeta = {
+        category: sessionInfo?.category || 'Vocabulaire',
+        topic: sessionInfo?.topic || 'Session récente',
+        translationDirection: direction,
+        updatedAt,
+        totalCount: items.length
+      };
+
+      const payload = {
+        items: items.map(item => ({
+          word: item.word,
+          translation: item.translation,
+          context: item.context
+        })),
+        session: {
+          category: meta.category,
+          topic: meta.topic,
+          translationDirection: direction
+        },
+        updatedAt
+      };
+
+      return { items, meta, payload };
+    } catch (error) {
+      console.error('🔍 DiscussionActiveComponent - Erreur reconstruction vocabulaire:', error);
+      return null;
+    }
+  }
+
+  private applyTargetVocabulary(items: TargetVocabularyItem[], meta: TargetVocabularyMeta): void {
+    this.targetVocabulary = items.map(item => ({ ...item, used: false }));
+    this.targetVocabularyMeta = { ...meta, totalCount: items.length };
+    this.updateTargetVocabularyUsageFromSession();
+  }
+
+  private persistTargetVocabulary(payload: {
+    items: { word: string; translation: string; context?: string }[];
+    session: { category: string; topic: string; translationDirection: TranslationDirection };
+    updatedAt: string;
+  }): void {
+    try {
+      localStorage.setItem('conversationTargetVocabulary', JSON.stringify(payload));
+    } catch (error) {
+      console.error('🔍 DiscussionActiveComponent - Erreur persistance vocabulaire reconstruit:', error);
     }
   }
 
