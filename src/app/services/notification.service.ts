@@ -56,11 +56,9 @@ export class NotificationService {
   async requestPermissions(): Promise<void> {
     try {
       const result = await LocalNotifications.requestPermissions();
-      console.log('Permissions notifications:', result);
       
       // Vérifier si les permissions sont accordées
       const checkResult = await LocalNotifications.checkPermissions();
-      console.log('Vérification des permissions:', checkResult);
       
       if (checkResult.display !== 'granted') {
         console.warn('Permissions de notifications non accordées');
@@ -99,7 +97,6 @@ export class NotificationService {
         ]
       });
       
-      console.log('🔔 [Notification] Actions configurées');
     } catch (error) {
       console.error('Erreur lors de la configuration des actions de notification:', error);
     }
@@ -229,7 +226,6 @@ export class NotificationService {
         ]
       });
 
-      console.log('Notification quotidienne programmée pour:', nextNotification.toLocaleString());
     } catch (error) {
       console.error('Erreur lors de la programmation de la notification:', error);
       throw error;
@@ -242,7 +238,6 @@ export class NotificationService {
   async cancelDailyNotification(): Promise<void> {
     try {
       await LocalNotifications.cancel({ notifications: [{ id: this.NOTIFICATION_ID }] });
-      console.log('Notification quotidienne annulée');
     } catch (error) {
       console.error('Erreur lors de l\'annulation de la notification:', error);
     }
@@ -283,7 +278,6 @@ export class NotificationService {
         ]
       });
 
-      console.log('Notification de compréhension programmée pour:', next.toLocaleString());
     } catch (error) {
       console.error('Erreur lors de la programmation de la notification de compréhension:', error);
       throw error;
@@ -325,7 +319,6 @@ export class NotificationService {
         ]
       });
 
-      console.log('Notification de test envoyée');
     } catch (error) {
       console.error('Erreur lors de l\'envoi de la notification de test:', error);
       throw error;
@@ -429,7 +422,6 @@ export class NotificationService {
       await this.scheduleDailyNotification(settings.time, message);
     }
     
-    console.log('🔔 [Notification] Message mis à jour:', message);
   }
 
   /**
@@ -440,6 +432,5 @@ export class NotificationService {
     if (settings.enabled) {
       await this.scheduleDailyNotification(settings.time, settings.message);
     }
-    console.log('🔔 [Notification] Message réinitialisé au message par défaut');
   }
 } 

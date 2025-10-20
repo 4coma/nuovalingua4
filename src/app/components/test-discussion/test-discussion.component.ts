@@ -13,7 +13,6 @@ import { Component } from '@angular/core';
 })
 export class TestDiscussionComponent {
   constructor() {
-    console.log('🔍 TestDiscussionComponent - CONSTRUCTEUR APPELÉ !');
   }
 
   goBack() {

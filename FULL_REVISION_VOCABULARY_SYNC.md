@@ -70,9 +70,8 @@ goToFullRevisionConversation() {
     fr: pair.fr,
     context: pair.context
   }));
-  
+
   this.fullRevisionService.syncWordsFromAssociation(associationWords);
-  console.log('🔍 [WordPairsGame] Mots synchronisés avec la session:', associationWords);
 
   const session = this.fullRevisionService.setStage('conversation');
   if (!session) {

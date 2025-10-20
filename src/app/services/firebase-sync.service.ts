@@ -131,7 +131,6 @@ export class FirebaseSyncService {
     try {
       const config = this.getFirebaseConfig();
       if (!config) {
-        console.log('🔍 [FirebaseSync] Aucune configuration Firebase trouvée');
         return;
       }
 
@@ -158,10 +157,8 @@ export class FirebaseSyncService {
           this.updateSyncStatus({ isConnected: !!user });
           
           if (user) {
-            console.log('🔍 [FirebaseSync] Utilisateur connecté:', user.uid);
             this.setupRealtimeSync();
           } else {
-            console.log('🔍 [FirebaseSync] Utilisateur déconnecté');
             this.stopRealtimeSync();
           }
         }
@@ -170,7 +167,6 @@ export class FirebaseSyncService {
       // Si on utilise un UID personnalisé, mettre à jour le statut manuellement
       const customUid = this.storageService.get('firebaseCustomUid');
       if (customUid && customUid.trim() && this.currentUser) {
-        console.log('🔍 [FirebaseSync] UID personnalisé détecté, mise à jour du statut');
         this.updateSyncStatus({ isConnected: true });
         this.setupRealtimeSync();
       }
@@ -251,13 +247,10 @@ export class FirebaseSyncService {
           reload: async () => {},
           toJSON: () => ({})
         } as User;
-        console.log('🔍 [FirebaseSync] UID personnalisé utilisé:', this.currentUser.uid);
-        console.log('🔍 [FirebaseSync] Utilisateur personnalisé créé:', this.currentUser);
       } else {
         // Utiliser l'authentification anonyme normale
         const userCredential = await signInAnonymously(this.auth);
         this.currentUser = userCredential.user;
-        console.log('🔍 [FirebaseSync] Connexion anonyme réussie:', this.currentUser.uid);
       }
     } catch (error) {
       console.error('🔍 [FirebaseSync] Erreur de connexion anonyme:', error);
@@ -279,7 +272,6 @@ export class FirebaseSyncService {
         // Essayer de se reconnecter si on a un UID personnalisé
         const customUid = this.storageService.get('firebaseCustomUid');
         if (customUid && customUid.trim()) {
-          console.log('🔍 [FirebaseSync] Reconnexion avec UID personnalisé...');
           await this.connectAnonymously();
         }
         
@@ -295,7 +287,6 @@ export class FirebaseSyncService {
         timestamp: serverTimestamp() 
       }, { merge: true });
 
-      console.log('🔍 [FirebaseSync] Test de connexion réussi');
       return true;
     } catch (error) {
       console.error('🔍 [FirebaseSync] Test de connexion échoué:', error);
@@ -353,7 +344,6 @@ export class FirebaseSyncService {
         syncVersion: 1
       }, { merge: true });
 
-      console.log('🔍 [FirebaseSync] Toutes les données synchronisées:', {
         words: userData.personalDictionary.length,
         conversations: userData.conversations.length,
         savedTexts: userData.savedTexts.length
@@ -391,7 +381,6 @@ export class FirebaseSyncService {
         syncVersion: 1
       }, { merge: true });
 
-      console.log('🔍 [FirebaseSync] Dictionnaire personnel synchronisé:', words.length, 'mots');
       this.updateSyncStatus({ 
         isSyncing: false, 
         lastSync: new Date() 
@@ -434,7 +423,6 @@ export class FirebaseSyncService {
           }
         };
         
-        console.log('🔍 [FirebaseSync] Toutes les données récupérées:', {
           words: userData.personalDictionary.length,
           conversations: userData.conversations.length,
           savedTexts: userData.savedTexts.length
@@ -442,7 +430,6 @@ export class FirebaseSyncService {
         
         return userData;
       } else {
-        console.log('🔍 [FirebaseSync] Aucune donnée utilisateur trouvée sur Firebase');
         return null;
       }
     } catch (error) {
@@ -466,10 +453,8 @@ export class FirebaseSyncService {
       if (userDoc.exists()) {
         const data = userDoc.data();
         const words = data['personalDictionary'] || [];
-        console.log('🔍 [FirebaseSync] Dictionnaire personnel récupéré:', words.length, 'mots');
         return words;
       } else {
-        console.log('🔍 [FirebaseSync] Aucun dictionnaire personnel trouvé sur Firebase');
         return [];
       }
     } catch (error) {
@@ -523,7 +508,6 @@ export class FirebaseSyncService {
       this.unsubscribeSync = onSnapshot(userDocRef, (doc) => {
         if (doc.exists()) {
           const data = doc.data();
-          console.log('🔍 [FirebaseSync] Données mises à jour depuis Firebase');
           // Ici, on pourrait émettre un événement pour mettre à jour l'UI
           // ou déclencher une synchronisation locale
         }
@@ -588,7 +572,6 @@ export class FirebaseSyncService {
     if (this.auth) {
       try {
         await signOut(this.auth);
-        console.log('🔍 [FirebaseSync] Déconnexion réussie');
       } catch (error) {
         console.error('🔍 [FirebaseSync] Erreur de déconnexion:', error);
       }

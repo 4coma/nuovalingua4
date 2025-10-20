@@ -120,7 +120,6 @@ export class AddTextModalComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log('🔍 [AddTextModalComponent] Composant initialisé');
   }
 
   onModeChange() {
@@ -147,14 +146,12 @@ export class AddTextModalComponent implements OnInit {
     this.isExtracting = true;
     
     try {
-      console.log('🔍 [AddTextModal] Début extraction pour:', this.urlContent);
       
       const result = await this.webExtractionService.extractContent(this.urlContent.trim()).toPromise();
       
       if (result && result.success) {
         this.textContent = result.content;
         await this.showToast(`Contenu extrait avec succès ! (${result.content.length} caractères)`);
-        console.log('🔍 [AddTextModal] Extraction réussie:', result.title);
       } else {
         throw new Error('Extraction échouée');
       }
@@ -169,16 +166,12 @@ export class AddTextModalComponent implements OnInit {
   }
 
   async previewText() {
-    console.log('🔍 [AddTextModalComponent] previewText() appelé');
-    console.log('🔍 [AddTextModalComponent] textContent:', this.textContent);
     
     if (!this.textContent.trim()) {
-      console.log('🔍 [AddTextModalComponent] Texte vide, affichage du toast');
       await this.showToast('Veuillez saisir un texte');
       return;
     }
 
-    console.log('🔍 [AddTextModalComponent] Fermeture du modal avec action preview');
     // Fermer ce modal et ouvrir le modal de prévisualisation
     await this.modalController.dismiss({ 
       action: 'preview', 

@@ -71,11 +71,9 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     private fullRevisionService: FullRevisionService,
     private router: Router
   ) {
-    console.log('🔍 DiscussionActiveComponent - Constructor appelé');
   }
 
   ngOnInit() {
-    console.log('🔍 DiscussionActiveComponent - ngOnInit appelé');
 
     this.loadTargetVocabulary();
 
@@ -84,7 +82,6 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
       this.loadTargetVocabulary();
       this.contextId = params['contextId'] || 'aucun';
       const sessionId = this.route.snapshot.queryParamMap.get('sessionId');
-      console.log('🔍 [CTX] Param contextId reçu dans URL:', this.contextId);
       this.refreshFullRevisionState();
       if (sessionId) {
         // Charger la session sauvegardée
@@ -92,11 +89,9 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
         if (savedSession) {
           this.currentContext = savedSession.context;
           this.currentSession = savedSession;
-          console.log('🔍 [CTX] Session sauvegardée chargée:', savedSession);
           
           // Synchroniser l'état du service avec la session chargée
           this.discussionService.resumeSession(savedSession);
-          console.log('🔍 [CTX] État du service synchronisé avec la session chargée');
           this.refreshFullRevisionState();
           return;
         } else {
@@ -106,9 +101,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
       // Trouver le contexte correspondant
       this.currentContext = this.discussionService.getDiscussionContexts()
         .find(context => context.id === this.contextId);
-      console.log('🔍 [CTX] currentContext trouvé:', this.currentContext);
       if (this.currentContext) {
-        console.log('🔍 DiscussionActiveComponent - Contexte trouvé:', this.currentContext);
         this.startDiscussion();
       } else {
         console.error('❌ DiscussionActiveComponent - Contexte non trouvé pour ID:', this.contextId);
@@ -124,12 +117,10 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
         this.isLoading = state.isProcessing;
         this.isRecording = state.isRecording;
         this.updateTargetVocabularyUsageFromSession();
-        console.log('🔍 [Vue] currentSession mis à jour:', this.currentSession);
         // Générer automatiquement l'audio pour chaque message IA sans audioUrl
         if (this.currentSession && this.currentSession.turns) {
           this.currentSession.turns.forEach((turn, idx) => {
             if (turn.speaker === 'ai' && !turn.audioUrl && turn.message) {
-              console.log('🔍 [Vue] Génération audio pour message IA (tour', idx, '):', turn.message.substring(0, 50) + '...');
               
               // Créer un ID unique pour ce tour
               const turnId = `turn_${idx}_${turn.timestamp.getTime()}`;
@@ -137,12 +128,10 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
               
               this.speechService.generateSpeech(turn.message, 'nova', 1.0).subscribe({
                 next: (audioUrl) => {
-                  console.log('🔍 [Vue] Audio généré pour IA (tour', idx, '):', audioUrl);
                   turn.audioUrl = audioUrl;
                   this.audioGeneratingTurns.delete(turnId);
                   // Forcer la détection de changement en Angular
                   this.currentSession = { ...this.currentSession! };
-                  console.log('🔍 [Vue] currentSession forcé après audioUrl:', this.currentSession);
                   this.cdRef.detectChanges();
                 },
                 error: (error) => {
@@ -154,7 +143,6 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
             }
           });
         }
-        console.log('🔍 [Vue] État mis à jour:', state);
         this.refreshFullRevisionState();
       })
     );
@@ -168,12 +156,10 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     if (!this.currentContext || this.isStarting) return;
     
     this.isStarting = true;
-    console.log('🔍 DiscussionActiveComponent - Démarrage de la discussion...');
     
     try {
       const success = await this.discussionService.startDiscussion(this.currentContext);
       if (success) {
-        console.log('🔍 DiscussionActiveComponent - Discussion démarrée avec succès');
         this.refreshFullRevisionState();
       } else {
         console.error('🔍 DiscussionActiveComponent - Échec du démarrage de la discussion');
@@ -186,23 +172,18 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
   }
 
   async startRecording() {
-    console.log('🔍 DiscussionActiveComponent - Démarrage de l\'enregistrement...');
     await this.discussionService.recordUserResponse();
   }
 
   async stopRecording() {
-    console.log('🔍 DiscussionActiveComponent - Arrêt de l\'enregistrement...');
     try {
       // Attendre que l'enregistrement soit complètement arrêté
     await this.discussionService.stopRecording();
-      console.log('🔍 DiscussionActiveComponent - Enregistrement arrêté, début du traitement...');
 
       // Ajouter un petit délai pour s'assurer que l'audio est prêt
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      console.log('🔍 DiscussionActiveComponent - Appel processUserResponse...');
       await this.discussionService.processUserResponse();
-      console.log('🔍 DiscussionActiveComponent - processUserResponse terminé');
     } catch (error) {
       console.error('🔍 DiscussionActiveComponent - Erreur lors de l\'arrêt de l\'enregistrement:', error);
     }
@@ -346,7 +327,6 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
    * Gère le changement de mode de réponse
    */
   onResponseModeChange() {
-    console.log('🔍 DiscussionActiveComponent - Changement de mode de réponse:', this.responseMode);
     // Réinitialiser la réponse texte lors du changement de mode
     if (this.responseMode === 'voice') {
       this.textResponse = '';
@@ -361,14 +341,12 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('🔍 DiscussionActiveComponent - Envoi de la réponse texte:', this.textResponse);
     
     try {
       // Traiter la réponse avec l'IA (le service ajoute le message utilisateur)
       await this.discussionService.processTextResponse(this.textResponse.trim());
       // Vider le champ de texte
       this.textResponse = '';
-      console.log('🔍 DiscussionActiveComponent - Réponse texte envoyée avec succès');
     } catch (error) {
       console.error('🔍 DiscussionActiveComponent - Erreur lors de l\'envoi de la réponse texte:', error);
     }

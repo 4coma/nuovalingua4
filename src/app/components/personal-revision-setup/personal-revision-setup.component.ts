@@ -169,10 +169,6 @@ export class PersonalRevisionSetupComponent implements OnInit {
       // Sauvegarder le nombre de mots configuré
       this.storageService.set('personalDictionaryWordsCount', sanitizedCount.toString());
 
-      console.log('🔍 [PersonalRevisionSetup] Données sauvegardées:');
-      console.log('🔍 [PersonalRevisionSetup] sessionInfo:', sessionInfo);
-      console.log('🔍 [PersonalRevisionSetup] wordPairs.length:', wordPairs.length);
-      console.log('🔍 [PersonalRevisionSetup] revisedWords.length:', revisedWords.length);
 
       // Naviguer vers l'exercice d'association
       this.router.navigate(['/word-pairs-game']);

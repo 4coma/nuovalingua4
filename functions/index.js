@@ -26,7 +26,6 @@ exports.extractWebContent = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('invalid-argument', 'URL invalide');
     }
 
-    console.log(`Extraction du contenu pour l'URL: ${url}`);
 
     // Extraire le contenu HTML de l'URL
     const html = await fetchUrl(url);
@@ -48,7 +47,6 @@ exports.extractWebContent = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('failed-precondition', 'Impossible d\'extraire du contenu valide de cette URL');
     }
 
-    console.log(`Contenu extrait: ${finalContent.length} caractères`);
 
     return {
       success: true,

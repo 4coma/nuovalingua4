@@ -26,14 +26,12 @@ export class WebExtractionFirebaseService {
   private readonly functionsBaseUrl = 'https://us-central1-nuovalingua4.cloudfunctions.net';
 
   constructor() {
-    console.log('🔍 [WebExtractionFirebaseService] Service initialisé avec Firebase Functions');
   }
 
   /**
    * Extrait le contenu textuel d'une URL via Firebase Functions
    */
   extractContent(url: string): Observable<WebExtractionResponse> {
-    console.log('🔍 [WebExtractionFirebaseService] Extraction du contenu pour:', url);
     
     const requestBody = { url };
     const functionUrl = `${this.functionsBaseUrl}/extractWebContent`;
@@ -71,7 +69,6 @@ export class WebExtractionFirebaseService {
    * Teste la connectivité avec les Firebase Functions
    */
   testConnection(): Observable<TestResponse> {
-    console.log('🔍 [WebExtractionFirebaseService] Test de connexion Firebase Functions');
     
     const functionUrl = `${this.functionsBaseUrl}/testFunction`;
     

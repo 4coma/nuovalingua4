@@ -67,8 +67,6 @@ export class TextPreviewModalComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log('🔍 [TextPreviewModalComponent] Composant initialisé');
-    console.log('🔍 [TextPreviewModalComponent] Texte reçu:', this.text);
     // Assigner le texte reçu à textContent pour l'affichage
     this.textContent = this.text || '';
   }

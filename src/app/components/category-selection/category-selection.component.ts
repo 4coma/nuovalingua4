@@ -153,7 +153,6 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
   startSession() {
     this.showConfirmation = false;
     this.isLoading = true;
-    console.log('Démarrage session, isLoading:', this.isLoading);
 
     if (this.selectedCategory && this.selectedTopic) {
       // Mettre à jour la direction de traduction dans le service
@@ -177,7 +176,6 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       // Générer les paires de mots via l'API OpenAI
       this.llmService.generateWordPairs(this.selectedTopic, this.selectedCategory).subscribe({
         next: (wordPairs) => {
-          console.log('Paires de mots générées:', wordPairs);
           
           // Stocker les paires de mots dans le localStorage pour la session
           localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
@@ -190,7 +188,6 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
           }));
           
           this.isLoading = false;
-          console.log('Chargement terminé, isLoading:', this.isLoading);
           
           // Naviguer vers le jeu d'association (nouveau composant)
           setTimeout(() => {
@@ -200,14 +197,12 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Erreur lors de la génération des paires de mots:', error);
           this.isLoading = false;
-          console.log('Erreur de chargement, isLoading:', this.isLoading);
           // Gérer l'erreur (peut-être afficher une alerte)
           alert('Erreur lors de la génération des paires de mots. Veuillez réessayer.');
         }
       });
     } else {
       this.isLoading = false;
-      console.log('Pas de catégorie/sujet sélectionné, isLoading:', this.isLoading);
     }
   }
 
@@ -344,7 +339,6 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
    */
   startCustomSession(customPrompt: string) {
     this.isLoading = true;
-    console.log('Démarrage session personnalisée, isLoading:', this.isLoading);
     
     // Sauvegarder les informations de la session
     const sessionInfo = {
@@ -353,23 +347,19 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       date: new Date().toISOString(),
       translationDirection: this.translationDirection
     };
-    console.log('Info session personnalisée:', sessionInfo);
     localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
     
     // Appeler le service LLM pour générer des paires de mots avec la consigne personnalisée
     this.llmService.generateCustomWordPairs(customPrompt, this.translationDirection)
       .subscribe({
         next: (wordPairs: WordPair[]) => {
-          console.log('Paires de mots personnalisées générées:', wordPairs);
           localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
           this.isLoading = false;
-          console.log('Navigation vers word-pairs-game');
           
           // Utiliser setTimeout pour s'assurer que la navigation se déclenche après les autres opérations
           setTimeout(() => {
             this.router.navigate(['/word-pairs-game'])
               .then(success => {
-                console.log('Navigation réussie:', success);
               })
               .catch(err => {
                 console.error('Erreur de navigation:', err);
@@ -391,7 +381,6 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
    */
   startSessionWithCustomInstruction(customInstruction: string) {
     this.isLoading = true;
-    console.log('Démarrage session avec consigne personnalisée, isLoading:', this.isLoading);
 
     if (this.selectedCategory && this.selectedTopic) {
       // Mettre à jour la direction de traduction dans le service
@@ -419,7 +408,6 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
         customInstruction
       ).subscribe({
         next: (wordPairs: WordPair[]) => {
-          console.log('Paires de mots générées avec consigne personnalisée:', wordPairs);
           
           // Stocker les paires de mots dans le localStorage pour la session
           localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
@@ -433,7 +421,6 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
           }));
           
           this.isLoading = false;
-          console.log('Chargement terminé, isLoading:', this.isLoading);
           
           // Naviguer vers le jeu d'association (nouveau composant)
           setTimeout(() => {
@@ -443,14 +430,12 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
         error: (error: any) => {
           console.error('Erreur lors de la génération des paires de mots:', error);
           this.isLoading = false;
-          console.log('Erreur de chargement, isLoading:', this.isLoading);
           // Gérer l'erreur (peut-être afficher une alerte)
           alert('Erreur lors de la génération des paires de mots. Veuillez réessayer.');
         }
       });
     } else {
       this.isLoading = false;
-      console.log('Pas de catégorie/sujet sélectionné, isLoading:', this.isLoading);
     }
   }
 }
