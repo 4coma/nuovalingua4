@@ -77,11 +77,6 @@ export class DiscussionContextSelectionComponent implements OnInit {
   }
 
   selectContext(context: DiscussionContext, idx?: number) {
-      id: context.id,
-      titre: context.title,
-      index: idx,
-      contexte: context
-    });
     this.router.navigate(['/discussion', context.id]);
   }
 

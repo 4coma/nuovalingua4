@@ -344,11 +344,6 @@ export class FirebaseSyncService {
         syncVersion: 1
       }, { merge: true });
 
-        words: userData.personalDictionary.length,
-        conversations: userData.conversations.length,
-        savedTexts: userData.savedTexts.length
-      });
-      
       this.updateSyncStatus({ 
         isSyncing: false, 
         lastSync: new Date() 
@@ -422,11 +417,6 @@ export class FirebaseSyncService {
             appVersion: data['metadata']?.appVersion || '1.0.0'
           }
         };
-        
-          words: userData.personalDictionary.length,
-          conversations: userData.conversations.length,
-          savedTexts: userData.savedTexts.length
-        });
         
         return userData;
       } else {

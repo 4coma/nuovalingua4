@@ -190,16 +190,23 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
   }
 
   private loadTargetVocabulary(): void {
+    console.log('🔍 [DiscussionActive] loadTargetVocabulary() appelée');
     try {
       const stored = localStorage.getItem('conversationTargetVocabulary');
+      console.log('🔍 [DiscussionActive] conversationTargetVocabulary dans localStorage:', stored);
+      
       if (!stored) {
+        console.log('🔍 [DiscussionActive] Aucun vocabulaire cible trouvé dans localStorage');
         this.targetVocabulary = [];
         this.targetVocabularyMeta = undefined;
         return;
       }
 
       const parsed = JSON.parse(stored);
+      console.log('🔍 [DiscussionActive] Vocabulaire parsé:', parsed);
+      
       if (!parsed || !Array.isArray(parsed.items) || parsed.items.length === 0) {
+        console.log('🔍 [DiscussionActive] Vocabulaire invalide ou vide');
         this.targetVocabulary = [];
         this.targetVocabularyMeta = undefined;
         return;
@@ -211,6 +218,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
         context: item.context,
         used: false
       }));
+      console.log('🔍 [DiscussionActive] targetVocabulary chargé:', this.targetVocabulary);
 
       const sessionMeta = parsed.session || {};
       this.targetVocabularyMeta = {
@@ -220,6 +228,7 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
         updatedAt: parsed.updatedAt || new Date().toISOString(),
         totalCount: parsed.items.length
       };
+      console.log('🔍 [DiscussionActive] targetVocabularyMeta:', this.targetVocabularyMeta);
 
       this.updateTargetVocabularyUsageFromSession();
     } catch (error) {

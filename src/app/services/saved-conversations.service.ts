@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { DiscussionSession } from './discussion.service';
-import { FirebaseSyncService } from './firebase-sync.service';
+import { FirebaseSyncService, Conversation } from './firebase-sync.service';
 
 @Injectable({
   providedIn: 'root'
@@ -101,7 +101,7 @@ export class SavedConversationsService {
       const userData = await this.firebaseSync.getAllUserData();
       if (userData && userData.conversations.length > 0) {
         // Convertir les conversations Firebase en format DiscussionSession
-        const firebaseConversations = userData.conversations.map(conv => ({
+        const firebaseConversations = userData.conversations.map((conv: Conversation) => ({
           id: conv.id,
           context: conv.context,
           turns: conv.turns,

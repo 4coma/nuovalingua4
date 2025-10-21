@@ -14,29 +14,6 @@
       </ion-card-content>
     </ion-card>
 
-    <ion-card *ngIf="fullRevisionActive">
-      <ion-card-header>
-        <ion-card-title>Vocabulaire ciblé</ion-card-title>
-        <ion-card-subtitle>Utilise tous les mots pour terminer la session</ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="revision-grid">
-          <div class="revision-column">
-            <h4>Tes mots</h4>
-            <div class="chip-list">
-              <ion-chip *ngFor="let word of userRevisionWords"
-                        class="word-chip"
-                        [color]="word.usedByUser ? 'success' : 'warning'"
-                        [outline]="!word.usedByUser">
-                <ion-label>{{ word.fr }}</ion-label>
-              </ion-chip>
-            </div>
-            <ion-note color="medium">{{ remainingUserCount }} mot(s) restants pour toi</ion-note>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
     <ion-card *ngIf="targetVocabulary.length > 0" class="target-vocabulary-card">
       <ion-card-header>
         <ion-card-title>Vocabulaire ciblé</ion-card-title>

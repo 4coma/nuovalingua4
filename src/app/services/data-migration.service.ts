@@ -261,14 +261,6 @@ export class DataMigrationService {
     const hasConversations = conversations.length > 0;
     const hasTexts = texts.length > 0;
     
-      words: words.length,
-      conversations: conversations.length,
-      texts: texts.length,
-      hasWords,
-      hasConversations,
-      hasTexts
-    });
-    
     return hasWords || hasConversations || hasTexts;
   }
 

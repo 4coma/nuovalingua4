@@ -1,0 +1,61 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - button "menu" [ref=e9] [cursor=pointer]:
+          - generic [ref=e11]:
+            - img:
+              - generic:
+                - img
+        - generic [ref=e14]:
+          - generic: Accueil
+    - main [ref=e15]:
+      - main [ref=e20]:
+        - generic [ref=e25]:
+          - heading "Quel type de révision veux-tu faire ?" [level=2] [ref=e26]
+          - generic [ref=e27]:
+            - link "Apprendre" [ref=e28] [cursor=pointer]:
+              - /url: /category
+              - button "Apprendre" [ref=e31]:
+                - generic [ref=e32]:
+                  - generic:
+                    - img:
+                      - generic:
+                        - img
+                  - generic: Apprendre
+            - link "Réviser" [ref=e33] [cursor=pointer]:
+              - /url: /personal-revision-setup
+              - button "Réviser" [ref=e36]:
+                - generic [ref=e37]:
+                  - generic:
+                    - img:
+                      - generic:
+                        - img
+                  - generic: Réviser
+            - link "Révision complète" [ref=e38] [cursor=pointer]:
+              - /url: /full-revision-setup
+              - button "Révision complète" [ref=e40]:
+                - generic [ref=e41]:
+                  - generic:
+                    - img:
+                      - generic:
+                        - img
+                  - generic: Révision complète
+            - link "Discuter" [ref=e42] [cursor=pointer]:
+              - /url: /discussion-context-selection
+              - button "Discuter" [ref=e44]:
+                - generic [ref=e45]:
+                  - generic:
+                    - img:
+                      - generic:
+                        - img
+                  - generic: Discuter
+  - button [ref=e48] [cursor=pointer]:
+    - img [ref=e49]:
+      - img [ref=e51]
+    - img [ref=e54]:
+      - img [ref=e56]
+```

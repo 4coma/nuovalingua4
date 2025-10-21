@@ -664,6 +664,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    * Lance la conversation guidée dans le cadre d'une révision complète
    */
   goToFullRevisionConversation() {
+    console.log('🔍 [WordPairsGame] goToFullRevisionConversation() appelée');
+    console.log('🔍 [WordPairsGame] isFullRevisionSession:', this.isFullRevisionSession);
+    console.log('🔍 [WordPairsGame] gameComplete:', this.gameComplete);
+    console.log('🔍 [WordPairsGame] wordPairs.length:', this.wordPairs.length);
+    
     if (!this.isFullRevisionSession) {
       return;
     }
@@ -680,7 +685,16 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       context: pair.context
     }));
     
+    console.log('🔍 [WordPairsGame] associationWords:', associationWords);
     this.fullRevisionService.syncWordsFromAssociation(associationWords);
+
+    // IMPORTANT: Sauvegarder le vocabulaire cible pour la conversation
+    console.log('🔍 [WordPairsGame] Appel de updateConversationTargetVocabularyStorage()');
+    this.updateConversationTargetVocabularyStorage();
+    
+    // Vérifier ce qui a été sauvegardé
+    const saved = localStorage.getItem('conversationTargetVocabulary');
+    console.log('🔍 [WordPairsGame] Vocabulaire sauvegardé dans localStorage:', saved ? JSON.parse(saved) : null);
 
     const session = this.fullRevisionService.setStage('conversation');
     if (!session) {
@@ -688,6 +702,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       return;
     }
 
+    console.log('🔍 [WordPairsGame] Navigation vers conversation full-revision');
     this.router.navigate(['/discussion', 'full-revision'], {
       queryParams: { fullRevision: 'true' }
     });
