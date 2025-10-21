@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { WordPair } from '../../services/llm.service';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
@@ -23,6 +24,26 @@ import { PersonalDictionaryService, DictionaryWord } from '../../services/person
         <p class="ion-text-center">
           Sélectionnez les mots que vous souhaitez ajouter à votre dictionnaire personnel :
         </p>
+        
+        <!-- Champ pour ajouter un thème commun -->
+        <ion-card class="theme-card">
+          <ion-card-content>
+            <ion-item lines="none" class="theme-input-item">
+              <ion-label position="stacked">
+                <ion-icon name="pricetag-outline" class="ion-margin-end"></ion-icon>
+                Thème commun (optionnel)
+              </ion-label>
+              <ion-input
+                [(ngModel)]="commonTheme"
+                placeholder="Ex: Nourriture, Voyage, Travail..."
+                clearInput="true">
+              </ion-input>
+            </ion-item>
+            <ion-note color="medium" class="theme-note">
+              Ce thème sera automatiquement ajouté à tous les mots sélectionnés
+            </ion-note>
+          </ion-card-content>
+        </ion-card>
         
         <div class="words-list">
           <div *ngFor="let word of sessionWords" class="word-item">
@@ -74,6 +95,37 @@ import { PersonalDictionaryService, DictionaryWord } from '../../services/person
       margin: 0 auto;
     }
     
+    .theme-card {
+      margin: 16px 0;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .theme-input-item {
+      --background: transparent;
+      --border-radius: 8px;
+      margin: 8px 0;
+    }
+    
+    .theme-input-item ion-label {
+      font-weight: 500;
+      color: var(--ion-color-primary);
+    }
+    
+    .theme-input-item ion-input {
+      --padding-start: 12px;
+      --padding-end: 12px;
+      border: 1px solid var(--ion-color-medium);
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+    
+    .theme-note {
+      font-size: 12px;
+      margin-top: 8px;
+      display: block;
+    }
+    
     .words-list {
       margin: 20px 0;
     }
@@ -123,11 +175,12 @@ import { PersonalDictionaryService, DictionaryWord } from '../../services/person
     }
   `],
   standalone: true,
-  imports: [CommonModule, IonicModule]
+  imports: [CommonModule, IonicModule, FormsModule]
 })
 export class DictionaryModalComponent implements OnInit {
   @Input() sessionWords: WordPair[] = [];
   
+  commonTheme: string = '';
   private dictionaryWords: DictionaryWord[] = [];
 
   constructor(
@@ -148,6 +201,11 @@ export class DictionaryModalComponent implements OnInit {
   }
 
   addWordToDictionary(word: WordPair) {
+    // Préparer les thèmes : thèmes existants + thème commun (si défini)
+    const existingThemes = word.themes || [];
+    const themes = this.commonTheme.trim() 
+      ? [...existingThemes, this.commonTheme.trim()]
+      : existingThemes;
     
     const newWord: DictionaryWord = {
       id: '',
@@ -159,10 +217,9 @@ export class DictionaryModalComponent implements OnInit {
       partOfSpeech: '',
       examples: [],
       dateAdded: Date.now(),
-      themes: word.themes || [] // Inclure les thèmes du mot généré
+      themes: themes // Inclure les thèmes existants + le thème commun
     };
 
-    
     const added = this.dictionaryService.addWord(newWord);
     
     if (added) {
