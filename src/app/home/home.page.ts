@@ -1,10 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, MenuController } from '@ionic/angular';
+import { IonicModule, MenuController, ModalController } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PersonalDictionaryService } from '../services/personal-dictionary.service';
+import { PriorityThemesService, PriorityTheme } from '../services/priority-themes.service';
 import { ButtonComponent, CardComponent } from '../components/atoms';
+import { PriorityThemesSelectionComponent } from '../components/priority-themes-selection/priority-themes-selection.component';
 
 @Component({
   selector: 'app-home',
@@ -22,27 +24,71 @@ import { ButtonComponent, CardComponent } from '../components/atoms';
 export class HomePage implements OnInit, OnDestroy {
   pageTitle: string = 'Accueil';
   
-  // Subscription pour le BehaviorSubject
+  // Thèmes prioritaires affichés
+  priorityThemes: { name: string; count: number }[] = [];
+  
+  // Subscriptions
   private dictionarySubscription?: Subscription;
+  private themesSubscription?: Subscription;
 
   constructor(
     private menuController: MenuController,
-    private personalDictionaryService: PersonalDictionaryService
+    private personalDictionaryService: PersonalDictionaryService,
+    private priorityThemesService: PriorityThemesService,
+    private modalController: ModalController
   ) {
   }
 
   ngOnInit() {
     // S'abonner aux changements du dictionnaire pour mettre à jour les statistiques
     this.dictionarySubscription = this.personalDictionaryService.dictionaryWords$.subscribe(() => {
-      // Les statistiques peuvent être mises à jour ici si nécessaire
+      this.updatePriorityThemes();
     });
+
+    // S'abonner aux changements des thèmes prioritaires
+    this.themesSubscription = this.priorityThemesService.selectedThemes$.subscribe(() => {
+      this.updatePriorityThemes();
+    });
+
+    // Charger les thèmes prioritaires au démarrage
+    this.updatePriorityThemes();
   }
 
   ngOnDestroy() {
-    // Nettoyer la subscription
+    // Nettoyer les subscriptions
     if (this.dictionarySubscription) {
       this.dictionarySubscription.unsubscribe();
     }
+    if (this.themesSubscription) {
+      this.themesSubscription.unsubscribe();
+    }
+  }
+
+  /**
+   * Met à jour la liste des thèmes prioritaires affichés
+   */
+  private updatePriorityThemes(): void {
+    this.priorityThemes = this.priorityThemesService.getPriorityThemesStats();
+  }
+
+  /**
+   * Ouvre la modal de sélection des thèmes prioritaires
+   */
+  async openThemeSelection(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: PriorityThemesSelectionComponent,
+      cssClass: 'priority-themes-modal'
+    });
+
+    await modal.present();
+  }
+
+  /**
+   * Filtre les exercices par thème sélectionné
+   */
+  filterByTheme(themeName: string): void {
+    // TODO: Implémenter le filtrage par thème
+    console.log('Filtrage par thème:', themeName);
   }
 
 
