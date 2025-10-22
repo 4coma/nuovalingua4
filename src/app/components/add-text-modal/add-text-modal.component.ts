@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
@@ -106,7 +106,7 @@ import { WebExtractionService } from '../../services/web-extraction.service';
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule]
 })
-export class AddTextModalComponent implements OnInit {
+export class AddTextModalComponent {
   textContent: string = '';
   urlContent: string = '';
   inputMode: 'manual' | 'url' = 'manual';
@@ -118,9 +118,6 @@ export class AddTextModalComponent implements OnInit {
     private savedTextsService: SavedTextsService,
     private webExtractionService: WebExtractionService
   ) {}
-
-  ngOnInit() {
-  }
 
   onModeChange() {
     // Réinitialiser le contenu lors du changement de mode
