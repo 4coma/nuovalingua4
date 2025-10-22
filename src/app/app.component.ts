@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicModule, ModalController, Platform, MenuController, ActionSheetController } from '@ionic/angular';
+import { IonicModule, ModalController, Platform, MenuController, ActionSheetController, AlertController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { LlmService } from './services/llm.service';
@@ -9,7 +9,7 @@ import { StatusBar } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
 import { NotificationService } from './services/notification.service';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { PersonalDictionaryService } from './services/personal-dictionary.service';
+import { PersonalDictionaryService, DictionaryWord } from './services/personal-dictionary.service';
 import { StorageService } from './services/storage.service';
 import { ToastController } from '@ionic/angular';
 import { TextGeneratorService } from './services/text-generator.service';
@@ -81,7 +81,8 @@ export class AppComponent {
     private storageService: StorageService,
     private toastController: ToastController,
     private textGeneratorService: TextGeneratorService,
-    private actionSheetController: ActionSheetController
+    private actionSheetController: ActionSheetController,
+    private alertController: AlertController
   ) {
     this.setupRouteListener();
     this.initializeApp();
@@ -301,7 +302,9 @@ export class AppComponent {
       const extra = notificationAction.notification.extra;
 
       if (extra && extra.action === 'start_revision') {
-        this.startPersonalDictionaryRevision();
+        this.startPersonalDictionaryRevision({
+          newWordIds: extra.newWordIds
+        });
       }
 
       if (extra && extra.action === 'start_comprehension') {
@@ -315,7 +318,9 @@ export class AppComponent {
       const extra = notification.extra;
 
       if (extra && extra.action === 'start_revision') {
-        this.startPersonalDictionaryRevision();
+        this.startPersonalDictionaryRevision({
+          newWordIds: extra.newWordIds
+        });
       }
 
       if (extra && extra.action === 'start_comprehension') {
@@ -328,24 +333,43 @@ export class AppComponent {
    * Lance directement une session de révision du dictionnaire personnel
    * Utilise un algorithme simple basé sur minRevisionDate (pas SM-2)
    */
-  private async startPersonalDictionaryRevision() {
+  private async startPersonalDictionaryRevision(options?: {
+    newWordIds?: string[];
+  }) {
     try {
-      // Récupérer les mots à réviser aujourd'hui (algorithme simple)
-      const wordsToReviewToday = this.personalDictionaryService.getWordsToReviewToday();
-      
-      if (wordsToReviewToday.length === 0) {
-        const toast = await this.toastController.create({
-          message: 'Aucun mot à réviser aujourd\'hui. Vérifiez les dates de révision de vos mots !',
-          duration: 3000,
-          position: 'bottom',
-          color: 'warning'
-        });
-        await toast.present();
-        return;
+      let selectedWords: DictionaryWord[] | null = null;
+      let sessionTopic = 'Révision personnalisée';
+
+      if (options?.newWordIds && options.newWordIds.length > 0) {
+        const todayWords = this.personalDictionaryService.getWordsByIds(options.newWordIds);
+        if (todayWords.length > 0) {
+          const shouldStart = await this.showNewWordsPrompt(todayWords);
+          if (!shouldStart) {
+            return;
+          }
+          selectedWords = todayWords;
+          sessionTopic = 'Nouveaux mots du jour';
+        }
       }
 
-      // Utiliser tous les mots à réviser aujourd'hui (pas de limite arbitraire)
-      const selectedWords = wordsToReviewToday;
+      if (!selectedWords) {
+        // Récupérer les mots à réviser aujourd'hui (algorithme simple)
+        const wordsToReviewToday = this.personalDictionaryService.getWordsToReviewToday();
+
+        if (wordsToReviewToday.length === 0) {
+          const toast = await this.toastController.create({
+            message: 'Aucun mot à réviser aujourd\'hui. Vérifiez les dates de révision de vos mots !',
+            duration: 3000,
+            position: 'bottom',
+            color: 'warning'
+          });
+          await toast.present();
+          return;
+        }
+
+        // Utiliser tous les mots à réviser aujourd'hui (pas de limite arbitraire)
+        selectedWords = wordsToReviewToday;
+      }
 
       // Créer les paires de mots pour l'exercice d'association
       const wordPairs = selectedWords.map(word => ({
@@ -368,7 +392,7 @@ export class AppComponent {
       // Sauvegarder les données de session
       const sessionInfo = {
         category: 'Dictionnaire personnel',
-        topic: 'Révision personnalisée',
+        topic: sessionTopic,
         date: new Date().toISOString(),
         translationDirection: 'fr2it' as const
       };
@@ -393,6 +417,33 @@ export class AppComponent {
       });
       await toast.present();
     }
+  }
+
+  private async showNewWordsPrompt(words: DictionaryWord[]): Promise<boolean> {
+    const listItems = words.map(word => {
+      const sourceLabel = `${word.sourceWord} (${word.sourceLang.toUpperCase()})`;
+      const targetLabel = `${word.targetWord} (${word.targetLang.toUpperCase()})`;
+      return `<li><strong>${sourceLabel}</strong> → ${targetLabel}</li>`;
+    }).join('');
+
+    const alert = await this.alertController.create({
+      header: `Nouveaux mots (${words.length})`,
+      message: `<p>Voici les mots ajoutés aujourd'hui :</p><ul>${listItems}</ul><p>Souhaitez-vous les réviser maintenant ?</p>`,
+      buttons: [
+        {
+          text: 'Plus tard',
+          role: 'cancel'
+        },
+        {
+          text: 'Commencer la révision',
+          role: 'confirm'
+        }
+      ]
+    });
+
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    return role === 'confirm';
   }
 
   /**

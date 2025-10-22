@@ -5,7 +5,7 @@ import { catchError, map } from 'rxjs/operators';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
 import { VocabularyTrackingService, WordMastery } from './vocabulary-tracking.service';
-import { NotificationService } from './notification.service';
+import { NotificationService, NotificationWordPreview } from './notification.service';
 import { StorageService } from './storage.service';
 import { FirebaseSyncService } from './firebase-sync.service';
 
@@ -546,28 +546,50 @@ export class PersonalDictionaryService {
   }
 
   /**
+   * Récupère la liste des mots ajoutés aujourd'hui
+   */
+  getWordsAddedToday(): DictionaryWord[] {
+    const allWords = this.getAllWords();
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const startOfTomorrow = new Date(startOfToday);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+    return allWords
+      .filter(word => word.dateAdded >= startOfToday.getTime() && word.dateAdded < startOfTomorrow.getTime())
+      .sort((a, b) => a.dateAdded - b.dateAdded);
+  }
+
+  /**
    * Compte le nombre de mots ajoutés aujourd'hui
    */
   countWordsAddedToday(): number {
-    const words = this.getAllWords();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Définir l'heure à minuit pour compter les mots ajoutés aujourd'hui
-
-    return words.filter(word => {
-      const wordDate = new Date(word.dateAdded);
-      wordDate.setHours(0, 0, 0, 0); // Définir l'heure à minuit pour compter les mots ajoutés aujourd'hui
-      return wordDate >= today;
-    }).length;
+    return this.getWordsAddedToday().length;
   }
 
   /**
    * Met à jour la notification quotidienne avec le nombre de mots ajoutés aujourd'hui
    */
   private updateDailyNotification(): void {
-    const wordsAddedToday = this.countWordsAddedToday();
+    const todayWords = this.getWordsAddedToday();
+    const wordsAddedToday = todayWords.length;
+
+    const previews: NotificationWordPreview[] = todayWords.slice(0, 10).map(word => ({
+      id: word.id,
+      sourceWord: word.sourceWord,
+      sourceLang: word.sourceLang,
+      targetWord: word.targetWord,
+      targetLang: word.targetLang
+    }));
+
     this.notificationUpdateQueue = this.notificationUpdateQueue
       .then(() =>
-        this.notificationService.updateNotificationMessageWithTodayWords(wordsAddedToday)
+        this.notificationService.updateNotificationMessageWithTodayWords(
+          wordsAddedToday,
+          todayWords.map(word => word.id),
+          previews
+        )
       )
       .catch(error =>
         console.error('Erreur lors de la mise à jour de la notification quotidienne:', error)
@@ -580,6 +602,22 @@ export class PersonalDictionaryService {
   getWordById(wordId: string): DictionaryWord | null {
     const allWords = this.getAllWords();
     return allWords.find(word => word.id === wordId) || null;
+  }
+
+  /**
+   * Récupère plusieurs mots en respectant l'ordre fourni
+   */
+  getWordsByIds(wordIds: string[]): DictionaryWord[] {
+    if (!wordIds || wordIds.length === 0) {
+      return [];
+    }
+
+    const allWords = this.getAllWords();
+    const map = new Map(allWords.map(word => [word.id, word] as const));
+
+    return wordIds
+      .map(id => map.get(id))
+      .filter((word): word is DictionaryWord => !!word);
   }
 
   /**

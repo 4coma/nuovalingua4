@@ -21,8 +21,45 @@ export class NotificationService {
   private readonly SETTINGS_KEY = 'notificationSettings';
   private readonly COMPREHENSION_NOTIFICATION_ID = 2001; // Notification quotidienne pour la compréhension orale
   private readonly COMPREHENSION_SETTINGS_KEY = 'comprehensionNotificationSettings';
+  private readonly DAILY_NOTIFICATION_STATE_KEY = 'dailyNotificationState';
 
-  constructor(private storageService: StorageService) {}
+  private dailyNotificationState: DailyNotificationState;
+
+  constructor(private storageService: StorageService) {
+    this.dailyNotificationState = this.loadDailyNotificationState();
+  }
+
+  private get defaultDailyNotificationState(): DailyNotificationState {
+    return {
+      messageOverride: null,
+      wordCount: 0,
+      newWordIds: [],
+      newWordsPreview: []
+    };
+  }
+
+  private loadDailyNotificationState(): DailyNotificationState {
+    const saved = this.storageService.get(this.DAILY_NOTIFICATION_STATE_KEY);
+    if (saved) {
+      return {
+        ...this.defaultDailyNotificationState,
+        ...saved
+      };
+    }
+    return this.defaultDailyNotificationState;
+  }
+
+  private saveDailyNotificationState(): void {
+    this.storageService.set(this.DAILY_NOTIFICATION_STATE_KEY, this.dailyNotificationState);
+  }
+
+  private getDailyNotificationExtra(): DailyNotificationExtra {
+    return {
+      wordCount: this.dailyNotificationState.wordCount || 0,
+      newWordIds: [...(this.dailyNotificationState.newWordIds || [])],
+      newWordsPreview: [...(this.dailyNotificationState.newWordsPreview || [])]
+    };
+  }
 
   /**
    * Initialise le service de notification
@@ -38,7 +75,8 @@ export class NotificationService {
       // Programmer la notification quotidienne si activée
       const settings = this.getSettings();
       if (settings.enabled) {
-        await this.scheduleDailyNotification(settings.time, settings.message);
+        const messageToUse = this.dailyNotificationState.messageOverride || settings.message;
+        await this.scheduleDailyNotification(settings.time, messageToUse, this.getDailyNotificationExtra());
       }
 
       const compSettings = this.getComprehensionSettings();
@@ -155,7 +193,8 @@ export class NotificationService {
     this.saveSettings(settings);
 
     if (enabled) {
-      await this.scheduleDailyNotification(settings.time, settings.message);
+      const messageToUse = this.dailyNotificationState.messageOverride || settings.message;
+      await this.scheduleDailyNotification(settings.time, messageToUse, this.getDailyNotificationExtra());
     } else {
       await this.cancelDailyNotification();
     }
@@ -179,7 +218,7 @@ export class NotificationService {
   /**
    * Programme une notification quotidienne
    */
-  async scheduleDailyNotification(time: string, message: string): Promise<void> {
+  async scheduleDailyNotification(time: string, message: string, extraData?: DailyNotificationExtra): Promise<void> {
     try {
       // Annuler d'abord la notification existante
       await this.cancelDailyNotification();
@@ -204,6 +243,8 @@ export class NotificationService {
         nextNotification.setDate(nextNotification.getDate() + 1);
       }
 
+      const extra = extraData || this.getDailyNotificationExtra();
+
       // Créer la notification avec action personnalisée
       await LocalNotifications.schedule({
         notifications: [
@@ -220,11 +261,22 @@ export class NotificationService {
             actionTypeId: 'DAILY_REVISION',
             extra: {
               type: 'daily_reminder',
-              action: 'start_revision'
+              action: 'start_revision',
+              wordCount: extra.wordCount,
+              newWordIds: extra.newWordIds,
+              newWordsPreview: extra.newWordsPreview
             }
           }
         ]
       });
+
+      this.dailyNotificationState = {
+        ...this.dailyNotificationState,
+        wordCount: extra.wordCount,
+        newWordIds: [...extra.newWordIds],
+        newWordsPreview: [...extra.newWordsPreview]
+      };
+      this.saveDailyNotificationState();
 
     } catch (error) {
       console.error('Erreur lors de la programmation de la notification:', error);
@@ -371,7 +423,8 @@ export class NotificationService {
   async updateNotificationTime(newTime: string): Promise<void> {
     const settings = this.getSettings();
     if (settings.enabled) {
-      await this.scheduleDailyNotification(newTime, settings.message);
+      const messageToUse = this.dailyNotificationState.messageOverride || settings.message;
+      await this.scheduleDailyNotification(newTime, messageToUse, this.getDailyNotificationExtra());
     }
     settings.time = newTime;
     this.saveSettings(settings);
@@ -394,8 +447,10 @@ export class NotificationService {
    */
   async updateNotificationMessage(newMessage: string): Promise<void> {
     const settings = this.getSettings();
+    this.dailyNotificationState = this.defaultDailyNotificationState;
+    this.saveDailyNotificationState();
     if (settings.enabled) {
-      await this.scheduleDailyNotification(settings.time, newMessage);
+      await this.scheduleDailyNotification(settings.time, newMessage, this.getDailyNotificationExtra());
     }
     settings.message = newMessage;
     this.saveSettings(settings);
@@ -404,10 +459,14 @@ export class NotificationService {
   /**
    * Met à jour dynamiquement le message de notification en fonction des mots ajoutés aujourd'hui
    */
-  async updateNotificationMessageWithTodayWords(wordsAddedToday: number): Promise<void> {
+  async updateNotificationMessageWithTodayWords(
+    wordsAddedToday: number,
+    newWordIds: string[],
+    newWordsPreview: NotificationWordPreview[]
+  ): Promise<void> {
     const settings = this.getSettings();
     let message = settings.message; // Message par défaut
-    
+
     if (wordsAddedToday > 0) {
       // Message personnalisé avec le nombre de mots ajoutés aujourd'hui
       if (wordsAddedToday === 1) {
@@ -417,11 +476,20 @@ export class NotificationService {
       }
     }
     // Si aucun mot ajouté, garder le message par défaut
-    
+
+    this.dailyNotificationState = {
+      messageOverride: wordsAddedToday > 0 ? message : null,
+      wordCount: wordsAddedToday,
+      newWordIds,
+      newWordsPreview
+    };
+    this.saveDailyNotificationState();
+
     if (settings.enabled) {
-      await this.scheduleDailyNotification(settings.time, message);
+      const messageToUse = this.dailyNotificationState.messageOverride || settings.message;
+      await this.scheduleDailyNotification(settings.time, messageToUse, this.getDailyNotificationExtra());
     }
-    
+
   }
 
   /**
@@ -429,8 +497,28 @@ export class NotificationService {
    */
   async resetNotificationMessage(): Promise<void> {
     const settings = this.getSettings();
+    this.dailyNotificationState = this.defaultDailyNotificationState;
+    this.saveDailyNotificationState();
     if (settings.enabled) {
-      await this.scheduleDailyNotification(settings.time, settings.message);
+      await this.scheduleDailyNotification(settings.time, settings.message, this.getDailyNotificationExtra());
     }
   }
-} 
+}
+
+interface DailyNotificationExtra {
+  wordCount: number;
+  newWordIds: string[];
+  newWordsPreview: NotificationWordPreview[];
+}
+
+interface DailyNotificationState extends DailyNotificationExtra {
+  messageOverride: string | null;
+}
+
+export interface NotificationWordPreview {
+  id: string;
+  sourceWord: string;
+  sourceLang: string;
+  targetWord: string;
+  targetLang: string;
+}
