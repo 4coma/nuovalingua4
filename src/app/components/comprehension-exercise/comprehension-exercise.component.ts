@@ -251,6 +251,9 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     // Stocker les mots du vocabulaire pour les mettre en évidence
     const vocabularyWords = this.highlightedWords.map(word => word.toLowerCase());
     
+    // Récupérer les mots du dictionnaire personnel pour une vérification rapide
+    const dictionaryWordsSet = this.dictionaryService.getDictionaryWordsSet('it');
+    
     // Diviser le texte en mots tout en préservant la ponctuation
     const tokenRegex = /(\w+)|([^\w\s])/g;
     let match;
@@ -267,15 +270,19 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
       
       // Si c'est un mot (pas une ponctuation)
       if (/\w+/.test(token)) {
-        const isVocabularyWord = vocabularyWords.includes(token.toLowerCase());
+        const normalizedToken = token.toLowerCase();
+        const isVocabularyWord = vocabularyWords.includes(normalizedToken);
+        const isDictionaryWord = dictionaryWordsSet.has(normalizedToken);
         
-        // Si c'est un mot du vocabulaire, le mettre en évidence spécialement
+        let cssClass = 'clickable-word';
         if (isVocabularyWord) {
-          result += `<span class="highlighted-word vocabulary-word" data-word="${token}">${token}</span>`;
-        } else {
-          // Sinon, le rendre cliquable mais sans mise en évidence particulière
-          result += `<span class="clickable-word" data-word="${token}">${token}</span>`;
+          cssClass += ' highlighted-word vocabulary-word';
         }
+        if (isDictionaryWord) {
+          cssClass += ' dictionary-word';
+        }
+        
+        result += `<span class="${cssClass}" data-word="${token}">${token}</span>`;
       } else {
         // Si c'est une ponctuation, l'ajouter simplement
         result += token;

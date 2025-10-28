@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, MenuController, ModalController } from '@ionic/angular';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PersonalDictionaryService } from '../services/personal-dictionary.service';
 import { PriorityThemesService, PriorityTheme } from '../services/priority-themes.service';
@@ -35,7 +35,8 @@ export class HomePage implements OnInit, OnDestroy {
     private menuController: MenuController,
     private personalDictionaryService: PersonalDictionaryService,
     private priorityThemesService: PriorityThemesService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private router: Router
   ) {
   }
 
@@ -87,8 +88,14 @@ export class HomePage implements OnInit, OnDestroy {
    * Filtre les exercices par thème sélectionné
    */
   filterByTheme(themeName: string): void {
-    // TODO: Implémenter le filtrage par thème
     console.log('Filtrage par thème:', themeName);
+    
+    // Sauvegarder le thème présélectionné dans le localStorage
+    // pour que le composant personal-revision-setup puisse le récupérer
+    localStorage.setItem('preselectedTheme', themeName);
+    
+    // Naviguer vers la page de révision personnalisée
+    this.router.navigate(['/personal-revision-setup']);
   }
 
 

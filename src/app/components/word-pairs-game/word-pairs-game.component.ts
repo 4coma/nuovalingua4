@@ -1260,10 +1260,10 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const direction = this.sessionInfo.translationDirection || 'fr2it';
+      // Toujours stocker pour la conversation: word = italien (cible à produire), translation = français (affiché par défaut)
       const items = this.wordPairs.map(pair => ({
-        word: direction === 'fr2it' ? pair.it : pair.fr,
-        translation: direction === 'fr2it' ? pair.fr : pair.it,
+        word: pair.it,
+        translation: pair.fr,
         context: pair.context || ''
       }));
 

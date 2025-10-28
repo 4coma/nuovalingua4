@@ -188,27 +188,43 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
 
   getHighlightedText(text: SavedText | null): string {
     if (!text?.text) return '';
+    
+    // Récupérer les mots du vocabulaire du texte
     const vocabularyWords = (text.vocabularyItems || []).map(item => item.word.toLowerCase());
+    
+    // Récupérer les mots du dictionnaire personnel pour une vérification rapide
+    const dictionaryWordsSet = this.dictionaryService.getDictionaryWordsSet('it');
+    
     const tokenRegex = /(\w+)|([^\w\s])/g;
     let match;
     let result = '';
     let lastIndex = 0;
+    
     while ((match = tokenRegex.exec(text.text)) !== null) {
       result += text.text.substring(lastIndex, match.index);
       const token = match[0];
+      
       if (/\w+/.test(token)) {
-        const isVocabularyWord = vocabularyWords.includes(token.toLowerCase());
+        const normalizedToken = token.toLowerCase();
+        const isVocabularyWord = vocabularyWords.includes(normalizedToken);
+        const isDictionaryWord = dictionaryWordsSet.has(normalizedToken);
+        
+        let cssClass = 'clickable-word';
         if (isVocabularyWord) {
-          result += `<span class="highlighted-word vocabulary-word" data-word="${token}">${token}</span>`;
-        } else {
-          result += `<span class="clickable-word" data-word="${token}">${token}</span>`;
+          cssClass += ' highlighted-word vocabulary-word';
         }
+        if (isDictionaryWord) {
+          cssClass += ' dictionary-word';
+        }
+        
+        result += `<span class="${cssClass}" data-word="${token}">${token}</span>`;
       } else {
         result += token;
       }
       lastIndex = match.index + token.length;
     }
     result += text.text.substring(lastIndex);
+    
     return result;
   }
 

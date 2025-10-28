@@ -18,6 +18,7 @@ interface TargetVocabularyItem {
   translation: string;
   context?: string;
   used?: boolean;
+  showAlt?: boolean; // toggle to reveal translation (Italian)
 }
 
 interface TargetVocabularyMeta {
@@ -216,7 +217,8 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
         word: item.word,
         translation: item.translation,
         context: item.context,
-        used: false
+        used: false,
+        showAlt: false
       }));
       console.log('🔍 [DiscussionActive] targetVocabulary chargé:', this.targetVocabulary);
 
@@ -340,6 +342,13 @@ export class DiscussionActiveComponent implements OnInit, OnDestroy {
     if (this.responseMode === 'voice') {
       this.textResponse = '';
     }
+  }
+
+  /**
+   * Affiche/masque la traduction d'un mot cible
+   */
+  toggleVocab(item: TargetVocabularyItem): void {
+    item.showAlt = !item.showAlt;
   }
 
   /**

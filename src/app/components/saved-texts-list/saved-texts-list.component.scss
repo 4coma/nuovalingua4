@@ -43,6 +43,34 @@
   background-color: rgba(var(--ion-color-primary-rgb), 0.08);
 }
 
+/* Style pour les mots du dictionnaire personnel */
+.clickable-word.dictionary-word {
+  color: #2dd36f !important;
+  font-weight: 500 !important;
+  background-color: rgba(45, 211, 111, 0.15) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(45, 211, 111, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.clickable-word.dictionary-word:hover {
+  background-color: rgba(45, 211, 111, 0.25) !important;
+  text-decoration: underline !important;
+  transform: scale(1.02);
+}
+
+/* Combinaison: mot du dictionnaire + mot du vocabulaire */
+.dictionary-word.highlighted-word.vocabulary-word {
+  color: var(--ion-color-warning);
+  background-color: rgba(var(--ion-color-warning-rgb), 0.15);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.dictionary-word.highlighted-word.vocabulary-word:hover {
+  background-color: rgba(var(--ion-color-warning-rgb), 0.25);
+}
+
 .translation {
   font-size: var(--ds-font-size-body-lg);
   font-weight: var(--ds-font-weight-medium);

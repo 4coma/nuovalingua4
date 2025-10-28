@@ -621,6 +621,20 @@ export class PersonalDictionaryService {
   }
 
   /**
+   * Récupère tous les mots du dictionnaire personnel sous forme de Set pour des vérifications rapides
+   * @param sourceLang La langue source (par défaut 'it')
+   * @returns Set des mots normalisés
+   */
+  getDictionaryWordsSet(sourceLang: string = 'it'): Set<string> {
+    const allWords = this.getAllWords();
+    return new Set(
+      allWords
+        .filter(word => word.sourceLang === sourceLang)
+        .map(word => word.sourceWord.toLowerCase().trim())
+    );
+  }
+
+  /**
    * Récupère les mots suivis (WordMastery) pour un mot du dictionnaire personnel
    */
   getTrackedWordsForDictionaryWord(dictionaryWordId: string): WordMastery[] {

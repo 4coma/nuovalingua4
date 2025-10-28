@@ -26,10 +26,11 @@
           <ion-chip *ngFor="let vocab of targetVocabulary"
                     class="word-chip"
                     [color]="vocab.used ? 'success' : 'medium'"
-                    [outline]="!vocab.used">
+                    [outline]="!vocab.used"
+                    (click)="toggleVocab(vocab)"
+                    [title]="vocab.showAlt ? vocab.word : vocab.translation">
             <ion-label>
-              <span class="target-word">{{ vocab.word }}</span>
-              <span class="translation" *ngIf="vocab.translation">· {{ vocab.translation }}</span>
+              <span class="target-word">{{ vocab.showAlt ? vocab.word : vocab.translation }}</span>
             </ion-label>
           </ion-chip>
         </div>

@@ -127,7 +127,7 @@ ion-menu ion-item ion-label {
 
 /* Assure que le bouton menu est bien visible */
 ion-menu-button {
-  --color: var(--ion-color-light);
+  --color: var(--color-text-primary);
   --background: transparent;
   
   @media (max-width: 768px) {
@@ -149,4 +149,52 @@ ion-menu ion-header ion-toolbar {
 ion-menu ion-header ion-title {
   color: var(--ion-color-light);
   font-weight: 600;
+}
+
+/**
+ * Styles globaux pour la coloration des mots du dictionnaire personnel
+ * -----------------------------------------------------
+ * Ces styles doivent être globaux car le HTML est inséré dynamiquement
+ * via innerHTML et les styles scopés d'Angular ne s'appliquent pas.
+ */
+
+/* Mots cliquables de base */
+.clickable-word {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 3px;
+}
+
+.clickable-word:hover {
+  background-color: rgba(66, 133, 244, 0.1);
+}
+
+/* Mots du vocabulaire (dans les textes) */
+.highlighted-word.vocabulary-word {
+  color: #4285f4 !important;
+  font-weight: 600;
+  background-color: rgba(66, 133, 244, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(66, 133, 244, 0.3);
+}
+
+/* 🟢 MOTS DU DICTIONNAIRE PERSONNEL - EN VERT (simple couleur) */
+.clickable-word.dictionary-word {
+  color: #2dd36f !important;
+  font-weight: 500 !important;
+}
+
+.clickable-word.dictionary-word:hover {
+  text-decoration: underline !important;
+}
+
+/* 🟠 Mots qui sont dans les DEUX (dictionnaire + vocabulaire) */
+.clickable-word.dictionary-word.highlighted-word.vocabulary-word {
+  color: #ffa726 !important;
+  font-weight: 600 !important;
+}
+
+.clickable-word.dictionary-word.highlighted-word.vocabulary-word:hover {
+  text-decoration: underline !important;
 }

@@ -101,6 +101,36 @@
       padding: 4px;
     }
   }
+
+  /* Style pour les mots du dictionnaire personnel */
+  .dictionary-word {
+    color: var(--ion-color-success);
+    font-weight: 500;
+    background-color: rgba(var(--ion-color-success-rgb), 0.1);
+    padding: 2px 4px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(var(--ion-color-success-rgb), 0.2);
+  }
+
+  .dictionary-word:hover {
+    background-color: rgba(var(--ion-color-success-rgb), 0.15);
+    text-decoration: underline;
+    transform: scale(1.02);
+  }
+
+  /* Combinaison: mot du dictionnaire + mot du vocabulaire */
+  .dictionary-word.highlighted-word.vocabulary-word {
+    color: var(--ion-color-warning);
+    background-color: rgba(var(--ion-color-warning-rgb), 0.15);
+    font-weight: 600;
+    border: 1px solid rgba(var(--ion-color-warning-rgb), 0.3);
+  }
+
+  .dictionary-word.highlighted-word.vocabulary-word:hover {
+    background-color: rgba(var(--ion-color-warning-rgb), 0.25);
+    transform: scale(1.02);
+  }
   
   /* Style pour les mots surlignés */
   span.highlighted {

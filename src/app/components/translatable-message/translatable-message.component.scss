@@ -46,6 +46,32 @@
       border-radius: 4px;
       padding: 0 4px;
     }
+
+    /* Style pour les mots du dictionnaire personnel */
+    .dictionary-word {
+      color: var(--ion-color-success);
+      font-weight: 500;
+      background-color: rgba(var(--ion-color-success-rgb), 0.1);
+      padding: 1px 4px;
+      border-radius: 3px;
+      transition: background-color 0.2s ease;
+    }
+
+    .dictionary-word:hover {
+      background-color: rgba(var(--ion-color-success-rgb), 0.15);
+      text-decoration: underline;
+    }
+
+    /* Combinaison: mot du dictionnaire + mot mis en évidence */
+    .dictionary-word.highlighted-word {
+      color: var(--ion-color-warning);
+      background-color: rgba(var(--ion-color-warning-rgb), 0.15);
+      font-weight: 600;
+    }
+
+    .dictionary-word.highlighted-word:hover {
+      background-color: rgba(var(--ion-color-warning-rgb), 0.25);
+    }
   }
 }
 

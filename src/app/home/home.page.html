@@ -2,37 +2,6 @@
   <div class="home-container">
     
     <app-card variant="glass" padding="large" class="welcome-card">
-      <!-- Section Thèmes prioritaires intégrée -->
-      <div class="priority-themes-section" *ngIf="priorityThemes.length > 0">
-        <div class="priority-themes-header">
-          <h3 class="priority-themes-title">
-            <ion-icon name="star" class="title-icon"></ion-icon>
-            Thèmes prioritaires
-          </h3>
-          <ion-button fill="clear" size="small" color="primary" (click)="openThemeSelection()">
-            <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
-          </ion-button>
-        </div>
-        
-        <div class="priority-themes-list">
-          <ion-chip 
-            *ngFor="let theme of priorityThemes" 
-            class="priority-theme-chip"
-            [color]="theme.count > 10 ? 'success' : theme.count > 5 ? 'warning' : 'medium'"
-            (click)="filterByTheme(theme.name)">
-            <ion-label>{{ theme.name }} ({{ theme.count }})</ion-label>
-          </ion-chip>
-        </div>
-      </div>
-      
-      <!-- Bouton pour ajouter des thèmes si aucun n'est sélectionné -->
-      <div class="no-priority-themes" *ngIf="priorityThemes.length === 0">
-        <ion-button fill="outline" size="small" color="primary" (click)="openThemeSelection()">
-          <ion-icon name="add-outline" slot="start"></ion-icon>
-          Sélectionner des thèmes prioritaires
-        </ion-button>
-      </div>
-
       <h2 class="welcome-title">Quel type de révision veux-tu faire ?</h2>
 
       <div class="actions-grid">
@@ -61,6 +30,37 @@
             Discuter
           </ion-button>
         </a>
+      </div>
+      
+      <!-- Section Thèmes prioritaires -->
+      <div class="priority-themes-section" *ngIf="priorityThemes.length > 0">
+        <div class="priority-themes-header">
+          <h3 class="priority-themes-title">
+            <ion-icon name="star" class="title-icon"></ion-icon>
+            Thèmes prioritaires
+          </h3>
+          <ion-button fill="clear" size="small" color="primary" (click)="openThemeSelection()">
+            <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        
+        <div class="priority-themes-list">
+          <ion-chip 
+            *ngFor="let theme of priorityThemes" 
+            class="priority-theme-chip"
+            [color]="theme.count > 10 ? 'success' : theme.count > 5 ? 'warning' : 'medium'"
+            (click)="filterByTheme(theme.name)">
+            <ion-label>{{ theme.name }} ({{ theme.count }})</ion-label>
+          </ion-chip>
+        </div>
+      </div>
+      
+      <!-- Bouton pour ajouter des thèmes si aucun n'est sélectionné -->
+      <div class="no-priority-themes" *ngIf="priorityThemes.length === 0">
+        <ion-button fill="outline" size="small" color="primary" (click)="openThemeSelection()">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Sélectionner des thèmes prioritaires
+        </ion-button>
       </div>
     </app-card>
   </div>

@@ -216,13 +216,26 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
         .map(w => this.normalizeForComparison(w))
     );
 
+    // Récupérer les mots du dictionnaire personnel pour une vérification rapide
+    const dictionaryWordsSet = this.dictionaryService.getDictionaryWordsSet('it');
+
     const words = text.split(/(\s+)/);
     const highlightedWords = words.map(word => {
       if (word.trim() && !word.match(/^\s+$/)) {
         const cleaned = this.cleanWord(word);
-        const isHighlighted = cleaned && highlightSet.has(this.normalizeForComparison(cleaned));
-        const baseClass = isHighlighted ? 'clickable-word highlighted-word' : 'clickable-word';
-        return `<span class="${baseClass}" data-word="${word.trim()}">${word}</span>`;
+        const normalizedCleaned = cleaned ? this.normalizeForComparison(cleaned) : '';
+        const isHighlighted = cleaned && highlightSet.has(normalizedCleaned);
+        const isDictionaryWord = cleaned && dictionaryWordsSet.has(cleaned.toLowerCase());
+        
+        let cssClass = 'clickable-word';
+        if (isHighlighted) {
+          cssClass += ' highlighted-word';
+        }
+        if (isDictionaryWord) {
+          cssClass += ' dictionary-word';
+        }
+        
+        return `<span class="${cssClass}" data-word="${word.trim()}">${word}</span>`;
       }
       return word;
     });

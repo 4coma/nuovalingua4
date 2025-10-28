@@ -17,9 +17,9 @@
 }
 
 .priority-themes-section {
-  margin-bottom: var(--ds-space-lg);
-  padding-bottom: var(--ds-space-md);
-  border-bottom: 1px solid var(--ion-color-light);
+  margin-top: var(--ds-space-lg);
+  padding-top: var(--ds-space-md);
+  border-top: 1px solid var(--ion-color-light);
 }
 
 .priority-themes-header {
@@ -67,9 +67,9 @@
 
 .no-priority-themes {
   text-align: center;
-  margin-bottom: var(--ds-space-lg);
-  padding-bottom: var(--ds-space-md);
-  border-bottom: 1px solid var(--ion-color-light);
+  margin-top: var(--ds-space-lg);
+  padding-top: var(--ds-space-md);
+  border-top: 1px solid var(--ion-color-light);
 }
 
 .welcome-card {
@@ -86,11 +86,6 @@
   letter-spacing: -0.02em;
 }
 
-// Titre plus petit quand il y a des thèmes prioritaires
-.priority-themes-section + .welcome-title {
-  font-size: var(--ds-font-size-xl);
-  margin-top: var(--ds-space-sm);
-}
 
 .actions-grid {
   display: grid;

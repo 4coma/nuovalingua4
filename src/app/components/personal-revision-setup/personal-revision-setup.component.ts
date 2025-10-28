@@ -47,6 +47,7 @@ export class PersonalRevisionSetupComponent implements OnInit {
   ngOnInit(): void {
     this.loadThemes();
     this.countWords();
+    this.loadPreselectedTheme();
   }
 
   private loadThemes(): void {
@@ -67,6 +68,20 @@ export class PersonalRevisionSetupComponent implements OnInit {
     this.totalAvailableWords = allWords.length;
     const filtered = this.filterWords(allWords);
     this.wordsMatchingSelection = filtered.length;
+  }
+
+  private loadPreselectedTheme(): void {
+    const preselectedTheme = localStorage.getItem('preselectedTheme');
+    if (preselectedTheme && this.availableThemes.includes(preselectedTheme)) {
+      // Ajouter le thème présélectionné aux thèmes sélectionnés
+      if (!this.selectedThemes.includes(preselectedTheme)) {
+        this.selectedThemes.push(preselectedTheme);
+        this.countWords(); // Recalculer les mots disponibles
+      }
+      
+      // Nettoyer le localStorage après utilisation
+      localStorage.removeItem('preselectedTheme');
+    }
   }
 
   toggleTheme(theme: string): void {

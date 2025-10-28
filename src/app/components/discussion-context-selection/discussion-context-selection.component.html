@@ -9,6 +9,21 @@
 
 <ion-content [fullscreen]="true">
   <div class="container">
+    <!-- Conversation aléatoire -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Conversation aléatoire</ion-card-title>
+        <ion-card-subtitle>
+          Lance une conversation avec un contexte généré au hasard et 8 mots cibles à placer
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-button expand="block" color="primary" (click)="startRandomConversation()">
+          <ion-icon name="shuffle-outline" slot="start"></ion-icon>
+          Conversation aléatoire
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
     <ion-card>
       <ion-card-header>
         <ion-card-title>Mode Discussion</ion-card-title>
