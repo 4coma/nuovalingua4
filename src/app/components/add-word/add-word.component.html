@@ -16,7 +16,6 @@
       <ion-label position="stacked">Mot à traduire</ion-label>
       <ion-input 
         [(ngModel)]="sourceWord" 
-        (ionBlur)="sourceWord && translateWord()"
         placeholder="Entrez un mot"
         type="text">
       </ion-input>
@@ -42,7 +41,6 @@
       <ion-input 
         [(ngModel)]="targetWord" 
         placeholder="Traduction"
-        readonly
         type="text">
       </ion-input>
       <ion-select 
@@ -70,7 +68,7 @@
         expand="block" 
         color="success" 
         (click)="addToDictionary()" 
-        [disabled]="!translationResult">
+        [disabled]="!sourceWord || !targetWord">
         <ion-icon name="add-circle-outline" slot="start"></ion-icon>
         Ajouter au dictionnaire
       </ion-button>

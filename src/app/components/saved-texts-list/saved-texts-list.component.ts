@@ -37,6 +37,7 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
 
   selectedText: SavedText | null = null;
   translation: TranslationResult | null = null;
+  editableTranslation: string = '';
   isTranslating = false;
   selectedWord = '';
 
@@ -258,6 +259,7 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
     this.textGeneratorService.getContextualTranslation(textToTranslate, context).subscribe({
       next: (result) => {
         this.translation = result;
+        this.editableTranslation = result.translation;
         this.isTranslating = false;
         // Ne pas effacer la sélection immédiatement pour permettre de la voir
       },
@@ -431,6 +433,7 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
       next: (result) => {
         clearTimeout(timeout);
         this.translation = result;
+        this.editableTranslation = result.translation;
         this.isTranslating = false;
       },
       error: (error) => {
@@ -448,6 +451,7 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
             translation: vocabularyItem.translation,
             contextualMeaning: vocabularyItem.context || 'Pas d\'information supplémentaire disponible'
           };
+          this.editableTranslation = vocabularyItem.translation;
         } else {
           this.showToast('Erreur lors de la traduction. Réessayez.', 'danger');
         }
@@ -457,16 +461,17 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
 
   closeTranslation() {
     this.translation = null;
+    this.editableTranslation = '';
     this.selectedWord = '';
   }
 
   addWordToDictionary() {
-    if (!this.translation) return;
+    if (!this.translation || !this.editableTranslation.trim()) return;
     const newWord: DictionaryWord = {
       id: '',
       sourceWord: this.translation.originalWord,
       sourceLang: 'it',
-      targetWord: this.translation.translation,
+      targetWord: this.editableTranslation.trim(),
       targetLang: 'fr',
       contextualMeaning: this.translation.contextualMeaning,
       partOfSpeech: this.translation.partOfSpeech,

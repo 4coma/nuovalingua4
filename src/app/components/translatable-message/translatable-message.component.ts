@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { IonicModule, PopoverController, LoadingController, ToastController } from '@ionic/angular';
 import { TextGeneratorService, TranslationResult } from '../../services/text-generator.service';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
@@ -13,6 +14,7 @@ import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     IonicModule,
     SafeHtmlDirective,
     SafeHtmlPipe
@@ -32,6 +34,7 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
   
   selectedWord: string = '';
   translation: TranslationResult | null = null;
+  editableTranslation: string = '';
   isTranslating: boolean = false;
 
   constructor(
@@ -102,6 +105,7 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
     this.textGeneratorService.getContextualTranslation(this.selectedFragment, this.message).subscribe({
       next: (result) => {
         this.translation = result;
+        this.editableTranslation = result.translation;
         this.isTranslating = false;
         this.clearSelection();
       },
@@ -144,6 +148,7 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
       next: (result) => {
         clearTimeout(timeout);
         this.translation = result;
+        this.editableTranslation = result.translation;
         this.isTranslating = false;
       },
       error: (error) => {
@@ -157,17 +162,18 @@ export class TranslatableMessageComponent implements OnInit, OnDestroy {
 
   closeTranslation(): void {
     this.translation = null;
+    this.editableTranslation = '';
     this.selectedWord = '';
   }
 
   addWordToDictionary(): void {
-    if (!this.translation) return;
+    if (!this.translation || !this.editableTranslation.trim()) return;
 
     const newWord: DictionaryWord = {
       id: '',
       sourceWord: this.translation.originalWord,
       sourceLang: 'it',
-      targetWord: this.translation.translation,
+      targetWord: this.editableTranslation.trim(),
       targetLang: 'fr',
       contextualMeaning: this.translation.contextualMeaning,
       partOfSpeech: this.translation.partOfSpeech,

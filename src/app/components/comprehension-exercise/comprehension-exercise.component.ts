@@ -38,6 +38,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
   highlightedWords: string[] = [];
   selectedWord: string = '';
   translation: TranslationResult | null = null;
+  editableTranslation: string = '';
   isTranslating: boolean = false;
   
   // Pour la transcription
@@ -168,9 +169,10 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     this.isTranslating = true;
     this.translation = null;
     const context = this.comprehensionText?.text || '';
-    this.textGeneratorService.getContextualTranslation(this.selectedFragment, context).subscribe({
+      this.textGeneratorService.getContextualTranslation(this.selectedFragment, context).subscribe({
       next: (result) => {
         this.translation = result;
+        this.editableTranslation = result.translation;
         this.isTranslating = false;
         this.clearSelection();
       },
@@ -329,6 +331,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
         next: (result) => {
           clearTimeout(timeout);
           this.translation = result;
+          this.editableTranslation = result.translation;
           this.isTranslating = false;
           
           // Vérifier si ce mot fait partie du vocabulaire de la session
@@ -364,6 +367,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
               translation: vocabularyItem.translation,
               contextualMeaning: vocabularyItem.context || 'Pas d\'information supplémentaire disponible'
             };
+            this.editableTranslation = vocabularyItem.translation;
           } else {
             this.showErrorToast('Erreur lors de la traduction. Réessayez.');
           }
@@ -380,6 +384,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
    */
   closeTranslation(): void {
     this.translation = null;
+    this.editableTranslation = '';
     this.isTranslating = false;
   }
 
@@ -520,7 +525,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
    * Ajoute le mot actuel au dictionnaire personnel
    */
   addWordToDictionary(): void {
-    if (!this.translation) return;
+    if (!this.translation || !this.editableTranslation.trim()) return;
 
     const sourceLang = this.comprehensionText?.type === 'written' ? 'it' : 'it';
     const targetLang = 'fr'; // Langue cible par défaut (français)
@@ -529,7 +534,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
       id: '',
       sourceWord: this.translation.originalWord,
       sourceLang: sourceLang,
-      targetWord: this.translation.translation,
+      targetWord: this.editableTranslation.trim(),
       targetLang: targetLang,
       contextualMeaning: this.translation.contextualMeaning,
       partOfSpeech: this.translation.partOfSpeech,
@@ -547,7 +552,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
       if (this.sessionInfo) {
         this.vocabularyTrackingService.trackWord(
           this.translation.originalWord,
-          this.translation.translation,
+          this.editableTranslation.trim(),
           this.sessionInfo.category,
           this.sessionInfo.topic,
           true, // Considéré comme reconnu car ajouté au dictionnaire

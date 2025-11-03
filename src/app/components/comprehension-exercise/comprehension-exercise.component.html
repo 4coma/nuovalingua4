@@ -67,11 +67,13 @@
           <div *ngIf="translation && !isTranslating">
             <h2 class="ion-text-center">{{ translation.originalWord }}</h2>
             
-            <ion-item lines="none">
-              <ion-label>
-                <h3>Traduction</h3>
-                <p class="translation">{{ translation.translation }}</p>
-              </ion-label>
+            <ion-item>
+              <ion-label position="stacked">Traduction</ion-label>
+              <ion-input 
+                [(ngModel)]="editableTranslation" 
+                placeholder="Traduction"
+                type="text">
+              </ion-input>
             </ion-item>
             
             <ion-item lines="none">
@@ -98,7 +100,7 @@
             </div>
             
             <div class="ion-padding-top ion-text-center">
-              <ion-button (click)="addWordToDictionary()" color="success" class="ion-margin-end">
+              <ion-button (click)="addWordToDictionary()" color="success" class="ion-margin-end" [disabled]="!editableTranslation">
                 <ion-icon name="add-circle-outline" slot="start"></ion-icon>
                 Ajouter au dictionnaire
               </ion-button>

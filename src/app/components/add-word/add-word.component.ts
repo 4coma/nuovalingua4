@@ -18,8 +18,8 @@ import { PersonalDictionaryService, TranslationResponse, DictionaryWord } from '
 export class AddWordComponent {
   sourceWord: string = '';
   targetWord: string = '';
-  sourceLang: string = 'fr';
-  targetLang: string = 'it';
+  sourceLang: string = 'it';
+  targetLang: string = 'fr';
   isTranslating: boolean = false;
   translationResult: TranslationResponse | null = null;
   
@@ -60,6 +60,7 @@ export class AddWordComponent {
       .subscribe({
         next: (result) => {
           this.translationResult = result;
+          // Mettre à jour la traduction, mais le champ reste éditable
           this.targetWord = result.targetWord;
           this.isTranslating = false;
         },
@@ -87,22 +88,23 @@ export class AddWordComponent {
    * Ajoute le mot au dictionnaire personnel
    */
   addToDictionary() {
-    if (!this.translationResult) {
-      this.showToast('Veuillez d\'abord traduire un mot', 'warning');
+    if (!this.sourceWord.trim() || !this.targetWord.trim()) {
+      this.showToast('Veuillez remplir le mot source et sa traduction', 'warning');
       return;
     }
 
+    // Utiliser les valeurs actuelles des champs (éditables)
     const newWord: DictionaryWord = {
       id: '',  // Sera généré par le service
-      sourceWord: this.translationResult.sourceWord,
-      sourceLang: this.translationResult.sourceLang,
-      targetWord: this.translationResult.targetWord,
-      targetLang: this.translationResult.targetLang,
-      contextualMeaning: this.translationResult.contextualMeaning,
-      partOfSpeech: this.translationResult.partOfSpeech,
-      examples: this.translationResult.examples,
+      sourceWord: this.sourceWord.trim(),
+      sourceLang: this.sourceLang,
+      targetWord: this.targetWord.trim(),
+      targetLang: this.targetLang,
+      contextualMeaning: this.translationResult?.contextualMeaning || '',
+      partOfSpeech: this.translationResult?.partOfSpeech || '',
+      examples: this.translationResult?.examples || [],
       dateAdded: 0,  // Sera défini par le service
-      themes: this.translationResult.themes || [] // Inclure les thèmes générés par l'IA
+      themes: this.translationResult?.themes || [] // Inclure les thèmes générés par l'IA
     };
 
     const added = this.dictionaryService.addWord(newWord);
