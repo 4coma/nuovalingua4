@@ -224,9 +224,9 @@ export class DictionaryModalComponent implements OnInit {
     
     if (added) {
       this.dictionaryWords = this.dictionaryService.getAllWords();
-      this.showToast('Mot ajouté au dictionnaire personnel');
+      this.showToast('Mot ajouté à votre dictionnaire personnel', 'success');
     } else {
-      this.showToast('Ce mot existe déjà dans votre dictionnaire');
+      this.showToast('Ce mot existe déjà dans votre dictionnaire', 'danger');
     }
   }
 
@@ -239,16 +239,16 @@ export class DictionaryModalComponent implements OnInit {
     if (wordToRemove) {
       this.dictionaryService.removeWord(wordToRemove.id);
       this.dictionaryWords = this.dictionaryService.getAllWords();
-      this.showToast('Mot retiré du dictionnaire personnel');
+      this.showToast('Mot retiré du dictionnaire personnel', 'success');
     }
   }
 
-  async showToast(message: string) {
+  async showToast(message: string, color: string = 'success') {
     const toast = await this.toastController.create({
       message: message,
       duration: 2000,
       position: 'bottom',
-      color: 'success'
+      color: color
     });
     await toast.present();
   }

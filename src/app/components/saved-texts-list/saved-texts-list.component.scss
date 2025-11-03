@@ -102,6 +102,12 @@
   cursor: pointer;
   opacity: 1;
   transition: background var(--ds-transition-base), opacity var(--ds-transition-base);
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+  -moz-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  pointer-events: auto !important;
 }
 
 .translate-fixed-btn:disabled {
@@ -111,9 +117,20 @@
   opacity: 0.7;
 }
 
-.comprehension-text,
-.translate-fixed-btn {
+.comprehension-text {
   user-select: text !important;
   -webkit-user-select: text !important;
   -ms-user-select: text !important;
+  -moz-user-select: text !important;
+}
+
+/* Permettre la sélection de texte sur tous les mots cliquables */
+.comprehension-text *,
+.comprehension-text .clickable-word,
+.comprehension-text .highlighted-word {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -ms-user-select: text !important;
+  -moz-user-select: text !important;
+  -webkit-touch-callout: default !important;
 }

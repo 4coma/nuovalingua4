@@ -49,7 +49,7 @@ export class AddWordComponent {
    */
   translateWord() {
     if (!this.sourceWord.trim()) {
-      this.showToast('Veuillez entrer un mot à traduire');
+      this.showToast('Veuillez entrer un mot à traduire', 'warning');
       return;
     }
 
@@ -69,15 +69,15 @@ export class AddWordComponent {
           
           // Message d'erreur personnalisé selon le type d'erreur
           if (error.message === 'Clé API non configurée') {
-            this.showToast('Clé API OpenAI non configurée. Veuillez configurer votre clé API dans les préférences.');
+            this.showToast('Clé API OpenAI non configurée. Veuillez configurer votre clé API dans les préférences.', 'danger');
           } else if (error.status === 401) {
-            this.showToast('Clé API OpenAI invalide. Veuillez vérifier votre clé dans les préférences.');
+            this.showToast('Clé API OpenAI invalide. Veuillez vérifier votre clé dans les préférences.', 'danger');
           } else if (error.status === 429) {
-            this.showToast('Limite de requêtes dépassée. Veuillez réessayer plus tard.');
+            this.showToast('Limite de requêtes dépassée. Veuillez réessayer plus tard.', 'warning');
           } else if (error.status === 0 || error.status === 503) {
-            this.showToast('Erreur de connexion. Vérifiez votre connexion internet.');
+            this.showToast('Erreur de connexion. Vérifiez votre connexion internet.', 'danger');
           } else {
-            this.showToast('Erreur lors de la traduction. Veuillez réessayer.');
+            this.showToast('Erreur lors de la traduction. Veuillez réessayer.', 'danger');
           }
         }
       });
@@ -88,7 +88,7 @@ export class AddWordComponent {
    */
   addToDictionary() {
     if (!this.translationResult) {
-      this.showToast('Veuillez d\'abord traduire un mot');
+      this.showToast('Veuillez d\'abord traduire un mot', 'warning');
       return;
     }
 
@@ -108,24 +108,25 @@ export class AddWordComponent {
     const added = this.dictionaryService.addWord(newWord);
     
     if (added) {
-      this.showToast('Mot ajouté à votre dictionnaire personnel');
+      this.showToast('Mot ajouté à votre dictionnaire personnel', 'success');
       // Réinitialiser le formulaire
       this.sourceWord = '';
       this.targetWord = '';
       this.translationResult = null;
     } else {
-      this.showToast('Ce mot existe déjà dans votre dictionnaire');
+      this.showToast('Ce mot existe déjà dans votre dictionnaire', 'danger');
     }
   }
 
   /**
    * Affiche un toast
    */
-  private async showToast(message: string) {
+  private async showToast(message: string, color: string = 'primary') {
     const toast = await this.toastController.create({
       message: message,
       duration: 2000,
-      position: 'bottom'
+      position: 'bottom',
+      color: color
     });
     await toast.present();
   }

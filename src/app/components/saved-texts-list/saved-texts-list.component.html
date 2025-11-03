@@ -52,9 +52,10 @@
             <div [innerHTML]="getHighlightedText(selectedText) | safeHtml"
                  class="comprehension-text"
                  appSafeHtml
+                 [attr.data-update-counter]="highlightUpdateCounter"
                  (wordClick)="onWordClicked($event, selectedText)"></div>
             <div *ngIf="selectedText && selectedFragment">
-              <button class="translate-fixed-btn" (click)="translateSelection()">
+              <button class="translate-fixed-btn" (click)="translateSelection($event)" (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()">
                 Traduire la sélection
               </button>
             </div>
@@ -65,6 +66,11 @@
               </ion-button>
             </div>
           </ion-content>
+          <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="safe-area-fab">
+            <ion-fab-button (click)="openActionSelection()">
+              <ion-icon name="add"></ion-icon>
+            </ion-fab-button>
+          </ion-fab>
         </ng-template>
       </ion-modal>
 
