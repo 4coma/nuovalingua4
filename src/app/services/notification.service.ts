@@ -487,9 +487,149 @@ export class NotificationService {
 
     if (settings.enabled) {
       const messageToUse = this.dailyNotificationState.messageOverride || settings.message;
-      await this.scheduleDailyNotification(settings.time, messageToUse, this.getDailyNotificationExtra());
+      
+      // Vérifier si une notification est déjà programmée pour aujourd'hui
+      const shouldReschedule = await this.shouldRescheduleNotification(settings.time);
+      
+      if (shouldReschedule) {
+        // Reprogrammer seulement si nécessaire
+        await this.scheduleDailyNotification(settings.time, messageToUse, this.getDailyNotificationExtra());
+      } else {
+        // Mettre à jour seulement les données extra de la notification existante
+        await this.updateExistingNotificationData(messageToUse, this.getDailyNotificationExtra());
+      }
     }
 
+  }
+
+  /**
+   * Vérifie si la notification doit être reprogrammée
+   * Retourne true si :
+   * - Aucune notification n'est programmée
+   * - L'heure de la notification est passée aujourd'hui
+   */
+  private async shouldRescheduleNotification(time: string): Promise<boolean> {
+    try {
+      const pending = await LocalNotifications.getPending();
+      const existingNotification = pending.notifications.find(n => n.id === this.NOTIFICATION_ID);
+      
+      if (!existingNotification) {
+        // Aucune notification programmée, il faut programmer
+        return true;
+      }
+
+      // Vérifier si l'heure est passée aujourd'hui
+      const [hours, minutes] = time.split(':').map(Number);
+      const now = new Date();
+      const notificationTime = new Date();
+      notificationTime.setHours(hours, minutes, 0, 0);
+      
+      // Si l'heure est passée, il faut reprogrammer pour demain
+      if (notificationTime <= now) {
+        return true;
+      }
+
+      // La notification est déjà programmée pour aujourd'hui, pas besoin de reprogrammer
+      return false;
+    } catch (error) {
+      console.error('Erreur lors de la vérification des notifications en attente:', error);
+      // En cas d'erreur, on reprogramme pour être sûr
+      return true;
+    }
+  }
+
+  /**
+   * Met à jour les données extra d'une notification existante sans la reprogrammer
+   * Note: Capacitor Local Notifications ne permet pas de mettre à jour une notification existante
+   * On doit donc la reprogrammer, mais on essaie de garder la même date/heure
+   */
+  private async updateExistingNotificationData(message: string, extraData: DailyNotificationExtra): Promise<void> {
+    try {
+      const pending = await LocalNotifications.getPending();
+      const existingNotification = pending.notifications.find(n => n.id === this.NOTIFICATION_ID);
+      
+      if (!existingNotification || !existingNotification.schedule?.at) {
+        // Si pas de notification existante, on programme normalement
+        const settings = this.getSettings();
+        await this.scheduleDailyNotification(settings.time, message, extraData);
+        return;
+      }
+
+      // Récupérer la date/heure de la notification existante
+      const existingDate = new Date(existingNotification.schedule.at);
+      const now = new Date();
+
+      // Si la notification est pour aujourd'hui et l'heure n'est pas passée, on garde la même date
+      // Sinon, on recalcule normalement
+      const settings = this.getSettings();
+      const [hours, minutes] = settings.time.split(':').map(Number);
+      const notificationTime = new Date();
+      notificationTime.setHours(hours, minutes, 0, 0);
+
+      let targetDate: Date;
+      
+      if (notificationTime <= now) {
+        // L'heure est passée, programmer pour demain
+        targetDate = new Date(notificationTime);
+        targetDate.setDate(targetDate.getDate() + 1);
+      } else {
+        // L'heure n'est pas passée, utiliser la date de la notification existante
+        // pour éviter de créer plusieurs notifications
+        const existingTime = new Date(existingDate);
+        existingTime.setHours(hours, minutes, 0, 0);
+        
+        // Si la notification existante est pour aujourd'hui, on la garde
+        if (existingDate.getDate() === now.getDate() && 
+            existingDate.getMonth() === now.getMonth() && 
+            existingDate.getFullYear() === now.getFullYear()) {
+          targetDate = existingDate;
+        } else {
+          // Sinon, programmer pour aujourd'hui
+          targetDate = notificationTime;
+        }
+      }
+
+      // Annuler l'ancienne et reprogrammer avec les nouvelles données
+      await this.cancelDailyNotification();
+      
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: this.NOTIFICATION_ID,
+            title: 'NuovaLingua',
+            body: message,
+            schedule: {
+              at: targetDate,
+              repeats: true,
+              every: 'day'
+            },
+            sound: 'default',
+            actionTypeId: 'DAILY_REVISION',
+            extra: {
+              type: 'daily_reminder',
+              action: 'start_revision',
+              wordCount: extraData.wordCount,
+              newWordIds: extraData.newWordIds,
+              newWordsPreview: extraData.newWordsPreview
+            }
+          }
+        ]
+      });
+
+      this.dailyNotificationState = {
+        ...this.dailyNotificationState,
+        wordCount: extraData.wordCount,
+        newWordIds: [...extraData.newWordIds],
+        newWordsPreview: [...extraData.newWordsPreview]
+      };
+      this.saveDailyNotificationState();
+
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la notification existante:', error);
+      // En cas d'erreur, on reprogramme normalement
+      const settings = this.getSettings();
+      await this.scheduleDailyNotification(settings.time, message, extraData);
+    }
   }
 
   /**

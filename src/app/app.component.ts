@@ -16,6 +16,7 @@ import { TextGeneratorService } from './services/text-generator.service';
 import { AddTextModalComponent } from './components/add-text-modal/add-text-modal.component';
 import { TextPreviewModalComponent } from './components/text-preview-modal/text-preview-modal.component';
 import { AddWordComponent } from './components/add-word/add-word.component';
+import { NewWordsModalComponent } from './components/new-words-modal/new-words-modal.component';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -420,30 +421,17 @@ export class AppComponent {
   }
 
   private async showNewWordsPrompt(words: DictionaryWord[]): Promise<boolean> {
-    const listItems = words.map(word => {
-      const sourceLabel = `${word.sourceWord} (${word.sourceLang.toUpperCase()})`;
-      const targetLabel = `${word.targetWord} (${word.targetLang.toUpperCase()})`;
-      return `<li><strong>${sourceLabel}</strong> → ${targetLabel}</li>`;
-    }).join('');
-
-    const alert = await this.alertController.create({
-      header: `Nouveaux mots (${words.length})`,
-      message: `<p>Voici les mots ajoutés aujourd'hui :</p><ul>${listItems}</ul><p>Souhaitez-vous les réviser maintenant ?</p>`,
-      buttons: [
-        {
-          text: 'Plus tard',
-          role: 'cancel'
-        },
-        {
-          text: 'Commencer la révision',
-          role: 'confirm'
-        }
-      ]
+    const modal = await this.modalController.create({
+      component: NewWordsModalComponent,
+      componentProps: {
+        words: words
+      },
+      cssClass: 'new-words-modal'
     });
 
-    await alert.present();
-    const { role } = await alert.onDidDismiss();
-    return role === 'confirm';
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    return data === true;
   }
 
   /**

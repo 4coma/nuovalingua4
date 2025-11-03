@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Nouveaux mots ({{ words.length }})</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <p class="ion-text-center">Voici les mots ajoutés aujourd'hui :</p>
+  
+  <ion-list>
+    <ion-item *ngFor="let word of words">
+      <ion-label>
+        <h3>
+          <strong>{{ word.sourceWord }}</strong>
+          <span class="lang-label">({{ word.sourceLang.toUpperCase() }})</span>
+          <ion-icon name="arrow-forward-outline" class="arrow-icon"></ion-icon>
+          <strong>{{ word.targetWord }}</strong>
+          <span class="lang-label">({{ word.targetLang.toUpperCase() }})</span>
+        </h3>
+        <p *ngIf="word.contextualMeaning" class="context">{{ word.contextualMeaning }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <div class="ion-padding-top ion-text-center">
+    <p>Souhaitez-vous les réviser maintenant ?</p>
+    <ion-button expand="block" color="success" (click)="startRevision()" class="ion-margin-top">
+      <ion-icon name="play-outline" slot="start"></ion-icon>
+      Commencer la révision
+    </ion-button>
+    <ion-button expand="block" fill="outline" color="medium" (click)="close()" class="ion-margin-top">
+      Plus tard
+    </ion-button>
+  </div>
+</ion-content>
+
