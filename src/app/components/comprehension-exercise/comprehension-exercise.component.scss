@@ -22,7 +22,7 @@
     justify-content: center;
     gap: 12px;
     font-size: 24px;
-    font-weight: 600;
+    font-weight: var(--ds-font-weight-medium);
     margin-bottom: 4px;
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -87,7 +87,7 @@
   /* Style pour les mots du vocabulaire (mis en évidence) */
   .highlighted-word.vocabulary-word {
     color: var(--ion-color-primary);
-    font-weight: 600;
+    font-weight: var(--ds-font-weight-medium);
     background: rgba(var(--ion-color-primary-rgb), 0.1);
     padding: 4px 4px;
     border-radius: 8px;
@@ -181,7 +181,7 @@
   
   h3 {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: var(--ds-font-weight-medium);
     margin-bottom: 16px;
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -218,7 +218,7 @@
 
 .translation {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: var(--ds-font-weight-medium);
   color: var(--ion-color-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -231,7 +231,7 @@
     margin-bottom: 12px;
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-weight: 600;
+    font-weight: var(--ds-font-weight-medium);
   }
 }
 
@@ -277,20 +277,20 @@
   margin-top: 32px;
   
   .questions-header {
-    h3 {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--ion-color-success);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      
-      ion-icon {
+      h3 {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
         font-size: 24px;
+        font-weight: var(--ds-font-weight-medium);
+        color: var(--ion-color-success);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        
+        ion-icon {
+          font-size: 24px;
+        }
       }
-    }
   }
   
   .question-item {
@@ -308,7 +308,7 @@
     }
     
     h2 {
-      font-weight: 600;
+      font-weight: var(--ds-font-weight-medium);
       color: var(--ion-color-primary);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
@@ -363,7 +363,7 @@ ion-card-header {
   
   ion-card-title {
     font-size: 24px;
-    font-weight: 700;
+    font-weight: var(--ds-font-weight-medium);
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }

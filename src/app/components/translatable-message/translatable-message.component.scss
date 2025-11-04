@@ -14,7 +14,7 @@
   }
   
   .speaker-name {
-    font-weight: bold;
+    font-weight: var(--ds-font-weight-medium);
     flex: 1;
   }
   
@@ -66,7 +66,7 @@
     .dictionary-word.highlighted-word {
       color: var(--ion-color-warning);
       background-color: rgba(var(--ion-color-warning-rgb), 0.15);
-      font-weight: 600;
+      font-weight: var(--ds-font-weight-medium);
     }
 
     .dictionary-word.highlighted-word:hover {
@@ -97,7 +97,7 @@
 
 // Styles pour la modale de traduction
 .translation {
-  font-weight: bold;
+  font-weight: var(--ds-font-weight-medium);
   color: var(--ion-color-primary);
 }
 

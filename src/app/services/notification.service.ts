@@ -493,7 +493,7 @@ export class NotificationService {
       
       if (shouldReschedule) {
         // Reprogrammer seulement si nécessaire
-        await this.scheduleDailyNotification(settings.time, messageToUse, this.getDailyNotificationExtra());
+      await this.scheduleDailyNotification(settings.time, messageToUse, this.getDailyNotificationExtra());
       } else {
         // Mettre à jour seulement les données extra de la notification existante
         await this.updateExistingNotificationData(messageToUse, this.getDailyNotificationExtra());

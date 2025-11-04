@@ -99,10 +99,10 @@
               </ion-list>
             </div>
             
-            <div class="ion-padding-top ion-text-center">
+              <div class="ion-padding-top ion-text-center">
               <ion-button (click)="addWordToDictionary()" color="success" class="ion-margin-end" [disabled]="!editableTranslation">
                 <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-                Ajouter au dictionnaire
+                Ajouter
               </ion-button>
               <ion-button (click)="closeTranslation()" color="medium">
                 Fermer
@@ -180,7 +180,7 @@
               <div class="ion-text-center ion-margin-vertical">
                 <ion-button (click)="submitAnswers()" expand="block" color="primary" [disabled]="isSubmitting">
                   <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-                  Valider mes réponses
+                  Valider
                 </ion-button>
               </div>
             </form>
@@ -244,17 +244,17 @@
       
       <ion-button (click)="finishExercise()" expand="block" color="medium" class="ion-margin-vertical">
         <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-        Retour à l'exercice
+        Retour
       </ion-button>
       
       <ion-button routerLink="/category" expand="block" color="tertiary" class="ion-margin-vertical">
         <ion-icon name="list-outline" slot="start"></ion-icon>
-        Retour aux catégories
+        Catégories
       </ion-button>
       
       <ion-button routerLink="/home" expand="block" color="light" class="ion-margin-vertical">
         <ion-icon name="home-outline" slot="start"></ion-icon>
-        Retour à l'accueil
+        Accueil
       </ion-button>
     </div>
   </div>

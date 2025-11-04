@@ -2,47 +2,47 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: var(--ds-space-md);
+  background: var(--color-background);
   min-height: 100vh;
 }
 
 // Section de configuration pliable
 .configuration-section {
-  margin-bottom: 20px;
+  margin-bottom: var(--ds-space-md);
   
-  .configuration-toggle {
+    .configuration-toggle {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 0;
+    padding: var(--ds-space-xxs) 0;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--ds-transition-fast);
+    border-bottom: 1px solid var(--color-border-subtle);
     
     &:hover {
-      color: #ffffff;
+      color: var(--color-text-primary);
     }
     
     .configuration-title {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 12px;
-      font-weight: 500;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--color-text-secondary);
+      font-size: var(--ds-font-size-caption);
+      font-weight: var(--ds-font-weight-medium);
+      font-family: var(--ds-font-family-sans);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     
     .toggle-icon {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 16px;
-      transition: transform 0.2s ease;
+      color: var(--color-text-secondary);
+      font-size: var(--ds-font-size-body);
+      transition: transform var(--ds-transition-fast);
     }
   }
   
   .configuration-options {
-    padding: 16px 0;
-    animation: slideDown 0.3s ease-out;
+    padding: var(--ds-space-xs) 0;
+    animation: slideDown var(--ds-duration-base) var(--ds-ease-out);
   }
 }
 
@@ -51,16 +51,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  gap: var(--ds-space-xxs);
+  font-size: var(--ds-font-size-body-lg);
+  font-weight: var(--ds-font-weight-semibold);
+  margin-bottom: var(--ds-space-xs);
+  color: var(--color-text-primary);
+  font-family: var(--ds-font-family-sans);
   letter-spacing: -0.02em;
   
   ion-icon {
-    font-size: 20px;
+    font-size: var(--ds-font-size-body-lg);
     color: var(--ion-color-primary);
   }
 }
@@ -69,58 +69,59 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: var(--ds-space-xs);
   
   .pairs-input {
-    --background: rgba(255, 255, 255, 0.1);
-    --border: 1px solid rgba(255, 255, 255, 0.2);
+    --background: var(--color-surface);
+    --border: 1px solid var(--color-border-subtle);
     --box-shadow: none;
-    --padding-start: 12px;
-    --padding-end: 12px;
-    --color: #ffffff;
-    font-size: 24px;
-    font-weight: 600;
+    --padding-start: var(--ds-space-xs);
+    --padding-end: var(--ds-space-xs);
+    --color: var(--color-text-primary);
+    font-size: var(--ds-font-size-h2);
+    font-weight: var(--ds-font-weight-semibold);
     text-align: center;
     width: 80px;
-    border-radius: 8px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border-radius: var(--ds-radius-sm);
+    font-family: var(--ds-font-family-sans);
     
     &[disabled] {
-      --color: rgba(255, 255, 255, 0.5);
+      --color: var(--color-text-muted);
       opacity: 0.7;
     }
   }
   
   .pairs-label {
-    font-size: 24px;
-    font-weight: 600;
-    color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: var(--ds-font-size-h2);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
   }
 }
 
 .theme-filter-inline {
-  margin-top: 8px;
+  margin-top: var(--ds-space-xxs);
   width: 100%;
   position: relative;
   
   ion-item {
-    --background: rgba(255, 255, 255, 0.05);
-    --border-radius: 8px;
-    --padding-start: 16px;
-    --padding-end: 16px;
-    margin-bottom: 4px;
+    --background: var(--color-surface);
+    --border-radius: var(--ds-radius-sm);
+    --padding-start: var(--ds-space-xs);
+    --padding-end: var(--ds-space-xs);
+    margin-bottom: var(--ds-space-3xs);
+    border: 1px solid var(--color-border-subtle);
     
     ion-label {
-      font-weight: 500;
-      color: var(--ion-color-dark);
-      font-size: 12px;
+      font-weight: var(--ds-font-weight-medium);
+      color: var(--color-text-primary);
+      font-size: var(--ds-font-size-caption);
     }
     
     ion-input {
-      --color: var(--ion-color-dark);
-      --placeholder-color: var(--ion-color-medium);
-      font-size: 12px;
+      --color: var(--color-text-primary);
+      --placeholder-color: var(--color-text-muted);
+      font-size: var(--ds-font-size-caption);
     }
     
     &[disabled] {
@@ -133,24 +134,24 @@
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--ion-color-light);
-    border: 1px solid var(--ion-color-medium);
-    border-radius: 8px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--ds-radius-sm);
     max-height: 150px;
     overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: var(--z-dropdown);
+    box-shadow: var(--ds-shadow-md);
     
     .autocomplete-item {
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--ion-color-light-shade);
+      padding: var(--ds-space-xxs) var(--ds-space-xs);
+      border-bottom: 1px solid var(--color-border-subtle);
       cursor: pointer;
-      font-size: 12px;
-      color: var(--ion-color-dark);
+      font-size: var(--ds-font-size-caption);
+      color: var(--color-text-primary);
       
       &:hover {
         background: var(--ion-color-primary-tint);
-        color: white;
+        color: var(--ion-color-primary-contrast);
       }
       
       &:last-child {
@@ -162,17 +163,17 @@
   .selected-themes {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 4px;
+    gap: var(--ds-space-3xs);
+    margin-top: var(--ds-space-3xs);
     
     ion-chip {
       --background: var(--ion-color-primary);
-      --color: white;
-      font-size: 10px;
-      height: 24px;
+      --color: var(--ion-color-primary-contrast);
+      font-size: var(--ds-font-size-caption);
+      height: var(--ds-space-sm);
       
       ion-icon {
-        font-size: 14px;
+        font-size: var(--ds-font-size-body-sm);
         cursor: pointer;
       }
     }
@@ -182,14 +183,14 @@
 .game-header {
 // Bouton audio
 .audio-toggle-btn {
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --border-radius: 50%;
-  --min-height: 32px;
-  --min-width: 32px;
+  --padding-start: var(--ds-space-xxs);
+  --padding-end: var(--ds-space-xxs);
+  --border-radius: var(--ds-radius-full);
+  --min-height: var(--ds-space-md);
+  --min-width: var(--ds-space-md);
   
   ion-icon {
-    font-size: 18px;
+    font-size: var(--ds-font-size-body-lg);
     color: var(--ion-color-primary);
   }
   
@@ -200,100 +201,111 @@
   
 // Informations du jeu
 .game-info {
-  margin-bottom: 20px;
+  margin-bottom: var(--ds-space-md);
   
   p {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.8);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 14px;
-    gap: 8px;
+    margin-bottom: var(--ds-space-xxs);
+    color: var(--color-text-secondary);
+    font-family: var(--ds-font-family-sans);
+    font-size: var(--ds-font-size-body-sm);
+    gap: var(--ds-space-xxs);
   }
   
   ion-progress-bar {
     margin-bottom: 0;
-    --background: rgba(255, 255, 255, 0.1);
+    --background: var(--color-surface-subtle);
     --progress-background: var(--ion-color-primary);
-    border-radius: 6px;
+    border-radius: var(--ds-radius-xs);
     height: 6px;
   }
 }
   
   .game-complete {
-    padding: 32px 0;
+    padding: var(--ds-space-md) 0;
     text-align: center;
     
     p {
-      color: #ffffff;
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--color-text-primary);
+      font-size: var(--ds-font-size-body-lg);
+      font-weight: var(--ds-font-weight-semibold);
+      margin-bottom: var(--ds-space-xs);
+      font-family: var(--ds-font-family-sans);
     }
     
     ion-badge {
-      padding: 12px 20px;
-      font-size: 16px;
-      font-weight: 600;
-      border-radius: 12px;
+      padding: var(--ds-space-xs) var(--ds-space-md);
+      font-size: var(--ds-font-size-body);
+      font-weight: var(--ds-font-weight-semibold);
+      border-radius: var(--ds-radius-md);
       background: var(--ion-color-success);
-      color: #ffffff;
+      color: var(--ion-color-success-contrast);
     }
   }
 }
 
 .pairs-grid {
-  margin-bottom: 40px;
+  margin-bottom: var(--ds-space-xl);
   
   .word-card {
-    margin-bottom: 12px;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    margin-bottom: var(--ds-space-xs);
+    border-radius: var(--ds-radius-sm);
+    box-shadow: var(--ds-shadow-sm);
+    transition: var(--ds-transition-base);
     cursor: pointer;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
     
     ion-card-content {
-      padding: 12px 8px;
-      font-size: 14px;
-      font-weight: 600;
+      padding: var(--ds-space-xs) var(--ds-space-xxs);
+      font-size: var(--ds-font-size-body-sm);
+      font-weight: var(--ds-font-weight-semibold);
       text-align: center;
-      color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--color-text-primary);
+      font-family: var(--ds-font-family-sans);
     }
     
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-      background: rgba(255, 255, 255, 0.08);
+      box-shadow: var(--ds-shadow-md);
+      border-color: var(--color-border-strong);
     }
     
     &.selected {
       background: var(--ion-color-primary);
       transform: translateY(-4px);
-      box-shadow: 0 16px 48px rgba(var(--ion-color-primary-rgb), 0.3);
+      box-shadow: var(--ds-shadow-lg);
       border: 2px solid var(--ion-color-primary);
-      color: #ffffff;
+      color: var(--ion-color-primary-contrast);
+      
+      ion-card-content {
+        color: var(--ion-color-primary-contrast);
+      }
     }
     
     &.matched {
       background: var(--ion-color-success);
       border: 2px solid var(--ion-color-success);
       opacity: 0.9;
-      color: #ffffff;
+      color: var(--ion-color-success-contrast);
       transform: scale(0.98);
+      
+      ion-card-content {
+        color: var(--ion-color-success-contrast);
+      }
     }
     
     &.error {
       background: var(--ion-color-danger);
       border: 2px solid var(--ion-color-danger);
-      color: #ffffff;
-      animation: shake 0.5s ease-in-out;
+      color: var(--ion-color-danger-contrast);
+      animation: shake var(--ds-duration-base) var(--ds-ease-in-out);
+      
+      ion-card-content {
+        color: var(--ion-color-danger-contrast);
+      }
     }
   }
 }
@@ -307,32 +319,32 @@
 .source-words, .target-words {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--ds-space-xxs);
 }
 
 .actions-section {
-  margin-top: 40px;
+  margin-top: var(--ds-space-xl);
   
   h3 {
-    margin-bottom: 24px;
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: 600;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin-bottom: var(--ds-space-sm);
+    color: var(--color-text-primary);
+    font-size: var(--ds-font-size-body-lg);
+    font-weight: var(--ds-font-weight-semibold);
+    font-family: var(--ds-font-family-sans);
   }
   
   ion-button {
-    margin-bottom: 16px;
-    --border-radius: 12px;
-    --padding-top: 16px;
-    --padding-bottom: 16px;
-    font-weight: 600;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    transition: all 0.3s ease;
+    margin-bottom: var(--ds-space-xs);
+    --border-radius: var(--ds-radius-md);
+    --padding-top: var(--ds-space-xs);
+    --padding-bottom: var(--ds-space-xs);
+    font-weight: var(--ds-font-weight-semibold);
+    font-family: var(--ds-font-family-sans);
+    transition: var(--ds-transition-base);
     
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--ds-shadow-lg);
     }
   }
 }
@@ -340,24 +352,23 @@
 .no-data-message {
   ion-card {
     text-align: center;
-    padding: 32px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    padding: var(--ds-space-md);
+    background: var(--color-surface);
+    border-radius: var(--ds-radius-lg);
+    border: 1px solid var(--color-border-subtle);
+    box-shadow: var(--ds-shadow-md);
     
     ion-icon {
       font-size: 64px;
-      margin-bottom: 20px;
+      margin-bottom: var(--ds-space-md);
       color: var(--ion-color-primary);
     }
     
     p {
-      font-size: 18px;
-      margin-bottom: 24px;
-      color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: var(--ds-font-size-body-lg);
+      margin-bottom: var(--ds-space-sm);
+      color: var(--color-text-primary);
+      font-family: var(--ds-font-family-sans);
     }
   }
 }
@@ -365,26 +376,26 @@
 // Styles pour les écrans plus petits
 @media (max-width: 576px) {
   .word-card ion-card-content {
-    padding: 10px 8px;
-    font-size: 13px;
+    padding: var(--ds-space-xxs) var(--ds-space-xxs);
+    font-size: var(--ds-font-size-caption);
   }
 }
 
 .generated-sessions-section {
-  margin-top: 30px;
+  margin-top: var(--ds-space-md);
   
   h3 {
-    margin-bottom: 20px;
+    margin-bottom: var(--ds-space-md);
   }
   
   ion-list {
     ion-item {
-      --padding-start: 16px;
-      --padding-end: 16px;
-      --border-radius: 8px;
-      margin-bottom: 8px;
+      --padding-start: var(--ds-space-xs);
+      --padding-end: var(--ds-space-xs);
+      --border-radius: var(--ds-radius-sm);
+      margin-bottom: var(--ds-space-xxs);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: var(--ds-transition-fast);
       
       &:hover {
         --background: rgba(var(--ion-color-primary-rgb), 0.05);
@@ -392,35 +403,35 @@
       
       ion-label {
         h3 {
-          font-weight: 600;
-          margin-bottom: 5px;
+          font-weight: var(--ds-font-weight-semibold);
+          margin-bottom: var(--ds-space-3xs);
         }
         
         p {
-          color: var(--ion-color-medium);
-          margin-bottom: 8px;
+          color: var(--color-text-muted);
+          margin-bottom: var(--ds-space-xxs);
         }
         
         .session-meta {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: var(--ds-space-xxs);
           flex-wrap: wrap;
           
           ion-badge {
-            font-size: 12px;
+            font-size: var(--ds-font-size-caption);
           }
           
           .session-date {
-            font-size: 12px;
-            color: var(--ion-color-medium);
+            font-size: var(--ds-font-size-caption);
+            color: var(--color-text-muted);
           }
         }
       }
       
       ion-icon {
         color: var(--ion-color-primary);
-        font-size: 20px;
+        font-size: var(--ds-font-size-body-lg);
       }
     }
   }
@@ -429,38 +440,38 @@
 // Styles pour la modal du dictionnaire personnel
 .dictionary-modal {
   --height: 80%;
-  --border-radius: 16px;
+  --border-radius: var(--ds-radius-lg);
   
   ion-header {
     ion-toolbar {
       --background: var(--ion-color-primary);
-      --color: white;
+      --color: var(--ion-color-primary-contrast);
     }
   }
   
   .modal-content {
     max-width: 600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: var(--ds-space-md);
   }
   
   .words-list {
-    margin: 20px 0;
+    margin: var(--ds-space-md) 0;
     
     .word-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid var(--ion-color-medium);
-      border-radius: 8px;
-      background: var(--ion-color-light);
-      transition: all 0.2s ease;
+      padding: var(--ds-space-xs);
+      margin: var(--ds-space-xxs) 0;
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--ds-radius-sm);
+      background: var(--color-surface);
+      transition: var(--ds-transition-fast);
       
       &:hover {
         border-color: var(--ion-color-primary);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--ds-shadow-sm);
       }
       
       .word-info {
@@ -469,8 +480,8 @@
         .word-pair {
           display: flex;
           align-items: center;
-          gap: 8px;
-          font-weight: 500;
+          gap: var(--ds-space-xxs);
+          font-weight: var(--ds-font-weight-medium);
           
           .source-word {
             color: var(--ion-color-primary);
@@ -482,23 +493,23 @@
         }
         
         .word-context {
-          margin-top: 4px;
-          color: var(--ion-color-medium);
+          margin-top: var(--ds-space-3xs);
+          color: var(--color-text-muted);
           font-style: italic;
-          font-size: 12px;
+          font-size: var(--ds-font-size-caption);
         }
       }
       
       .word-actions {
-        margin-left: 12px;
+        margin-left: var(--ds-space-xs);
         
         ion-button {
-          --padding-start: 8px;
-          --padding-end: 8px;
-          --border-radius: 50%;
+          --padding-start: var(--ds-space-xxs);
+          --padding-end: var(--ds-space-xxs);
+          --border-radius: var(--ds-radius-full);
           
           ion-icon {
-            font-size: 18px;
+            font-size: var(--ds-font-size-body-lg);
           }
         }
       }
@@ -506,37 +517,37 @@
   }
   
   .modal-actions {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--ion-color-light);
+    margin-top: var(--ds-space-md);
+    padding-top: var(--ds-space-md);
+    border-top: 1px solid var(--color-border-subtle);
   }
 } 
 
 // Section des mots révisés
 .revised-words-section {
-  margin-bottom: 20px;
+  margin-bottom: var(--ds-space-md);
   
   h3 {
-    margin-bottom: 8px;
+    margin-bottom: var(--ds-space-xxs);
   }
   
   .revised-word-item {
-    --padding-start: 12px;
-    --padding-end: 12px;
-    margin-bottom: 8px;
-    border-radius: 8px;
-    background: var(--ion-color-light);
+    --padding-start: var(--ds-space-xs);
+    --padding-end: var(--ds-space-xs);
+    margin-bottom: var(--ds-space-xxs);
+    border-radius: var(--ds-radius-sm);
+    background: var(--color-surface);
     
     ion-label {
       h4 {
-        font-weight: 600;
-        margin-bottom: 4px;
-        color: var(--ion-color-dark);
+        font-weight: var(--ds-font-weight-semibold);
+        margin-bottom: var(--ds-space-3xs);
+        color: var(--color-text-primary);
       }
       
       .word-context {
-        font-size: 12px;
-        color: var(--ion-color-medium);
+        font-size: var(--ds-font-size-caption);
+        color: var(--color-text-muted);
         margin: 0;
         font-style: italic;
       }
@@ -545,23 +556,23 @@
     .word-controls {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: var(--ds-space-xs);
       
       .revision-delay-select {
         min-width: 100px;
-        --padding-start: 8px;
-        --padding-end: 8px;
+        --padding-start: var(--ds-space-xxs);
+        --padding-end: var(--ds-space-xxs);
       }
       
       .known-toggle {
-        --background: var(--ion-color-light);
+        --background: var(--color-surface);
         --background-checked: var(--ion-color-success);
-        --handle-background: var(--ion-color-medium);
-        --handle-background-checked: var(--ion-color-light);
+        --handle-background: var(--color-text-muted);
+        --handle-background-checked: var(--color-surface);
         
         ion-label {
-          font-size: 12px;
-          color: var(--ion-color-dark);
+          font-size: var(--ds-font-size-caption);
+          color: var(--color-text-primary);
         }
       }
     }
@@ -570,41 +581,41 @@
 
 // Menu principal simplifié
 .main-actions {
-  margin-top: 20px;
+  margin-top: var(--ds-space-md);
   
   .more-options-text {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 12px 0;
+    color: var(--color-text-secondary);
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: var(--ds-font-weight-medium);
+    padding: var(--ds-space-xs) 0;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 16px;
+    transition: var(--ds-transition-fast);
+    font-family: var(--ds-font-family-sans);
+    border-bottom: 1px solid var(--color-border-subtle);
+    margin-bottom: var(--ds-space-xs);
     
     &:hover {
-      color: #ffffff;
+      color: var(--color-text-primary);
       transform: translateX(4px);
     }
   }
   
   .additional-options {
-    margin-bottom: 20px;
-    padding: 16px;
+    margin-bottom: var(--ds-space-md);
+    padding: var(--ds-space-xs);
     
-    .option-text {
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 14px;
-      font-weight: 500;
-      padding: 12px 0;
+      .option-text {
+      color: var(--color-text-secondary);
+      font-size: var(--ds-font-size-body-sm);
+      font-weight: var(--ds-font-weight-medium);
+      padding: var(--ds-space-xs) 0;
       cursor: pointer;
-      transition: all 0.2s ease;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      transition: var(--ds-transition-fast);
+      font-family: var(--ds-font-family-sans);
+      border-bottom: 1px solid var(--color-border-subtle);
       
       &:hover {
-        color: #ffffff;
+        color: var(--color-text-primary);
         transform: translateX(4px);
       }
       
@@ -613,11 +624,12 @@
       }
       
       &.disabled {
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--color-text-muted);
         cursor: not-allowed;
+        opacity: 0.5;
         
         &:hover {
-          color: rgba(255, 255, 255, 0.4);
+          color: var(--color-text-muted);
           transform: none;
         }
       }
@@ -625,18 +637,18 @@
   }
   
   .main-option-text {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 12px 0;
+    color: var(--color-text-secondary);
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: var(--ds-font-weight-medium);
+    padding: var(--ds-space-xs) 0;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 12px;
+    transition: var(--ds-transition-fast);
+    font-family: var(--ds-font-family-sans);
+    border-bottom: 1px solid var(--color-border-subtle);
+    margin-bottom: var(--ds-space-xs);
     
     &:hover {
-      color: #ffffff;
+      color: var(--color-text-primary);
       transform: translateX(4px);
     }
     
@@ -649,13 +661,13 @@
 
 .full-revision-note {
   text-align: center;
-  font-size: 0.85rem;
-  margin-top: -8px;
+  font-size: var(--ds-font-size-body-sm);
+  margin-top: calc(var(--ds-space-xxs) * -1);
 }
 
 // Animation pour l'affichage des options
 .additional-options {
-  animation: slideDown 0.3s ease-out;
+  animation: slideDown var(--ds-duration-base) var(--ds-ease-out);
 }
 
 @keyframes slideDown {
@@ -667,4 +679,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-} 
+}

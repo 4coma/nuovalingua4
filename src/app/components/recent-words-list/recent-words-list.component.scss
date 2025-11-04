@@ -21,19 +21,19 @@ ion-badge {
   margin-bottom: 20px;
 
   h2 {
-    font-size: 24px;
-    font-weight: 600;
+    font-size: var(--ds-font-size-h2);
+    font-weight: var(--ds-font-weight-medium);
     
     ion-icon {
-      margin-right: 8px;
+      margin-right: var(--ds-space-xxs);
       vertical-align: middle;
     }
   }
 }
 
 ion-list-header {
-  font-weight: bold;
-  --background: var(--ion-color-light);
+  font-weight: var(--ds-font-weight-medium);
+  --background: var(--color-surface);
 }
 
 ion-item {
@@ -44,11 +44,11 @@ ion-item {
   --inner-padding-end: 16px;
   
   h2 {
-    font-weight: 600;
-    margin-bottom: 8px;
+    font-weight: var(--ds-font-weight-medium);
+    margin-bottom: var(--ds-space-xxs);
     
     ion-icon {
-      margin: 0 4px;
+      margin: 0 var(--ds-space-3xs);
       vertical-align: middle;
     }
   }

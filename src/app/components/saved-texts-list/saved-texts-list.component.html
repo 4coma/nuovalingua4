@@ -62,7 +62,7 @@
             <div class="ion-padding-top ion-text-center">
               <ion-button (click)="generateAssociationSession()" color="secondary" [disabled]="isGeneratingSession">
                 <!-- <ion-icon name="game-controller-outline" slot="start"></ion-icon> -->
-                {{ isGeneratingSession ? 'Génération...' : 'Créer un exercice d\'association' }}
+                {{ isGeneratingSession ? 'Génération...' : 'Créer l\'exercice' }}
               </ion-button>
             </div>
           </ion-content>
@@ -125,7 +125,7 @@
               <div class="ion-padding-top ion-text-center">
                 <ion-button (click)="addWordToDictionary()" color="success" class="ion-margin-end" [disabled]="!editableTranslation">
                   <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-                  Ajouter au dictionnaire
+                  Ajouter
                 </ion-button>
                 <ion-button (click)="closeTranslation()" color="medium">
                   Fermer

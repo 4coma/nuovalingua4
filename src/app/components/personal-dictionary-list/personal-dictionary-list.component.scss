@@ -46,9 +46,9 @@
       
       .known-count {
         color: var(--ion-color-success);
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 8px;
+        font-size: var(--ds-font-size-body-lg);
+        font-weight: var(--ds-font-weight-medium);
+        margin-bottom: var(--ds-space-xxs);
       }
       
       .unknown-count {
@@ -213,9 +213,9 @@ ion-item-sliding {
     align-items: flex-start;
     
     strong {
-      font-size: 16px;
-      font-weight: 600;
-      line-height: 1.2;
+      font-size: var(--ds-font-size-body);
+      font-weight: var(--ds-font-weight-medium);
+      line-height: var(--ds-line-height-tight);
     }
     
     small {

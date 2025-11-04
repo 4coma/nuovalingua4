@@ -1,36 +1,36 @@
 // Design System Moderne pour Discussion Active
 ion-content {
-  --background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  --background: var(--color-surface-inverse);
   min-height: 100vh;
 }
 
 .container {
-  padding: 16px;
+  padding: var(--ds-space-xs);
 }
 
 .conversation-container {
-  margin: 20px 0;
+  margin: var(--ds-space-md) 0;
   max-height: 400px;
   overflow-y: auto;
-  border: 1px solid var(--ion-color-light);
-  border-radius: 12px;
-  background: var(--ion-color-light-tint);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  background: var(--color-surface);
 }
 
 .conversation-messages {
-  padding: 16px;
+  padding: var(--ds-space-xs);
 }
 
 .message {
-  margin-bottom: 16px;
-  padding: 12px;
-  border-radius: 12px;
+  margin-bottom: var(--ds-space-xs);
+  padding: var(--ds-space-xs);
+  border-radius: var(--ds-radius-md);
   max-width: 80%;
   
   &.message-user {
     margin-left: auto;
     background: var(--ion-color-primary);
-    color: white;
+    color: var(--ion-color-primary-contrast);
     
     .message-header {
       color: rgba(255, 255, 255, 0.8);
@@ -38,24 +38,24 @@ ion-content {
     
     .transcription {
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 8px;
-      margin-top: 8px;
-      font-size: 0.9rem;
+      border-radius: var(--ds-radius-sm);
+      padding: var(--ds-space-xxs);
+      margin-top: var(--ds-space-xxs);
+      font-size: var(--ds-font-size-body-sm);
       
       ion-icon {
-        margin-right: 4px;
+        margin-right: var(--ds-space-3xs);
       }
     }
   }
   
   &.message-ai {
     margin-right: auto;
-    background: white;
-    border: 1px solid var(--ion-color-light);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
     
     .message-header {
-      color: var(--ion-color-medium);
+      color: var(--color-text-muted);
     }
   }
 }
@@ -63,20 +63,20 @@ ion-content {
 .message-header {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
+  margin-bottom: var(--ds-space-xxs);
+  font-size: var(--ds-font-size-body-sm);
   
   ion-icon {
-    margin-right: 8px;
+    margin-right: var(--ds-space-xxs);
   }
   
   .speaker-name {
-    font-weight: 600;
+    font-weight: var(--ds-font-weight-semibold);
     flex: 1;
   }
   
   .timestamp {
-    font-size: 0.8rem;
+    font-size: var(--ds-font-size-caption);
     opacity: 0.7;
   }
 }
@@ -84,16 +84,16 @@ ion-content {
 .message-content {
   p {
     margin: 0;
-    line-height: 1.4;
+    line-height: var(--ds-line-height-relaxed);
   }
 }
 
 .audio-player {
-  margin-top: 8px;
+  margin-top: var(--ds-space-xxs);
   
   audio {
     width: 100%;
-    height: 32px;
+    height: var(--ds-space-md);
   }
 }
 
@@ -102,42 +102,42 @@ ion-content {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px;
-  background: var(--ion-color-light);
-  border-radius: 12px;
-  margin: 16px 0;
+  padding: var(--ds-space-md);
+  background: var(--color-surface);
+  border-radius: var(--ds-radius-md);
+  margin: var(--ds-space-xs) 0;
   
   ion-spinner {
-    margin-bottom: 16px;
+    margin-bottom: var(--ds-space-xs);
   }
   
   p {
     margin: 0;
-    color: var(--ion-color-medium);
+    color: var(--color-text-muted);
   }
 }
 
 .recording-controls {
-  margin: 20px 0;
+  margin: var(--ds-space-md) 0;
 }
 
 .recording-status {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: var(--ds-space-xs);
   background: var(--ion-color-danger-tint);
-  border-radius: 12px;
-  margin-bottom: 16px;
+  border-radius: var(--ds-radius-md);
+  margin-bottom: var(--ds-space-xs);
   
   .recording-indicator {
     animation: pulse 1s infinite;
-    margin-right: 8px;
+    margin-right: var(--ds-space-xxs);
   }
   
   .recording-time {
-    font-weight: 600;
-    margin-right: 8px;
+    font-weight: var(--ds-font-weight-semibold);
+    margin-right: var(--ds-space-xxs);
   }
   
   p {
@@ -154,72 +154,72 @@ ion-content {
 
 .control-buttons {
   display: flex;
-  gap: 16px;
+  gap: var(--ds-space-xs);
   
   ion-button {
     flex: 1;
-    --border-radius: 12px;
-    --padding-start: 24px;
-    --padding-end: 24px;
+    --border-radius: var(--ds-radius-md);
+    --padding-start: var(--ds-space-sm);
+    --padding-end: var(--ds-space-sm);
     
     &.record-button {
       --background: var(--ion-color-primary);
-      --color: white;
+      --color: var(--ion-color-primary-contrast);
     }
     
     &.stop-button {
       --background: var(--ion-color-danger);
-      --color: white;
+      --color: var(--ion-color-danger-contrast);
     }
   }
 }
 
 .instructions-card {
-  margin-top: 20px;
+  margin-top: var(--ds-space-md);
   
   h3 {
-    margin: 0 0 12px 0;
-    font-weight: 600;
+    margin: 0 0 var(--ds-space-xs) 0;
+    font-weight: var(--ds-font-weight-semibold);
   }
   
   ul {
     margin: 0;
-    padding-left: 20px;
+    padding-left: var(--ds-space-md);
     
     li {
-      margin-bottom: 8px;
-      line-height: 1.4;
+      margin-bottom: var(--ds-space-xxs);
+      line-height: var(--ds-line-height-relaxed);
     }
   }
 }
 
 .difficulty-chip {
-  margin-top: 8px;
+  margin-top: var(--ds-space-xxs);
 }
 
 ion-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-md);
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  transition: var(--ds-transition-base);
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--ds-shadow-lg);
     background: rgba(255, 255, 255, 0.08);
   }
 }
 
 ion-card-header {
-  padding-bottom: 8px;
+  padding-bottom: var(--ds-space-xxs);
 }
 
 .revision-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--ds-space-xs);
 }
 
 .revision-column {
@@ -227,29 +227,29 @@ ion-card-header {
 
   h4 {
     margin-top: 0;
-    margin-bottom: 8px;
-    font-weight: 600;
+    margin-bottom: var(--ds-space-xxs);
+    font-weight: var(--ds-font-weight-semibold);
   }
 
   ion-note {
     display: block;
-    margin-top: 8px;
+    margin-top: var(--ds-space-xxs);
   }
 }
 
 .chip-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--ds-space-xxs);
 }
 
 .word-chip {
-  font-weight: 600;
-  --color: var(--ion-color-dark);
+  font-weight: var(--ds-font-weight-semibold);
+  --color: var(--color-text-primary);
 
   &[color="warning"] {
     --background: rgba(var(--ion-color-warning-rgb), 0.2);
-    --color: var(--ion-color-dark);
+    --color: var(--color-text-primary);
   }
 
   &[color="success"] {
@@ -259,30 +259,30 @@ ion-card-header {
 
   &[color="medium"] {
     --background: rgba(255, 255, 255, 0.08);
-    --color: #ffffff;
+    --color: var(--color-text-inverse);
   }
 
   ion-label {
     display: flex;
     flex-direction: column;
-    line-height: 1.2;
+    line-height: var(--ds-line-height-tight);
   }
 
   .target-word {
-    font-weight: 600;
+    font-weight: var(--ds-font-weight-semibold);
   }
 
   .translation {
-    font-size: 0.75rem;
+    font-size: var(--ds-font-size-caption);
     opacity: 0.8;
   }
 }
 
 .remaining-user-words {
-  margin-top: 12px;
+  margin-top: var(--ds-space-xs);
 
   ion-note {
-    margin-bottom: 6px;
+    margin-bottom: var(--ds-space-3xs);
     display: block;
   }
 }
@@ -290,34 +290,34 @@ ion-card-header {
 .full-revision-progress {
   display: block;
   text-align: center;
-  margin: 12px 0;
+  margin: var(--ds-space-xs) 0;
 }
 
 .target-vocabulary-card ion-note {
-  margin-top: 12px;
+  margin-top: var(--ds-space-xs);
   display: block;
 }
 
 ion-card-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: var(--ds-font-size-h3);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--color-text-inverse);
+  font-family: var(--ds-font-family-sans);
 }
 
 ion-card-subtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--color-text-muted);
+  font-size: var(--ds-font-size-body-sm);
+  font-family: var(--ds-font-family-sans);
 }
 
 ion-label {
-  line-height: 1.4;
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: var(--ds-line-height-relaxed);
+  color: var(--color-text-inverse);
+  font-family: var(--ds-font-family-sans);
   
   strong {
-    color: #ffffff;
+    color: var(--color-text-inverse);
   }
 }
 
@@ -328,7 +328,7 @@ ion-label {
   border: 1px solid rgba(255, 255, 255, 0.1);
   
   ion-card-content {
-    color: #ffffff;
+    color: var(--color-text-inverse);
   }
 }
 
@@ -337,57 +337,57 @@ ion-label {
   border: 1px solid var(--ion-color-primary);
   
   ion-card-content {
-    color: #ffffff;
+    color: var(--ion-color-primary-contrast);
   }
 }
 
 // Styles pour les boutons
 ion-button {
-  --border-radius: 12px;
-  --padding-top: 16px;
-  --padding-bottom: 16px;
-  font-weight: 600;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  transition: all 0.3s ease;
+  --border-radius: var(--ds-radius-md);
+  --padding-top: var(--ds-space-xs);
+  --padding-bottom: var(--ds-space-xs);
+  font-weight: var(--ds-font-weight-semibold);
+  font-family: var(--ds-font-family-sans);
+  transition: var(--ds-transition-base);
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--ds-shadow-lg);
   }
 }
 
 // Styles pour les segments
 ion-segment {
   --background: rgba(255, 255, 255, 0.05);
-  --border-radius: 12px;
+  --border-radius: var(--ds-radius-md);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   
   ion-segment-button {
-    --color: rgba(255, 255, 255, 0.7);
-    --color-checked: #ffffff;
+    --color: var(--color-text-muted);
+    --color-checked: var(--color-text-inverse);
     --background-checked: var(--ion-color-primary);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--ds-font-family-sans);
   }
 }
 
 // Styles pour les textarea
 ion-textarea {
-  --color: #ffffff;
+  --color: var(--color-text-inverse);
   --placeholder-color: rgba(255, 255, 255, 0.5);
   --background: rgba(255, 255, 255, 0.05);
-  --border-radius: 12px;
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-top: 16px;
-  --padding-bottom: 16px;
+  --border-radius: var(--ds-radius-md);
+  --padding-start: var(--ds-space-xs);
+  --padding-end: var(--ds-space-xs);
+  --padding-top: var(--ds-space-xs);
+  --padding-bottom: var(--ds-space-xs);
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--ds-font-family-sans);
 }
 
 // Styles pour les notes
 ion-note {
-  color: rgba(255, 255, 255, 0.7);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-} 
+  color: var(--color-text-muted);
+  font-family: var(--ds-font-family-sans);
+}

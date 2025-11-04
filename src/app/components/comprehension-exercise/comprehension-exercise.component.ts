@@ -169,7 +169,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     this.isTranslating = true;
     this.translation = null;
     const context = this.comprehensionText?.text || '';
-      this.textGeneratorService.getContextualTranslation(this.selectedFragment, context).subscribe({
+    this.textGeneratorService.getContextualTranslation(this.selectedFragment, context).subscribe({
       next: (result) => {
         this.translation = result;
         this.editableTranslation = result.translation;

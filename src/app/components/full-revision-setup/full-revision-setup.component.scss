@@ -1,22 +1,22 @@
 .availability {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--ds-space-xxs);
   flex-wrap: wrap;
-  margin: 0.75rem 0;
+  margin: var(--ds-space-xs) 0;
 }
 
 .theme-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--ds-space-xxs);
 }
 
 .hint {
-  color: var(--ion-color-medium-shade);
-  font-size: 0.85rem;
-  margin: 0.75rem 0;
+  color: var(--color-text-muted);
+  font-size: var(--ds-font-size-body-sm);
+  margin: var(--ds-space-xs) 0;
 }
 
 ion-chip[color="primary"] {
-  color: white;
+  color: var(--ion-color-primary-contrast);
 }

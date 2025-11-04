@@ -25,8 +25,8 @@ ion-card-header {
 }
 
 ion-card-title {
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: var(--ds-font-size-h3);
+  font-weight: var(--ds-font-weight-medium);
 }
 
 ion-card-subtitle {
@@ -59,7 +59,7 @@ ion-select {
 }
 
 ion-label h2 {
-  font-weight: 600;
+  font-weight: var(--ds-font-weight-medium);
   margin-bottom: 4px;
 }
 
@@ -79,7 +79,7 @@ ion-label p {
   
   h3 {
     margin: 16px 0 8px 0;
-    font-weight: 600;
+    font-weight: var(--ds-font-weight-medium);
   }
   
   p {

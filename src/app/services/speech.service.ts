@@ -65,7 +65,7 @@ export class SpeechService {
       .set('Authorization', `Bearer ${apiKeyToUse}`);
     
     const data = {
-      model: 'tts-1',
+      model: 'tts-1-hd',
       input: text,
       voice: voice, // 'alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'
       response_format: 'mp3',
