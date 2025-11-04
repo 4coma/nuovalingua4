@@ -49,6 +49,7 @@ export class PreferencesComponent implements OnInit {
   notificationMessage: string = 'Il est temps de pratiquer votre italien ! 🇮🇹';
   comprehensionNotificationsEnabled: boolean = false;
   comprehensionNotificationTime: string = '19:00';
+  comprehensionNotificationCustomPrompt: string = '';
   
   // Thèmes personnalisés pour la compréhension quotidienne
   dailyComprehensionThemes: string[] = [''];
@@ -134,6 +135,10 @@ export class PreferencesComponent implements OnInit {
     const compSettings = this.notificationService.getComprehensionSettings();
     this.comprehensionNotificationsEnabled = compSettings.enabled;
     this.comprehensionNotificationTime = compSettings.time;
+    
+    // Charger le prompt personnalisé pour la compréhension orale
+    const savedCustomPrompt = this.storageService.get('comprehensionNotificationCustomPrompt');
+    this.comprehensionNotificationCustomPrompt = savedCustomPrompt || '';
     
     // Charger les thèmes personnalisés pour la compréhension quotidienne
     const savedThemes = this.storageService.get('dailyComprehensionThemes');
@@ -227,6 +232,13 @@ export class PreferencesComponent implements OnInit {
     // Sauvegarder les thèmes personnalisés pour la compréhension quotidienne (filtrer les vides)
     const validThemes = this.dailyComprehensionThemes.filter(t => t.trim() !== '');
     this.storageService.set('dailyComprehensionThemes', JSON.stringify(validThemes));
+
+    // Sauvegarder le prompt personnalisé pour la compréhension orale
+    if (this.comprehensionNotificationCustomPrompt.trim()) {
+      this.storageService.set('comprehensionNotificationCustomPrompt', this.comprehensionNotificationCustomPrompt.trim());
+    } else {
+      this.storageService.remove('comprehensionNotificationCustomPrompt');
+    }
 
     this.showToast('Préférences sauvegardées avec succès !');
   }

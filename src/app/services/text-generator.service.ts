@@ -42,8 +42,8 @@ export class TextGeneratorService {
   /**
    * Génère un texte de compréhension à partir d'une liste de mots
    */
-  generateComprehensionText(wordPairs: WordPair[], type: 'written' | 'oral', themes?: string[]): Observable<ComprehensionText> {
-    return this.callOpenAI<ComprehensionText>(this.createComprehensionTextPrompt(wordPairs, type, themes));
+  generateComprehensionText(wordPairs: WordPair[], type: 'written' | 'oral', themes?: string[], customPrompt?: string): Observable<ComprehensionText> {
+    return this.callOpenAI<ComprehensionText>(this.createComprehensionTextPrompt(wordPairs, type, themes, customPrompt));
   }
 
   /**
@@ -87,7 +87,7 @@ export class TextGeneratorService {
   /**
    * Crée le prompt pour générer un texte de compréhension avec des questions
    */
-  private createComprehensionTextPrompt(wordPairs: WordPair[], type: 'written' | 'oral', themes?: string[]): string {
+  private createComprehensionTextPrompt(wordPairs: WordPair[], type: 'written' | 'oral', themes?: string[], customPrompt?: string): string {
     // Extraire les mots italiens
     const italianWords = wordPairs.map(pair => pair.it);
     
@@ -105,6 +105,11 @@ export class TextGeneratorService {
       ? `\n\nCONTEXTE ET CONSIGNES SPÉCIFIQUES:\n${themes.join('\n')}`
       : '';
     
+    // Construire la partie prompt personnalisé si fournie
+    const customPromptSection = customPrompt && customPrompt.trim() 
+      ? `\n\nCONSIGNE PERSONNALISÉE POUR LE CONTENU:\n${customPrompt.trim()}`
+      : '';
+    
     return `
       Tu es un assistant de langue spécialisé dans la création de textes pédagogiques pour l'apprentissage de l'italien.
       
@@ -112,17 +117,17 @@ export class TextGeneratorService {
       ${italianWords.map(word => `"${word}"`).join(', ')}
       
       Pour information, ces mots proviennent des paires de traduction suivantes:
-      ${formattedPairs.join('\n')}${themesSection}
+      ${formattedPairs.join('\n')}${themesSection}${customPromptSection}
       
       Peux-tu créer un ${type === 'written' ? 'texte narratif' : 'dialogue'} original UNIQUEMENT EN ITALIEN d'environ ${targetLength} mots qui utilise tous ces mots italiens de manière naturelle?
-      Le texte doit être de niveau intermédiaire, facile à comprendre mais avec une structure correcte.${themes && themes.length > 0 ? '\n      Respecte impérativement le contexte et les consignes spécifiques ci-dessus pour la création du texte.' : ''}
+      Le texte doit être de niveau intermédiaire, facile à comprendre mais avec une structure correcte.${themes && themes.length > 0 ? '\n      Respecte impérativement le contexte et les consignes spécifiques ci-dessus pour la création du texte.' : ''}${customPrompt && customPrompt.trim() ? '\n      Respecte impérativement la consigne personnalisée ci-dessus pour le contenu du texte.' : ''}
       
       De plus, génère 3 à 5 questions de compréhension en FRANÇAIS sur ce texte, qui permettent de vérifier si l'apprenant a bien compris le contenu.
       
       Important:
       - Utilise TOUS les mots italiens de la liste dans ton texte
       - Le texte DOIT être écrit INTÉGRALEMENT en italien (aucun mot ou phrase en français)
-      - Crée une histoire cohérente et intéressante${type === 'oral' ? ' sous forme de dialogue entre 2-3 personnes' : ''}${themes && themes.length > 0 ? ', en respectant parfaitement le contexte et les consignes spécifiques fournis' : ''}
+      - Crée une histoire cohérente et intéressante${type === 'oral' ? ' sous forme de dialogue entre 2-3 personnes' : ''}${themes && themes.length > 0 ? ', en respectant parfaitement le contexte et les consignes spécifiques fournis' : ''}${customPrompt && customPrompt.trim() ? ', en respectant parfaitement la consigne personnalisée pour le contenu' : ''}
       - Ne fais pas de liste, mais un texte narratif fluide
       - Ne mets PAS en évidence les mots, laisse-les intégrés naturellement dans le texte
       - Les questions doivent être en français et porter sur la compréhension du texte

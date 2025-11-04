@@ -80,6 +80,20 @@
         <ion-label position="stacked">Heure</ion-label>
         <ion-input type="time" [(ngModel)]="comprehensionNotificationTime" (ionChange)="onComprehensionNotificationTimeChange()"></ion-input>
       </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Prompt personnalisé pour la génération</ion-label>
+        <ion-textarea 
+          [(ngModel)]="comprehensionNotificationCustomPrompt" 
+          placeholder="Ex: le texte généré doit correspondre à un fait scientifique anecdotique, fascinant, révolutionnaire, méconnu, qu'il s'agisse de sciences naturelles ou humaines, de découvertes, etc. qui surprend et fascine à la fois"
+          rows="4"
+          class="custom-prompt-textarea">
+        </ion-textarea>
+      </ion-item>
+
+      <ion-text color="medium" class="ion-padding-top">
+        <p><small>Ce prompt sera intégré dans la génération du texte de compréhension orale quotidienne pour guider le contenu généré.</small></p>
+      </ion-text>
     </ion-card-content>
   </ion-card>
 

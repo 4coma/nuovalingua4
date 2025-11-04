@@ -478,6 +478,9 @@ export class AppComponent {
         }
       }
 
+      // Charger le prompt personnalisé pour la compréhension orale quotidienne
+      const customPrompt = this.storageService.get('comprehensionNotificationCustomPrompt') || undefined;
+
       const sessionInfo = {
         category: 'Compréhension quotidienne',
         topic: 'Notification',
@@ -487,7 +490,7 @@ export class AppComponent {
 
       this.storageService.set('sessionInfo', sessionInfo);
 
-      this.textGeneratorService.generateComprehensionText(wordPairs, 'oral', selectedContext).subscribe({
+      this.textGeneratorService.generateComprehensionText(wordPairs, 'oral', selectedContext, customPrompt).subscribe({
         next: (result) => {
           localStorage.setItem('comprehensionText', JSON.stringify(result));
           this.router.navigate(['/comprehension']);
