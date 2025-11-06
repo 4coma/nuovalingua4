@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">nuovalingua4</string>
-    <string name="title_activity_main">nuovalingua4</string>
-    <string name="package_name">io.ionic.starter</string>
-    <string name="custom_url_scheme">io.ionic.starter</string>
+    <string name="app_name">NuovaLingua</string>
+    <string name="title_activity_main">NuovaLingua</string>
+    <string name="package_name">com.nuovalingua.app</string>
+    <string name="custom_url_scheme">com.nuovalingua.app</string>
 </resources>

@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
-  appName: 'nuovalingua4',
+  appId: 'com.nuovalingua.app',
+  appName: 'NuovaLingua',
   webDir: 'www',
   // server: {
   //   url: 'http://192.168.129.8:8100',
