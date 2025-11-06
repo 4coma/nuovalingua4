@@ -1,3 +1,12 @@
+/**
+ * Full Revision Setup - Design System Moderne
+ * Styles adaptatifs dark/light mode
+ */
+
+ion-content {
+  --background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 100%);
+}
+
 .availability {
   display: flex;
   gap: var(--ds-space-xxs);
@@ -15,8 +24,72 @@
   color: var(--color-text-muted);
   font-size: var(--ds-font-size-body-sm);
   margin: var(--ds-space-xs) 0;
+  font-family: var(--ds-font-family-sans);
 }
 
 ion-chip[color="primary"] {
   color: var(--ion-color-primary-contrast);
+}
+
+ion-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-sm);
+  transition: var(--ds-transition-base);
+  
+  &:hover {
+    box-shadow: var(--ds-shadow-md);
+  }
+}
+
+ion-card-title {
+  font-size: var(--ds-font-size-h2);
+  font-weight: var(--ds-font-weight-semibold);
+  color: var(--color-text-primary);
+  font-family: var(--ds-font-family-sans);
+}
+
+ion-card-subtitle {
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--color-text-secondary);
+  font-family: var(--ds-font-family-sans);
+}
+
+ion-item {
+  --background: var(--color-surface);
+  --color: var(--color-text-primary);
+  --border-color: var(--color-border-subtle);
+  
+  ion-label {
+    color: var(--color-text-primary);
+  }
+  
+  ion-input {
+    --color: var(--color-text-primary);
+    --placeholder-color: var(--color-text-muted);
+  }
+  
+  ion-note {
+    color: var(--color-text-muted);
+  }
+}
+
+ion-button {
+  --border-radius: var(--ds-radius-md);
+  font-weight: var(--ds-font-weight-semibold);
+  font-family: var(--ds-font-family-sans);
+  transition: var(--ds-transition-base);
+  
+  &:hover:not([disabled]) {
+    transform: translateY(-2px);
+    box-shadow: var(--ds-shadow-sm);
+  }
+}
+
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  ion-content {
+    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  }
 }

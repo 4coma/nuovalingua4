@@ -1,3 +1,12 @@
+/**
+ * Saved Texts List - Design System Moderne
+ * Styles adaptatifs dark/light mode
+ */
+
+ion-content {
+  --background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 100%);
+}
+
 .empty-list {
   color: var(--color-text-muted);
   text-align: center;
@@ -45,17 +54,17 @@
 
 /* Style pour les mots du dictionnaire personnel */
 .clickable-word.dictionary-word {
-  color: #2dd36f !important;
-  font-weight: 500 !important;
-  background-color: rgba(45, 211, 111, 0.15) !important;
-  padding: 2px 6px !important;
-  border-radius: 4px !important;
-  border: 1px solid rgba(45, 211, 111, 0.3) !important;
-  transition: all 0.2s ease !important;
+  color: var(--ion-color-success) !important;
+  font-weight: var(--ds-font-weight-medium) !important;
+  background-color: rgba(var(--ion-color-success-rgb), 0.15) !important;
+  padding: var(--ds-space-3xs) var(--ds-space-3xs) !important;
+  border-radius: var(--ds-radius-xs) !important;
+  border: 1px solid rgba(var(--ion-color-success-rgb), 0.3) !important;
+  transition: var(--ds-transition-base) !important;
 }
 
 .clickable-word.dictionary-word:hover {
-  background-color: rgba(45, 211, 111, 0.25) !important;
+  background-color: rgba(var(--ion-color-success-rgb), 0.25) !important;
   text-decoration: underline !important;
   transform: scale(1.02);
 }
@@ -133,4 +142,11 @@
   -ms-user-select: text !important;
   -moz-user-select: text !important;
   -webkit-touch-callout: default !important;
+}
+
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  ion-content {
+    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  }
 }

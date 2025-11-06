@@ -36,6 +36,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
   pageTitle: string = 'Compréhension';
   
   highlightedWords: string[] = [];
+  private promptWords: string[] = [];
   selectedWord: string = '';
   translation: TranslationResult | null = null;
   editableTranslation: string = '';
@@ -82,6 +83,8 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     this.updatePageTitle();
     this.loadSessionInfo();
     this.loadComprehensionText();
+    this.loadPromptWords();
+    this.prepareHighlightedWords();
     
     // Générer automatiquement les questions si le texte existe mais pas de questions
     if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
@@ -98,6 +101,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
 
   ngOnChanges() {
     this.updatePageTitle();
+    this.loadPromptWords();
     this.prepareHighlightedWords();
     
     // Générer automatiquement les questions si le texte existe mais pas de questions
@@ -235,12 +239,63 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     }
   }
 
-  prepareHighlightedWords() {
-    if (this.comprehensionText?.vocabularyItems) {
-      this.highlightedWords = this.comprehensionText.vocabularyItems.map(item => item.word.toLowerCase());
-    } else {
-      this.highlightedWords = [];
+  private loadPromptWords() {
+    try {
+      const raw = localStorage.getItem('comprehensionPromptWords');
+      this.promptWords = raw ? JSON.parse(raw) : [];
+    } catch {
+      this.promptWords = [];
     }
+  }
+
+  prepareHighlightedWords() {
+    // Utiliser en priorité les mots du prompt (ceux passés à la génération)
+    if (!this.promptWords || this.promptWords.length === 0) {
+      if (!this.comprehensionText?.vocabularyItems) {
+        this.highlightedWords = [];
+        return;
+      }
+    }
+
+    if (this.promptWords && this.promptWords.length > 0) {
+      const normalize = (s: string) => s.toLowerCase().normalize('NFC').replace(/[’']/g, "'");
+      const set = new Set<string>();
+      const tokenRegex = /[\p{L}\p{M}’']+/gu;
+      for (const w of this.promptWords) {
+        const tokens = (w || '').match(tokenRegex) || [];
+        if (tokens.length === 1) {
+          set.add(normalize(tokens[0]));
+        }
+      }
+      this.highlightedWords = Array.from(set.values());
+      return;
+    }
+
+    // Fallback (ancien comportement) si aucun mot du prompt disponible
+    if (!this.comprehensionText?.vocabularyItems) {
+      this.highlightedWords = [];
+      return;
+    }
+
+    const normalize = (s: string) => s
+      .toLowerCase()
+      .normalize('NFC')
+      .replace(/[’']/g, "'");
+
+    const set = new Set<string>();
+    const tokenRegex = /[\p{L}\p{M}’']+/gu;
+
+    for (const item of this.comprehensionText.vocabularyItems) {
+      const src = item.word || '';
+      const tokens = src.match(tokenRegex) || [];
+      // N'ajouter que les items d'un seul mot
+      if (tokens.length === 1) {
+        const n = normalize(tokens[0]);
+        if (n) set.add(n);
+      }
+    }
+
+    this.highlightedWords = Array.from(set.values());
   }
 
   getHighlightedText(): string {
@@ -248,17 +303,92 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
       return '';
     }
 
-    let text = this.comprehensionText.text;
+    const text = this.comprehensionText.text;
     
-    // Stocker les mots du vocabulaire pour les mettre en évidence
-    const vocabularyWords = this.highlightedWords.map(word => word.toLowerCase());
+    // 1) Mise en évidence par séquences exactes (préserve les locutions et évite de surligner des mots isolés comme "ha")
+    const nrm = (s: string) => s.toLowerCase().normalize('NFC').replace(/[’']/g, "'");
+    const wordRe = /[\p{L}\p{M}’']+/u;
+    const tokenRe = /([\p{L}\p{M}’']+)|([^\p{L}\p{M}\s])/gu;
+    type Tok = { start: number; end: number; text: string; isWord: boolean; norm?: string };
+    const tokens: Tok[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = tokenRe.exec(text)) !== null) {
+      const t = m[0];
+      const isWord = wordRe.test(t);
+      tokens.push({ start: m.index, end: m.index + t.length, text: t, isWord, norm: isWord ? nrm(t) : undefined });
+    }
+    const wordIdx: number[] = [];
+    for (let i = 0; i < tokens.length; i++) if (tokens[i].isWord) wordIdx.push(i);
+    // Utiliser les mots du prompt pour les séquences multi-mots (vocabulaire de session)
+    const baseSeqSource = (this.promptWords && this.promptWords.length > 0)
+      ? this.promptWords
+      : (this.comprehensionText.vocabularyItems || []).map(it => it.word || '');
+
+    const sequences: string[][] = baseSeqSource
+      .map(s => (s || '').match(/[\p{L}\p{M}’']+/gu) || [])
+      .filter(seq => seq.length > 0)
+      .map(seq => seq.map(w => nrm(w)));
+    sequences.sort((a, b) => b.length - a.length);
+    const used = new Set<number>();
+    type Span = { start: number; end: number; kind: 'vocab' | 'dict' };
+    const spans: Span[] = [];
+    for (const seq of sequences) {
+      const k = seq.length;
+      for (let i = 0; i <= wordIdx.length - k; i++) {
+        let blocked = false;
+        for (let j = 0; j < k; j++) { if (used.has(wordIdx[i + j])) { blocked = true; break; } }
+        if (blocked) continue;
+        let ok = true;
+        for (let j = 0; j < k; j++) { if (tokens[wordIdx[i + j]].norm !== seq[j]) { ok = false; break; } }
+        if (!ok) continue;
+        const start = tokens[wordIdx[i]].start;
+        const end = tokens[wordIdx[i + k - 1]].end;
+        spans.push({ start, end, kind: 'vocab' });
+        for (let j = 0; j < k; j++) used.add(wordIdx[i + j]);
+      }
+    }
+    // Ajouter les mots du dictionnaire personnel non couverts par des locutions
+    const dictSet = new Set(Array.from(this.dictionaryService.getDictionaryWordsSet('it')).map(w => nrm(w)));
+    for (const wi of wordIdx) {
+      if (used.has(wi)) continue;
+      const tok = tokens[wi];
+      if (tok.norm && dictSet.has(tok.norm)) {
+        spans.push({ start: tok.start, end: tok.end, kind: 'dict' });
+      }
+    }
+    if (spans.length > 0) {
+      spans.sort((a, b) => a.start - b.start);
+      let cursor = 0;
+      let html = '';
+      for (const s of spans) {
+        if (s.start < cursor) continue;
+        html += text.substring(cursor, s.start);
+        const frag = text.substring(s.start, s.end);
+        if (s.kind === 'vocab') {
+          html += `<span class=\"clickable-word highlighted-word vocabulary-word\" data-word=\"${frag}\">${frag}</span>`;
+        } else {
+          html += `<span class=\"clickable-word dictionary-word\" data-word=\"${frag}\">${frag}</span>`;
+        }
+        cursor = s.end;
+      }
+      html += text.substring(cursor);
+      return html;
+    }
     
-    // Récupérer les mots du dictionnaire personnel pour une vérification rapide
-    const dictionaryWordsSet = this.dictionaryService.getDictionaryWordsSet('it');
+    // Normalisation (accents/apostrophes) pour comparaisons robustes
+    const normalize = (s: string) => s
+      .toLowerCase()
+      .normalize('NFC')
+      .replace(/[’']/g, "'");
+    
+    // Ensembles normalisés
+    const vocabularySet = new Set(this.highlightedWords.map(w => normalize(w)));
+    const dictionaryWordsSetRaw = this.dictionaryService.getDictionaryWordsSet('it');
+    const dictionarySet = new Set(Array.from(dictionaryWordsSetRaw).map(w => normalize(w)));
     
     // Diviser le texte en mots tout en préservant la ponctuation
-    const tokenRegex = /(\w+)|([^\w\s])/g;
-    let match;
+    const tokenRegex = /([\p{L}\p{M}’']+)|([^\p{L}\p{M}\s])/gu;
+    let match: RegExpExecArray | null;
     let result = '';
     let lastIndex = 0;
     
@@ -267,14 +397,14 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
       // Ajouter le texte avant le mot actuel
       result += text.substring(lastIndex, match.index);
       
-      // Récupérer le mot trouvé (peut être un mot ou une ponctuation)
+      // Récupérer le token trouvé (mot ou ponctuation)
       const token = match[0];
+      const isWord = /[\p{L}\p{M}’']+/u.test(token);
       
-      // Si c'est un mot (pas une ponctuation)
-      if (/\w+/.test(token)) {
-        const normalizedToken = token.toLowerCase();
-        const isVocabularyWord = vocabularyWords.includes(normalizedToken);
-        const isDictionaryWord = dictionaryWordsSet.has(normalizedToken);
+      if (isWord) {
+        const normalizedToken = normalize(token);
+        const isVocabularyWord = vocabularySet.has(normalizedToken);
+        const isDictionaryWord = dictionarySet.has(normalizedToken);
         
         let cssClass = 'clickable-word';
         if (isVocabularyWord) {

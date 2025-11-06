@@ -159,10 +159,11 @@ ion-menu ion-header ion-title {
  */
 
 /* Mots cliquables de base */
+
 .clickable-word {
   cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 3px;
+  transition: color 0.15s ease;
+  border-radius: 0;
   user-select: text !important;
   -webkit-user-select: text !important;
   -ms-user-select: text !important;
@@ -171,23 +172,19 @@ ion-menu ion-header ion-title {
 }
 
 .clickable-word:hover {
-  background-color: rgba(66, 133, 244, 0.1);
+  text-decoration: underline;
 }
 
 /* Mots du vocabulaire (dans les textes) */
 .highlighted-word.vocabulary-word {
-  color: #4285f4 !important;
-  font-weight: 600;
-  background-color: rgba(66, 133, 244, 0.15);
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid rgba(66, 133, 244, 0.3);
+  color: var(--ion-color-success) !important; /* vert net */
+  font-weight: 500; /* léger */
 }
 
 /* 🟢 MOTS DU DICTIONNAIRE PERSONNEL - EN VERT (simple couleur) */
 .clickable-word.dictionary-word {
-  color: #2dd36f !important;
-  font-weight: 500 !important;
+  color: inherit !important; /* même couleur que le texte */
+  font-weight: 700 !important; /* mise en évidence légère par le gras */
 }
 
 .clickable-word.dictionary-word:hover {
@@ -196,8 +193,8 @@ ion-menu ion-header ion-title {
 
 /* 🟠 Mots qui sont dans les DEUX (dictionnaire + vocabulaire) */
 .clickable-word.dictionary-word.highlighted-word.vocabulary-word {
-  color: #ffa726 !important;
-  font-weight: 600 !important;
+  color: var(--ion-color-success) !important; /* vert */
+  font-weight: 700 !important; /* plus gras car aussi dans le dictionnaire */
 }
 
 .clickable-word.dictionary-word.highlighted-word.vocabulary-word:hover {

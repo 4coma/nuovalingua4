@@ -1,3 +1,12 @@
+/**
+ * Personal Dictionary List - Design System Moderne
+ * Styles adaptatifs dark/light mode
+ */
+
+ion-content {
+  --background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 100%);
+}
+
 // Section du diagramme qui prend toute la hauteur
 .diagram-section {
   height: 100vh;
@@ -5,7 +14,7 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  background: var(--ion-background-color);
+  background: transparent;
   position: relative;
   padding-top: 15vh;
   
@@ -24,8 +33,8 @@
       background: conic-gradient(
         var(--ion-color-success) 0deg,
         var(--ion-color-success) calc((var(--known-percentage, 0) * 360deg)),
-        #8B9DC3 calc((var(--known-percentage, 0) * 360deg)),
-        #8B9DC3 360deg
+        var(--ion-color-medium) calc((var(--known-percentage, 0) * 360deg)),
+        var(--ion-color-medium) 360deg
       );
       display: flex;
       align-items: center;
@@ -52,9 +61,9 @@
       }
       
       .unknown-count {
-        color: #8B9DC3;
-        font-size: 16px;
-        font-weight: 500;
+        color: var(--ion-color-medium);
+        font-size: var(--ds-font-size-body);
+        font-weight: var(--ds-font-weight-medium);
       }
     }
   }
@@ -99,19 +108,20 @@
 // Section de la liste des mots
 .words-section {
   min-height: 100vh;
-  background: var(--ion-background-color);
+  background: transparent;
 }
 
 .container {
-  padding: 16px;
+  padding: var(--ds-space-md);
 }
 
 .help-message {
   text-align: center;
-  margin-bottom: 16px;
-  padding: 8px;
-  background-color: var(--ion-color-light);
-  border-radius: 8px;
+  margin-bottom: var(--ds-space-md);
+  padding: var(--ds-space-xxs);
+  background-color: var(--color-surface-subtle);
+  border-radius: var(--ds-radius-md);
+  color: var(--color-text-secondary);
 }
 
 .loading-container {
@@ -133,61 +143,71 @@
 
 .empty-dictionary {
   text-align: center;
-  padding: 40px 20px;
+  padding: var(--ds-space-xl) var(--ds-space-md);
   
   ion-icon {
     color: var(--ion-color-medium);
-    margin-bottom: 16px;
+    margin-bottom: var(--ds-space-md);
   }
   
   h3 {
-    color: var(--ion-color-dark);
-    margin-bottom: 8px;
+    color: var(--color-text-primary);
+    margin-bottom: var(--ds-space-xxs);
+    font-family: var(--ds-font-family-sans);
   }
   
   p {
-    color: var(--ion-color-medium);
+    color: var(--color-text-secondary);
     margin: 0;
+    font-family: var(--ds-font-family-sans);
   }
 }
 
 .no-results {
   text-align: center;
-  padding: 40px 20px;
+  padding: var(--ds-space-xl) var(--ds-space-md);
   
   ion-icon {
     color: var(--ion-color-medium);
-    margin-bottom: 16px;
+    margin-bottom: var(--ds-space-md);
   }
   
   h3 {
-    color: var(--ion-color-dark);
-    margin-bottom: 8px;
+    color: var(--color-text-primary);
+    margin-bottom: var(--ds-space-xxs);
+    font-family: var(--ds-font-family-sans);
   }
   
   p {
-    color: var(--ion-color-medium);
+    color: var(--color-text-secondary);
     margin: 0;
+    font-family: var(--ds-font-family-sans);
   }
 }
 
 ion-item {
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --padding-top: 12px;
-  --padding-bottom: 8px; // Réduire le padding bottom
-  --inner-padding-end: 16px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  --padding-start: var(--ds-space-sm);
+  --padding-end: var(--ds-space-sm);
+  --padding-top: var(--ds-space-sm);
+  --padding-bottom: var(--ds-space-xxs);
+  --inner-padding-end: var(--ds-space-md);
+  --background: var(--color-surface);
   --border-style: none;
   --border-width: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  margin-bottom: var(--ds-space-xxs);
+  transition: var(--ds-transition-base);
+  cursor: pointer;
   
   &:hover {
-    --background: var(--ion-color-light);
+    --background: var(--color-surface-subtle);
+    transform: translateY(-1px);
+    box-shadow: var(--ds-shadow-sm);
   }
   
   &:active {
-    --background: var(--ion-color-light-shade);
+    --background: var(--color-surface-subtle);
   }
 }
 
@@ -240,14 +260,15 @@ ion-item-sliding {
 }
 
 .meaning {
-  margin-top: 8px;
+  margin-top: var(--ds-space-xxs);
   
   p {
-    color: var(--ion-color-dark);
-    font-size: 14px;
-    line-height: 1.4;
+    color: var(--color-text-secondary);
+    font-size: var(--ds-font-size-body-sm);
+    line-height: var(--ds-line-height-normal);
     margin: 0;
     font-style: italic;
+    font-family: var(--ds-font-family-sans);
   }
 }
 
@@ -271,8 +292,8 @@ ion-item-sliding {
     
     .theme-chip {
       --background: var(--ion-color-secondary);
-      --color: white;
-      font-size: 10px;
+      --color: var(--ion-color-secondary-contrast);
+      font-size: var(--ds-font-size-caption);
       height: 20px;
       margin: 0;
       cursor: pointer;
@@ -294,8 +315,9 @@ ion-item-sliding {
   }
   
   .date-added {
-    color: var(--ion-color-medium);
-    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-size: var(--ds-font-size-caption);
+    font-family: var(--ds-font-family-sans);
   }
 }
 
@@ -304,15 +326,13 @@ ion-item-sliding {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 0 0 8px 8px;
-  margin-top: -8px; // Pour coller à l'ion-item
+  gap: var(--ds-space-sm);
+  padding: var(--ds-space-sm) var(--ds-space-md);
+  border-radius: 0 0 var(--ds-radius-md) var(--ds-radius-md);
+  margin-top: calc(-1 * var(--ds-space-xxs));
+  background: var(--color-surface-subtle);
   border: none;
-  border-top: none;
-  border-bottom: 1px solid var(--ion-color-light-shade);
-  border-left: none;
-  border-right: none;
+  border-top: 1px solid var(--color-border-subtle);
   
   &::before,
   &::after {
@@ -323,18 +343,20 @@ ion-item-sliding {
   .revision-delay-control {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--ds-space-3xs);
     flex: 1;
     
     small {
-      color: var(--ion-color-medium);
-      font-size: 11px;
+      color: var(--color-text-secondary);
+      font-size: var(--ds-font-size-caption);
+      font-family: var(--ds-font-family-sans);
     }
     
     .revision-delay-select {
-      --padding-start: 8px;
-      --padding-end: 8px;
-      font-size: 12px;
+      --padding-start: var(--ds-space-xxs);
+      --padding-end: var(--ds-space-xxs);
+      --color: var(--color-text-primary);
+      font-size: var(--ds-font-size-body-sm);
       min-width: 120px;
     }
   }
@@ -344,15 +366,16 @@ ion-item-sliding {
     align-items: center;
     
     .known-toggle {
-      --background: var(--ion-color-light-shade);
+      --background: var(--color-surface-subtle);
       --background-checked: var(--ion-color-success);
-      --handle-background: var(--ion-color-medium);
-      --handle-background-checked: var(--ion-color-light);
+      --handle-background: var(--color-border-strong);
+      --handle-background-checked: var(--ion-color-success-contrast);
       
       ion-label {
-        font-size: 12px;
-        color: var(--ion-color-dark);
-        margin-left: 8px;
+        font-size: var(--ds-font-size-body-sm);
+        color: var(--color-text-primary);
+        margin-left: var(--ds-space-xxs);
+        font-family: var(--ds-font-family-sans);
       }
     }
   }
@@ -364,19 +387,20 @@ ion-item-options {
   
   ion-item-option {
     --background: var(--ion-color-primary);
-    --color: var(--ion-color-light);
+    --color: var(--ion-color-primary-contrast);
     min-width: 80px;
     max-width: 100px;
-    margin: 4px;
-    border-radius: 8px;
+    margin: var(--ds-space-3xs);
+    border-radius: var(--ds-radius-md);
     
     &:last-child {
       --background: var(--ion-color-danger);
+      --color: var(--ion-color-danger-contrast);
     }
     
     ion-icon {
-      font-size: 20px;
-      margin-bottom: 4px;
+      font-size: var(--ds-font-size-body-lg);
+      margin-bottom: var(--ds-space-3xs);
     }
   }
 }
@@ -387,8 +411,11 @@ ion-item-options {
   --border-radius: 16px 16px 0 0;
 }
 
-ion-fab {
-  margin-bottom: 20px;
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  ion-content {
+    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  }
 }
 
 // Indicateur d'aide pour le glissement
@@ -396,19 +423,19 @@ ion-fab {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
-  margin-bottom: 8px;
-  background-color: var(--ion-color-light);
-  border-radius: 8px;
+  gap: var(--ds-space-xxs);
+  padding: var(--ds-space-xxs) var(--ds-space-md);
+  margin-bottom: var(--ds-space-xxs);
+  background-color: var(--color-surface-subtle);
+  border-radius: var(--ds-radius-md);
   
   ion-icon {
     color: var(--ion-color-medium);
-    font-size: 16px;
+    font-size: var(--ds-font-size-body);
   }
   
   small {
-    color: var(--ion-color-medium);
-    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-size: var(--ds-font-size-caption);
   }
 } 

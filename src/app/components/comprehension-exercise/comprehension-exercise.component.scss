@@ -1,62 +1,70 @@
+/**
+ * Comprehension Exercise - Design System Moderne
+ * Styles adaptatifs dark/light mode
+ */
+
+ion-content {
+  --background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 100%);
+}
+
 .container {
   max-width: 800px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--ds-space-md);
+  padding: var(--ds-space-md);
 }
 
 .exercise-header {
-  margin-bottom: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  margin-bottom: var(--ds-space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  padding: var(--ds-space-md);
+  box-shadow: var(--ds-shadow-sm);
   text-align: center;
   
   h2 {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    font-size: 24px;
+    gap: var(--ds-space-sm);
+    font-size: var(--ds-font-size-h2);
     font-weight: var(--ds-font-weight-medium);
-    margin-bottom: 4px;
-    color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin-bottom: var(--ds-space-3xs);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
     
     ion-icon {
-      font-size: 24px;
+      font-size: var(--ds-font-size-h2);
       color: var(--ion-color-primary);
     }
   }
   
   p {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 16px;
-    margin-top: 4px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--color-text-secondary);
+    font-size: var(--ds-font-size-body);
+    margin-top: var(--ds-space-3xs);
+    font-family: var(--ds-font-family-sans);
   }
 }
 
 .text-card {
-  margin-bottom: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
+  margin-bottom: var(--ds-space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-md);
+  transition: var(--ds-transition-base);
   
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--ds-shadow-lg);
   }
   
   ion-card-content {
-    padding: 24px;
+    padding: var(--ds-space-md);
   }
 }
 
@@ -79,321 +87,363 @@
 }
 
 .comprehension-text {
-  line-height: 1.7;
-  font-size: 16px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #ffffff;
+  line-height: var(--ds-line-height-relaxed);
+  font-size: var(--ds-font-size-body);
+  font-family: var(--ds-font-family-sans);
+  color: var(--color-text-primary);
   
-  /* Style pour les mots du vocabulaire (mis en évidence) */
+  /* Mots du vocabulaire de la session: juste du vert (pas de fond/bordure) */
   .highlighted-word.vocabulary-word {
-    color: var(--ion-color-primary);
-    font-weight: var(--ds-font-weight-medium);
-    background: rgba(var(--ion-color-primary-rgb), 0.1);
-    padding: 4px 4px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
-    
-    &:hover {
-      background: rgba(var(--ion-color-primary-rgb), 0.2);
-      text-decoration: underline;
-      transform: scale(1.02);
-    }
+    color: var(--ion-color-success);
+    font-weight: var(--ds-font-weight-regular);
+    transition: var(--ds-transition-base);
   }
   
-  /* Style pour tous les autres mots (cliquables mais pas mis en évidence) */
+  /* Style pour les mots cliquables */
   .clickable-word {
     cursor: pointer;
-    transition: all 0.3s ease;
-    user-select: text !important;
-    -webkit-user-select: text !important;
-    -ms-user-select: text !important;
-    -moz-user-select: text !important;
-    -webkit-touch-callout: default !important;
+    transition: var(--ds-transition-base);
+    border-radius: var(--ds-radius-xs);
     
     &:hover {
-      color: var(--ion-color-primary);
-      background: rgba(var(--ion-color-primary-rgb), 0.05);
-      border-radius: 8px;
-      padding: 4px;
+      text-decoration: underline;
     }
   }
-
-  /* Style pour les mots du dictionnaire personnel */
-  .dictionary-word {
-    color: var(--ion-color-success);
-    font-weight: 500;
-    background-color: rgba(var(--ion-color-success-rgb), 0.1);
-    padding: 2px 4px;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(var(--ion-color-success-rgb), 0.2);
+  
+  /* Mots du dictionnaire personnel: même couleur que le texte, plus gras */
+  .clickable-word.dictionary-word {
+    color: var(--color-text-primary);
+    font-weight: var(--ds-font-weight-bold);
+    transition: var(--ds-transition-base);
   }
-
-  .dictionary-word:hover {
-    background-color: rgba(var(--ion-color-success-rgb), 0.15);
-    text-decoration: underline;
-    transform: scale(1.02);
-  }
-
-  /* Combinaison: mot du dictionnaire + mot du vocabulaire */
+  
+  /* Combinaison: vert + gras */
   .dictionary-word.highlighted-word.vocabulary-word {
-    color: var(--ion-color-warning);
-    background-color: rgba(var(--ion-color-warning-rgb), 0.15);
-    font-weight: 600;
-    border: 1px solid rgba(var(--ion-color-warning-rgb), 0.3);
-  }
-
-  .dictionary-word.highlighted-word.vocabulary-word:hover {
-    background-color: rgba(var(--ion-color-warning-rgb), 0.25);
-    transform: scale(1.02);
-  }
-  
-  /* Style pour les mots surlignés */
-  span.highlighted {
-    background: rgba(var(--ion-color-primary-rgb), 0.15);
-    color: var(--ion-color-primary);
-    border-radius: 8px;
-    padding: 0 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
-    
-    &:hover {
-      background: rgba(var(--ion-color-primary-rgb), 0.3);
-      transform: scale(1.02);
-    }
+    color: var(--ion-color-success);
+    font-weight: var(--ds-font-weight-bold);
   }
 }
 
-.audio-controls {
-  margin: 15px 0;
+.translate-fixed-btn {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--ds-space-lg) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 99999;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  border: none;
+  border-radius: var(--ds-radius-full);
+  padding: var(--ds-space-xxs) var(--ds-space-sm);
+  font-size: var(--ds-font-size-body-lg);
+  box-shadow: var(--ds-shadow-sm);
+  cursor: pointer;
+  opacity: 1;
+  transition: var(--ds-transition-base);
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -ms-user-select: none !important;
+  -moz-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  pointer-events: auto !important;
+  
+  &:disabled {
+    background: var(--color-border-subtle);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
 }
 
-.vocabulary-list {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  margin-bottom: 24px;
+.feedback-container {
+  margin-top: var(--ds-space-md);
   
-  h3 {
-    font-size: 18px;
-    font-weight: var(--ds-font-weight-medium);
-    margin-bottom: 16px;
-    color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    text-align: center;
-  }
-  
-  ion-item {
-    --padding-start: 0;
-    --inner-padding-end: 0;
-    --background: transparent;
-    margin-bottom: 12px;
-    border-radius: 12px;
-    transition: all 0.3s ease;
+  .correct-answer, .wrong-answer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--ds-space-md);
+    border-radius: var(--ds-radius-md);
+    margin-bottom: var(--ds-space-md);
+    border: 1px solid var(--color-border-subtle);
+    transition: var(--ds-transition-base);
     
     &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+      box-shadow: var(--ds-shadow-sm);
     }
     
-    h2 {
-      font-weight: 500;
-      font-size: 16px;
-      margin-bottom: 4px;
-      color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    ion-icon {
+      font-size: var(--ds-font-size-h3);
+      margin-right: var(--ds-space-sm);
     }
     
     p {
-      color: rgba(255, 255, 255, 0.7);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      font-weight: var(--ds-font-weight-semibold);
+      font-family: var(--ds-font-family-sans);
+      color: var(--color-text-primary);
+    }
+  }
+  
+  .correct-answer {
+    background: rgba(var(--ion-color-success-rgb), 0.1);
+    color: var(--ion-color-success);
+    border-color: rgba(var(--ion-color-success-rgb), 0.3);
+  }
+  
+  .wrong-answer {
+    background: rgba(var(--ion-color-danger-rgb), 0.1);
+    color: var(--ion-color-danger);
+    border-color: rgba(var(--ion-color-danger-rgb), 0.3);
+  }
+}
+
+.help-buttons {
+  margin-top: var(--ds-space-md);
+}
+
+.revealed-answer {
+  margin-top: var(--ds-space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-md);
+  text-align: center;
+  box-shadow: var(--ds-shadow-sm);
+  transition: var(--ds-transition-base);
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--ds-shadow-md);
+  }
+  
+  p {
+    font-size: var(--ds-font-size-body-lg);
+    font-weight: var(--ds-font-weight-bold);
+    margin-bottom: var(--ds-space-md);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
+  }
+}
+
+.results-container {
+  padding: var(--ds-space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-md);
+  
+  h2 {
+    font-size: var(--ds-font-size-h2);
+    margin-bottom: var(--ds-space-md);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
+    text-align: center;
+  }
+  
+  .score-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: var(--ds-space-md) 0;
+    padding: var(--ds-space-md);
+    background: var(--gradient-primary);
+    border-radius: var(--ds-radius-md);
+    box-shadow: var(--ds-shadow-sm);
+    
+    ion-icon {
+      font-size: 48px;
+      color: var(--ion-color-primary-contrast);
+      margin-bottom: var(--ds-space-sm);
+    }
+    
+    h3 {
+      font-size: var(--ds-font-size-h2);
+      font-weight: var(--ds-font-weight-bold);
+      color: var(--ion-color-primary-contrast);
+      font-family: var(--ds-font-family-sans);
     }
   }
 }
 
-.translation {
-  font-size: 18px;
+/* Sous-éléments pour titres/sous-titres dans les options */
+.option-title {
+  font-weight: var(--ds-font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--ds-space-3xs);
+}
+
+.option-sub {
+  color: var(--color-text-secondary);
+  font-size: var(--ds-font-size-body-sm);
+}
+
+/* Questions style sobre */
+.question-item {
+  padding: var(--ds-space-sm) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--ds-space-xs);
+}
+
+.answer-input {
+  --background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-sm);
+  padding: var(--ds-space-xxs);
+  margin-top: var(--ds-space-3xs);
+}
+
+.evaluation-panel {
+  margin-top: var(--ds-space-md);
+}
+
+/* Options d'action en style sobre (aligné avec l'exercice de vocabulaire) */
+.exercise-option {
+  color: var(--color-text-secondary);
+  font-size: var(--ds-font-size-body-sm);
   font-weight: var(--ds-font-weight-medium);
-  color: var(--ion-color-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
+  padding: var(--ds-space-sm) 0;
+  cursor: pointer;
+  transition: var(--ds-transition-fast);
+  font-family: var(--ds-font-family-sans);
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--ds-space-xs);
+  text-align: left;
 
-.examples-section {
-  margin-top: 16px;
-  
-  h3 {
-    font-size: 18px;
-    margin-bottom: 12px;
-    color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-weight: var(--ds-font-weight-medium);
+  &:hover:not(.disabled) {
+    color: var(--color-text-primary);
+    transform: translateX(4px);
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+  }
+
+  &.disabled {
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    &:hover {
+      color: var(--color-text-muted);
+      transform: none;
+    }
   }
 }
 
-.audio-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+// Styles pour la section des erreurs moderne
+.error-summary-section {
+  margin: var(--ds-space-md) 0;
   
-  .transcription-control {
-    margin: 16px 0;
+  .error-list {
+    margin-top: var(--ds-space-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--ds-radius-md);
+    box-shadow: var(--ds-shadow-sm);
+    
+    ion-item-divider {
+      --background: var(--ion-color-danger);
+      --color: var(--ion-color-danger-contrast);
+      font-weight: var(--ds-font-weight-bold);
+      font-size: var(--ds-font-size-body);
+      font-family: var(--ds-font-family-sans);
+    }
   }
   
-  .transcription-container {
-    margin-top: 16px;
-    padding: 24px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    border-left: 4px solid var(--ion-color-primary);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+  .error-item {
+    margin-bottom: var(--ds-space-sm);
+    --background: var(--color-surface);
+    --border-color: rgba(var(--ion-color-danger-rgb), 0.2);
+    --border-style: solid;
+    --border-width: 0 0 1px 0;
+    transition: var(--ds-transition-base);
     
     &:hover {
       transform: translateY(-1px);
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
-    }
-    
-    &::before {
-      content: 'Transcription';
-      display: block;
-      font-size: 16px;
-      color: rgba(255, 255, 255, 0.7);
-      margin-bottom: 12px;
-      font-style: italic;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-  }
-}
-
-/* Styles pour la section des questions moderne */
-.questions-section {
-  margin-top: 32px;
-  
-  .questions-header {
-      h3 {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        font-size: 24px;
-        font-weight: var(--ds-font-weight-medium);
-        color: var(--ion-color-success);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        
-        ion-icon {
-          font-size: 24px;
-        }
-      }
-  }
-  
-  .question-item {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 16px;
-    margin-bottom: 16px;
-    transition: all 0.3s ease;
-    
-    &:last-child {
-      border-bottom: none;
-    }
-    
-    &:hover {
-      transform: translateY(-1px);
+      box-shadow: var(--ds-shadow-sm);
     }
     
     h2 {
-      font-weight: var(--ds-font-weight-medium);
+      font-size: var(--ds-font-size-body-lg);
+      font-weight: var(--ds-font-weight-semibold);
       color: var(--ion-color-primary);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin-bottom: var(--ds-space-sm);
+      font-family: var(--ds-font-family-sans);
     }
-  }
-  
-  .answer-input {
-    --background: rgba(255, 255, 255, 0.05);
-    --padding-start: 12px;
-    --padding-end: 12px;
-    --border-radius: 12px;
-    margin-top: 12px;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
     
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    .context-error {
+      font-style: italic;
+      color: var(--color-text-secondary);
+      margin: var(--ds-space-3xs) 0;
+      font-family: var(--ds-font-family-sans);
     }
-  }
-  
-  ion-card {
-    margin-bottom: 24px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
-    transition: all 0.3s ease;
     
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+    .error-details {
+      display: flex;
+      flex-direction: column;
+      gap: var(--ds-space-sm);
+      margin-top: var(--ds-space-sm);
+      
+      .user-answer, .correct-answer {
+        padding: var(--ds-space-sm);
+        border-radius: var(--ds-radius-sm);
+        border: 1px solid var(--color-border-subtle);
+        transition: var(--ds-transition-base);
+        
+        ion-label {
+          font-size: var(--ds-font-size-body);
+          font-weight: var(--ds-font-weight-semibold);
+          margin-bottom: var(--ds-space-3xs);
+          font-family: var(--ds-font-family-sans);
+          color: var(--color-text-primary);
+        }
+        
+        p {
+          margin: var(--ds-space-3xs) 0 0 0;
+          font-weight: var(--ds-font-weight-medium);
+          font-family: var(--ds-font-family-sans);
+          color: var(--color-text-primary);
+        }
+      }
+      
+      .user-answer {
+        background: rgba(var(--ion-color-danger-rgb), 0.1);
+        border-color: rgba(var(--ion-color-danger-rgb), 0.3);
+      }
+      
+      .correct-answer {
+        background: rgba(var(--ion-color-success-rgb), 0.1);
+        border-color: rgba(var(--ion-color-success-rgb), 0.3);
+      }
     }
   }
 }
 
-/* Styles pour les résultats d'évaluation moderne */
-ion-chip {
-  margin-top: 4px;
-  transition: all 0.3s ease;
+.loading-container {
+  padding: var(--ds-space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-sm);
+  text-align: center;
   
-  &:hover {
-    transform: scale(1.05);
+  ion-spinner {
+    margin-bottom: var(--ds-space-sm);
+  }
+  
+  p {
+    color: var(--color-text-secondary);
+    font-family: var(--ds-font-family-sans);
+    font-size: var(--ds-font-size-body);
   }
 }
 
-ion-card-header {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  
-  ion-card-title {
-    font-size: 24px;
-    font-weight: var(--ds-font-weight-medium);
-    color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-  
-  ion-card-subtitle {
-    font-size: 18px;
-    margin-top: 12px;
-    color: rgba(255, 255, 255, 0.7);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-}
-
-.translate-popover {
-  position: fixed !important;
-  z-index: 99999 !important;
-  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 12px 16px;
-  font-size: 16px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(20px);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-weight: 500;
-  
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  ion-content {
+    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
   }
 }

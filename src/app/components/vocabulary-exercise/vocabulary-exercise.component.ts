@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { VocabularyExercise, VocabularyItem, VocabularyError } from '../../models/vocabulary';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { IonicModule, ModalController, ToastController, AlertController } from '@ionic/angular';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { WordPair, TranslationDirection } from '../../services/llm.service';
@@ -63,12 +63,17 @@ export class VocabularyExerciseComponent implements OnInit {
   errorList: VocabularyError[] = [];
   showErrorSummary: boolean = false;
   
+  // Pour gérer le feedback des réponses incorrectes
+  waitingForConfirmation: boolean = false;
+  
   constructor(
     private router: Router,
     private textGeneratorService: TextGeneratorService,
     private vocabularyTrackingService: VocabularyTrackingService,
     private modalController: ModalController,
-    private fullRevisionService: FullRevisionService
+    private fullRevisionService: FullRevisionService,
+    private toastController: ToastController,
+    private alertController: AlertController
   ) { }
 
   ngOnInit() {
@@ -181,26 +186,66 @@ export class VocabularyExerciseComponent implements OnInit {
       .replace(/^[\p{P}\p{S}]+|[\p{P}\p{S}]+$/gu, '');
   }
 
-  submitAnswer() {
+  async submitAnswer() {
     if (this.quizCompleted) return;
 
     const currentItem = this.quizItems[this.currentIndex];
-    currentItem.userAnswer = this.currentAnswer;
+    const userAnswer = this.currentAnswer; // Sauvegarder la réponse avant de réinitialiser
+    currentItem.userAnswer = userAnswer;
 
     // Vérifier la réponse en ignorant la casse et la ponctuation aux extrémités
-    const normalizedUserAnswer = this.normalizeText(this.currentAnswer);
+    const normalizedUserAnswer = this.normalizeText(userAnswer);
     const normalizedCorrectAnswer = this.normalizeText(currentItem.targetWord);
 
     currentItem.isCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
     
-    // Si la réponse est incorrecte, ajouter à la liste des erreurs
-    if (!currentItem.isCorrect) {
+    // Réinitialiser le champ de saisie
+    this.currentAnswer = '';
+    
+    if (currentItem.isCorrect) {
+      // Afficher un toast vert pour les bonnes réponses
+      const toast = await this.toastController.create({
+        message: 'Correct !',
+        duration: 1500,
+        position: 'bottom',
+        color: 'success',
+        icon: 'checkmark-circle',
+        cssClass: 'success-toast'
+      });
+      await toast.present();
+      
+      // Passer à la question suivante automatiquement après un court délai
+      setTimeout(() => {
+        if (this.currentIndex < this.quizItems.length - 1) {
+          this.currentIndex++;
+        } else {
+          this.quizCompleted = true;
+        }
+      }, 1500);
+    } else {
+      // Si la réponse est incorrecte, ajouter à la liste des erreurs
       this.errorList.push({
         sourceWord: currentItem.sourceWord,
         targetWord: currentItem.targetWord,
-        userAnswer: this.currentAnswer,
+        userAnswer: userAnswer,
         context: currentItem.question.context
       });
+      
+      // Afficher un dialog pour les mauvaises réponses
+      const alert = await this.alertController.create({
+        header: 'Incorrect',
+        message: `La bonne réponse est: ${currentItem.targetWord}`,
+        buttons: [
+          {
+            text: 'OK',
+            handler: () => {
+              this.confirmWrongAnswer();
+            }
+          }
+        ],
+        cssClass: 'wrong-answer-alert'
+      });
+      await alert.present();
     }
     
     // Suivre ce mot dans le service de suivi du vocabulaire
@@ -224,18 +269,19 @@ export class VocabularyExerciseComponent implements OnInit {
         currentItem.question.context
       );
     }
-    
-    // Réinitialiser le champ de saisie
+  }
+  
+  /**
+   * Confirme la réponse incorrecte et passe à la question suivante
+   */
+  confirmWrongAnswer() {
+    this.waitingForConfirmation = false;
     this.currentAnswer = '';
-    
-    // Passer à la question suivante après un court délai
-    setTimeout(() => {
-      if (this.currentIndex < this.quizItems.length - 1) {
-        this.currentIndex++;
-      } else {
-        this.quizCompleted = true;
-      }
-    }, 1000);
+    if (this.currentIndex < this.quizItems.length - 1) {
+      this.currentIndex++;
+    } else {
+      this.quizCompleted = true;
+    }
   }
 
   showAnswer() {
@@ -274,6 +320,7 @@ export class VocabularyExerciseComponent implements OnInit {
   }
 
   nextWord() {
+    this.waitingForConfirmation = false;
     if (this.currentIndex < this.quizItems.length - 1) {
       this.currentIndex++;
       this.currentAnswer = '';
@@ -349,6 +396,10 @@ export class VocabularyExerciseComponent implements OnInit {
     this.cleanupFullRevisionSession();
     this.router.navigate(['/category']);
   }
+  
+  navigateToHome() {
+    this.router.navigate(['/home']);
+  }
 
   /**
    * Active ou désactive l'affichage du résumé des erreurs
@@ -380,6 +431,7 @@ export class VocabularyExerciseComponent implements OnInit {
     this.quizCompleted = false;
     this.errorList = [];
     this.currentAnswer = '';
+    this.waitingForConfirmation = false;
     
     // Réinitialiser tous les quiz items
     this.quizItems.forEach(item => {

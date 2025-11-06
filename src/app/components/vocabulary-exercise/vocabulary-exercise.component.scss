@@ -1,36 +1,46 @@
+/**
+ * Vocabulary Exercise - Design System Moderne
+ * Styles adaptatifs dark/light mode
+ */
+
+ion-content {
+  --background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 100%);
+}
+
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
   max-width: 800px;
   margin: 0 auto;
-  gap: 24px;
+  gap: var(--ds-space-xs);
+  padding: var(--ds-space-md);
 }
 
 .exercise-header {
   text-align: center;
-  margin-bottom: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  margin-bottom: var(--ds-space-xs);
+  padding: var(--ds-space-xxs) 0;
   
   h2 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: var(--ds-font-size-body-lg);
+    font-weight: var(--ds-font-weight-semibold);
+    margin-bottom: var(--ds-space-xxs);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
+    line-height: var(--ds-line-height-tight);
+  }
+  
+  ion-progress-bar {
+    margin: var(--ds-space-xxs) 0;
   }
   
   .progress-text {
     text-align: center;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: 8px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: var(--ds-font-size-caption);
+    color: var(--color-text-secondary);
+    margin-top: var(--ds-space-xxs);
+    font-family: var(--ds-font-family-sans);
   }
 }
 
@@ -40,41 +50,43 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 24px;
+  gap: var(--ds-space-sm);
+  padding: 0;
 }
 
 .word-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-md);
+  margin-bottom: var(--ds-space-sm);
   width: 100%;
   text-align: center;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: var(--ds-shadow-sm);
+  transition: var(--ds-transition-base);
   
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: var(--ds-shadow-md);
   }
   
   h1 {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 12px;
+    font-size: var(--ds-font-size-h3);
+    font-weight: var(--ds-font-weight-bold);
+    margin-bottom: var(--ds-space-xs);
     color: var(--ion-color-primary);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: var(--ds-font-family-sans);
+    letter-spacing: -0.01em;
+    line-height: var(--ds-line-height-tight);
   }
   
   .context {
     font-style: italic;
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: 12px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 16px;
+    color: var(--color-text-secondary);
+    margin-top: var(--ds-space-xs);
+    font-family: var(--ds-font-family-sans);
+    font-size: var(--ds-font-size-body-sm);
+    line-height: var(--ds-line-height-normal);
   }
 }
 
@@ -82,240 +94,173 @@
   width: 100%;
   
   ion-item {
-    --background: rgba(255, 255, 255, 0.05);
-    --border-radius: 12px;
-    margin-bottom: 16px;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
+    --background: var(--color-surface);
+    --border-radius: var(--ds-radius-md);
+    margin-bottom: var(--ds-space-md);
+    border: 1px solid var(--color-border-subtle);
+    transition: var(--ds-transition-base);
     
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--ds-shadow-sm);
+      border-color: var(--color-border-strong);
+    }
+    
+    ion-label {
+      color: var(--color-text-primary);
     }
   }
 }
 
 .feedback-container {
-  margin-top: 24px;
+  margin-top: var(--ds-space-md);
+  padding: var(--ds-space-md);
+  border-radius: var(--ds-radius-md);
+  text-align: center;
+  border: 1px solid var(--color-border-subtle);
   
-  .correct-answer, .wrong-answer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    border-radius: 16px;
-    margin-bottom: 16px;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-    
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    }
-    
-    ion-icon {
-      font-size: 24px;
-      margin-right: 12px;
-    }
-    
-    p {
-      margin: 0;
-      font-weight: 600;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
+  .feedback-text {
+    font-size: var(--ds-font-size-body-lg);
+    font-weight: var(--ds-font-weight-semibold);
+    margin-bottom: var(--ds-space-xs);
+    color: var(--color-text-primary);
   }
   
   .correct-answer {
-    background: rgba(var(--ion-color-success-rgb), 0.1);
+    font-size: var(--ds-font-size-body);
     color: var(--ion-color-success);
-    border-color: rgba(var(--ion-color-success-rgb), 0.3);
+    margin-top: var(--ds-space-xs);
   }
   
-  .wrong-answer {
-    background: rgba(var(--ion-color-danger-rgb), 0.1);
-    color: var(--ion-color-danger);
-    border-color: rgba(var(--ion-color-danger-rgb), 0.3);
+  .explanation {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--ds-space-xs);
+    font-style: italic;
   }
 }
 
-.help-buttons {
-  margin-top: 24px;
-}
-
-.revealed-answer {
-  margin-top: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 24px;
+.result-container {
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+  padding: var(--ds-space-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-md);
   
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  h2 {
+    font-size: var(--ds-font-size-h2);
+    font-weight: var(--ds-font-weight-bold);
+    margin-bottom: var(--ds-space-md);
+    color: var(--color-text-primary);
   }
   
-  p {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  .score {
+    font-size: var(--ds-font-size-h1);
+    font-weight: var(--ds-font-weight-extrabold);
+    color: var(--ion-color-primary);
+    margin: var(--ds-space-md) 0;
+  }
+  
+  .score-text {
+    font-size: var(--ds-font-size-body-lg);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--ds-space-lg);
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: var(--ds-space-sm);
+  justify-content: center;
+  margin-top: var(--ds-space-lg);
+  
+  ion-button {
+    --border-radius: var(--ds-radius-md);
+    font-weight: var(--ds-font-weight-semibold);
+    
+    &.primary {
+      --background: var(--ion-color-primary);
+      --color: var(--ion-color-primary-contrast);
+    }
+    
+    &.secondary {
+      --background: var(--ion-color-secondary);
+      --color: var(--ion-color-secondary-contrast);
+    }
+  }
+}
+
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  ion-content {
+    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  }
+}
+
+// Styles sobres pour les options d'exercices
+.exercise-option {
+  color: var(--color-text-secondary);
+  font-size: var(--ds-font-size-body-sm);
+  font-weight: var(--ds-font-weight-medium);
+  padding: var(--ds-space-sm) 0;
+  cursor: pointer;
+  transition: var(--ds-transition-fast);
+  font-family: var(--ds-font-family-sans);
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--ds-space-xs);
+  text-align: left;
+  
+  &:hover:not(.disabled) {
+    color: var(--color-text-primary);
+    transform: translateX(4px);
+  }
+  
+  &:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+  }
+  
+  &.disabled {
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.5;
+    
+    &:hover {
+      color: var(--color-text-muted);
+      transform: none;
+    }
   }
 }
 
 .results-container {
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  h3 {
+    color: var(--color-text-primary);
+    font-size: var(--ds-font-size-body-lg);
+    font-weight: var(--ds-font-weight-semibold);
+    margin-bottom: var(--ds-space-md);
+    font-family: var(--ds-font-family-sans);
+  }
   
   h2 {
-    font-size: 24px;
-    margin-bottom: 16px;
-    color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    text-align: center;
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
   }
   
   .score-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 24px 0;
-    padding: 24px;
-    background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    margin: var(--ds-space-lg) 0;
     
     ion-icon {
-      font-size: 48px;
-      color: #ffffff;
-      margin-bottom: 12px;
+      color: var(--ion-color-primary);
+      font-size: 2rem;
+      margin-bottom: var(--ds-space-xs);
     }
     
     h3 {
-      font-size: 24px;
-      font-weight: 700;
-      color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--color-text-primary);
+      font-size: var(--ds-font-size-h2);
+      font-weight: var(--ds-font-weight-bold);
+      margin: 0;
     }
-  }
-}
-
-// Styles pour la section des erreurs moderne
-.error-summary-section {
-  margin: 24px 0;
-  
-  .error-list {
-    margin-top: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    
-    ion-item-divider {
-      --background: var(--ion-color-danger);
-      --color: #ffffff;
-      font-weight: 700;
-      font-size: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-  }
-  
-  .error-item {
-    margin-bottom: 12px;
-    --background: rgba(255, 255, 255, 0.05);
-    --border-color: rgba(var(--ion-color-danger-rgb), 0.2);
-    --border-style: solid;
-    --border-width: 0 0 1px 0;
-    backdrop-filter: blur(20px);
-    transition: all 0.3s ease;
-    
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-    
-    h2 {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--ion-color-primary);
-      margin-bottom: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    .context-error {
-      font-style: italic;
-      color: rgba(255, 255, 255, 0.7);
-      margin: 4px 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    .error-details {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 12px;
-      
-      .user-answer, .correct-answer {
-        padding: 12px;
-        border-radius: 12px;
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.3s ease;
-        
-        ion-label {
-          font-size: 16px;
-          font-weight: 600;
-          margin-bottom: 4px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        p {
-          margin: 4px 0 0 0;
-          font-weight: 500;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-      }
-      
-      .user-answer {
-        background: rgba(var(--ion-color-danger-rgb), 0.1);
-        border-color: rgba(var(--ion-color-danger-rgb), 0.3);
-      }
-      
-      .correct-answer {
-        background: rgba(var(--ion-color-success-rgb), 0.1);
-        border-color: rgba(var(--ion-color-success-rgb), 0.3);
-      }
-    }
-  }
-}
-
-.loading-container {
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  
-  ion-spinner {
-    margin-bottom: 12px;
-  }
-  
-  p {
-    color: rgba(255, 255, 255, 0.7);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 16px;
   }
 }

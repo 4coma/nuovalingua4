@@ -1,12 +1,13 @@
 <ion-content>
   <div class="container" *ngIf="sessionInfo">
-    <div class="exercise-header ion-padding">
-      <h2>{{ sessionInfo.category }} - {{ sessionInfo.topic }}</h2>
+    <div class="exercise-header">
+      <h2 *ngIf="sessionInfo.category !== sessionInfo.topic">{{ sessionInfo.category }} - {{ sessionInfo.topic }}</h2>
+      <h2 *ngIf="sessionInfo.category === sessionInfo.topic">{{ sessionInfo.category }}</h2>
       <ion-progress-bar [value]="(currentIndex + 1) / quizItems.length"></ion-progress-bar>
       <p class="progress-text">Mot {{ currentIndex + 1 }} / {{ quizItems.length }}</p>
     </div>
 
-    <div *ngIf="!quizCompleted && quizItems.length > 0" class="question-container ion-padding">
+    <div *ngIf="!quizCompleted && quizItems.length > 0" class="question-container">
       <div class="word-card">
         <h1>{{ quizItems[currentIndex].sourceWord }}</h1>
         <p *ngIf="quizItems[currentIndex].question.context" class="context">
@@ -31,22 +32,6 @@
           [disabled]="!currentAnswer || quizItems[currentIndex].isCorrect !== null || quizItems[currentIndex].revealed">
           Valider
         </ion-button>
-        
-        <div *ngIf="quizItems[currentIndex].isCorrect !== null" class="feedback-container">
-          <div *ngIf="quizItems[currentIndex].isCorrect" class="correct-answer">
-            <ion-icon name="checkmark-circle"></ion-icon>
-            <p>Correct !</p>
-          </div>
-          
-          <div *ngIf="quizItems[currentIndex].isCorrect === false" class="wrong-answer">
-            <ion-icon name="close-circle"></ion-icon>
-            <p>Incorrect. La bonne réponse est: {{ quizItems[currentIndex].targetWord }}</p>
-          </div>
-          
-          <ion-button expand="block" color="tertiary" (click)="nextWord()">
-            Mot suivant
-          </ion-button>
-        </div>
         
         <div *ngIf="quizItems[currentIndex].isCorrect === null && !quizItems[currentIndex].revealed" class="help-buttons">
           <ion-button 
@@ -114,30 +99,30 @@
       <h3 class="ion-padding-top">Exercices disponibles</h3>
       
       <!-- Boutons de recommencement -->
-      <ion-button (click)="restartExercise()" color="warning" expand="block" class="ion-margin-vertical">
-        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      <div class="exercise-option" (click)="restartExercise()">
         Recommencer l'exercice
-      </ion-button>
+      </div>
       
-      <ion-button 
-        (click)="restartFailedWords()" 
-        color="danger" 
-        expand="block" 
-        class="ion-margin-vertical"
-        [disabled]="!hasErrors()">
-        <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+      <div 
+        class="exercise-option"
+        [class.disabled]="!hasErrors()"
+        (click)="hasErrors() && restartFailedWords()">
         Recommencer les mots ratés ({{ errorList.length }})
-      </ion-button>
+      </div>
       
-      <ion-button (click)="requestComprehension('written')" color="primary" expand="block" class="ion-margin-vertical" [disabled]="generatingComprehension">
-        <ion-icon name="book-outline" slot="start"></ion-icon>
+      <div 
+        class="exercise-option"
+        [class.disabled]="generatingComprehension"
+        (click)="!generatingComprehension && requestComprehension('written')">
         Compréhension écrite
-      </ion-button>
+      </div>
       
-      <ion-button (click)="requestComprehension('oral')" color="secondary" expand="block" class="ion-margin-vertical" [disabled]="generatingComprehension">
-        <ion-icon name="mic-outline" slot="start"></ion-icon>
+      <div 
+        class="exercise-option"
+        [class.disabled]="generatingComprehension"
+        (click)="!generatingComprehension && requestComprehension('oral')">
         Compréhension orale
-      </ion-button>
+      </div>
       
       <!-- Indicateur de chargement -->
       <div *ngIf="generatingComprehension" class="loading-container ion-text-center ion-margin-vertical">
@@ -145,15 +130,13 @@
         <p>Génération du texte de compréhension...</p>
       </div>
       
-      <ion-button (click)="finishExercise()" color="medium" expand="block" class="ion-margin-vertical">
-        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+      <div class="exercise-option" (click)="finishExercise()">
         Retour aux catégories
-      </ion-button>
+      </div>
       
-      <ion-button routerLink="/home" color="light" expand="block" class="ion-margin-vertical">
-        <ion-icon name="home-outline" slot="start"></ion-icon>
+      <div class="exercise-option" (click)="navigateToHome()">
         Retour à l'accueil
-      </ion-button>
+      </div>
     </div>
   </div>
 </ion-content>

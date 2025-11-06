@@ -1,9 +1,13 @@
 // Design System Moderne pour Word Pairs Game
+ion-content {
+  --background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 100%);
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: var(--ds-space-md);
-  background: var(--color-background);
+  background: transparent;
   min-height: 100vh;
 }
 
@@ -680,3 +684,10 @@
     transform: translateY(0);
   }
 }
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  ion-content {
+    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  }
+}
+

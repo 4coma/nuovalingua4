@@ -1,51 +1,82 @@
+/**
+ * Recent Words List - Design System Moderne
+ * Styles adaptatifs dark/light mode
+ */
+
+ion-content {
+  --background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 100%);
+}
+
 .mastery-low {
   --background: var(--ion-color-danger);
-  color: white;
+  --color: var(--ion-color-danger-contrast);
 }
 
 .mastery-medium {
   --background: var(--ion-color-warning);
-  color: white;
+  --color: var(--ion-color-warning-contrast);
 }
 
 .mastery-high {
   --background: var(--ion-color-success);
-  color: white;
+  --color: var(--ion-color-success-contrast);
 }
 
 ion-badge {
-  margin-right: 8px;
+  margin-right: var(--ds-space-xxs);
 }
 
 .header-section {
-  margin-bottom: 20px;
+  margin-bottom: var(--ds-space-md);
 
   h2 {
     font-size: var(--ds-font-size-h2);
     font-weight: var(--ds-font-weight-medium);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
     
     ion-icon {
       margin-right: var(--ds-space-xxs);
       vertical-align: middle;
+      color: var(--ion-color-primary);
     }
+  }
+  
+  p {
+    color: var(--color-text-secondary);
+    font-family: var(--ds-font-family-sans);
   }
 }
 
 ion-list-header {
   font-weight: var(--ds-font-weight-medium);
   --background: var(--color-surface);
+  color: var(--color-text-primary);
 }
 
 ion-item {
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-top: 12px;
-  --padding-bottom: 12px;
-  --inner-padding-end: 16px;
+  --padding-start: var(--ds-space-md);
+  --padding-end: var(--ds-space-md);
+  --padding-top: var(--ds-space-sm);
+  --padding-bottom: var(--ds-space-sm);
+  --inner-padding-end: var(--ds-space-md);
+  --background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  margin-bottom: var(--ds-space-xxs);
+  transition: var(--ds-transition-base);
+  
+  &:hover {
+    --background: var(--color-surface-subtle);
+    transform: translateY(-1px);
+    box-shadow: var(--ds-shadow-sm);
+  }
   
   h2 {
     font-weight: var(--ds-font-weight-medium);
     margin-bottom: var(--ds-space-xxs);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
     
     ion-icon {
       margin: 0 var(--ds-space-3xs);
@@ -54,11 +85,42 @@ ion-item {
   }
   
   p {
-    margin-bottom: 6px;
+    margin-bottom: var(--ds-space-3xs);
+    color: var(--color-text-secondary);
+    font-family: var(--ds-font-family-sans);
     
     ion-icon {
-      margin-right: 4px;
+      margin-right: var(--ds-space-3xs);
       vertical-align: middle;
     }
   }
-} 
+}
+
+ion-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-sm);
+  transition: var(--ds-transition-base);
+  
+  &:hover {
+    box-shadow: var(--ds-shadow-md);
+  }
+}
+
+ion-card-title {
+  color: var(--color-text-primary);
+  font-family: var(--ds-font-family-sans);
+}
+
+ion-card-content {
+  color: var(--color-text-primary);
+  font-family: var(--ds-font-family-sans);
+}
+
+// Dark mode
+@media (prefers-color-scheme: dark) {
+  ion-content {
+    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  }
+}

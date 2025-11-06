@@ -113,149 +113,87 @@
       </ng-template>
     </ion-modal>
 
-    <div class="vocabulary-list ion-padding">
+    <div class="results-container ion-padding">
       <h3 class="ion-text-center">Vocabulaire</h3>
-      <ion-list>
-        <ion-item *ngFor="let item of comprehensionText.vocabularyItems" button (click)="getWordTranslation(item.word)">
-          <ion-label>
-            <h2>{{ item.word }}</h2>
-            <p>{{ item.translation }}</p>
-          </ion-label>
-          <ion-icon name="information-circle-outline" slot="end"></ion-icon>
-        </ion-item>
-      </ion-list>
+      <div class="exercise-option" *ngFor="let item of comprehensionText.vocabularyItems" (click)="getWordTranslation(item.word)">
+        <div class="option-title">{{ item.word }}</div>
+        <div class="option-sub">{{ item.translation }}</div>
+      </div>
     </div>
 
     <!-- Section des questions intégrée -->
-    <div class="questions-section ion-padding">
+    <div class="results-container ion-padding">
+      <h3 class="ion-text-center">Questions de compréhension</h3>
       
       <!-- Affichage du chargement pendant la génération des questions -->
-      <div *ngIf="isGeneratingQuestions" class="ion-text-center">
+      <div *ngIf="isGeneratingQuestions" class="ion-text-center ion-margin-vertical">
         <ion-spinner></ion-spinner>
         <p>Génération des questions en cours...</p>
       </div>
       
-      <!-- Si les questions n'existent pas encore, afficher le bouton pour les générer -->
-      <div *ngIf="!comprehensionText?.questions?.length && !isGeneratingQuestions" class="ion-text-center">
-        <ion-button (click)="generateQuestions()" expand="block" color="success">
-          <ion-icon name="help-circle-outline" slot="start"></ion-icon>
-          Générer des questions
-        </ion-button>
+      <!-- Si les questions n'existent pas encore -->
+      <div *ngIf="!comprehensionText?.questions?.length && !isGeneratingQuestions" class="exercise-option" (click)="generateQuestions()">
+        Générer des questions
       </div>
       
-      <!-- Si les questions existent, les afficher directement ici -->
+      <!-- Si les questions existent -->
       <div *ngIf="comprehensionText?.questions?.length">
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title class="ion-text-center">
-              <ion-icon name="help-circle-outline"></ion-icon>
-              Questions de compréhension
-            </ion-card-title>
-            <ion-card-subtitle class="ion-text-center">
-              Répondez aux questions en vous référant au texte ci-dessus
-            </ion-card-subtitle>
-          </ion-card-header>
+        <form>
+          <div *ngFor="let question of comprehensionText.questions; let i = index" class="exercise-option question-item">
+            <div class="option-title">Question {{i+1}}</div>
+            <div class="option-sub">{{question.question}}</div>
+            <ion-textarea 
+              [(ngModel)]="question.userAnswer" 
+              name="answer{{i}}" 
+              placeholder="Votre réponse..."
+              rows="3"
+              class="answer-input">
+            </ion-textarea>
+          </div>
           
-          <ion-card-content>
-            <form>
-              <div *ngFor="let question of comprehensionText.questions; let i = index" class="question-item ion-margin-vertical">
-                <ion-item lines="none" class="ion-margin-bottom">
-                  <ion-label class="ion-text-wrap">
-                    <h2>Question {{i+1}}</h2>
-                    <p>{{question.question}}</p>
-                  </ion-label>
-                </ion-item>
-                
-                <ion-item>
-                  <ion-textarea 
-                    [(ngModel)]="question.userAnswer" 
-                    name="answer{{i}}" 
-                    placeholder="Votre réponse..."
-                    rows="3"
-                    class="answer-input">
-                  </ion-textarea>
-                </ion-item>
-              </div>
-              
-              <div class="ion-text-center ion-margin-vertical">
-                <ion-button (click)="submitAnswers()" expand="block" color="primary" [disabled]="isSubmitting">
-                  <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-                  Valider
-                </ion-button>
-              </div>
-            </form>
-          </ion-card-content>
-        </ion-card>
-        
+          <div class="exercise-option submit" (click)="!isSubmitting && submitAnswers()">
+            Valider mes réponses
+          </div>
+        </form>
+      
         <!-- Résultats d'évaluation -->
-        <ion-card *ngIf="showResult && evaluationResult">
-          <ion-card-header>
-            <ion-card-title class="ion-text-center">Évaluation</ion-card-title>
-            <ion-card-subtitle class="ion-text-center">
-              Score: {{evaluationResult.score}}%
-            </ion-card-subtitle>
-          </ion-card-header>
-          
-          <ion-card-content>
-            <p class="ion-text-center ion-padding">{{evaluationResult.overallFeedback}}</p>
-            
-            <ion-list>
-              <ion-item *ngFor="let feedback of evaluationResult.feedback" class="ion-margin-vertical">
-                <ion-label class="ion-text-wrap">
-                  <h3>{{feedback.question}}</h3>
-                  <p><strong>Votre réponse:</strong> {{feedback.userAnswer}}</p>
-                  <p>
-                    <ion-chip [color]="feedback.isCorrect ? 'success' : 'danger'">
-                      <ion-icon [name]="feedback.isCorrect ? 'checkmark-circle' : 'close-circle'"></ion-icon>
-                      <ion-label>{{feedback.isCorrect ? 'Correct' : 'Incorrect'}}</ion-label>
-                    </ion-chip>
-                  </p>
-                  <p><strong>Explication:</strong> {{feedback.explanation}}</p>
-                  <p *ngIf="!feedback.isCorrect"><strong>Réponse correcte:</strong> {{feedback.correctAnswer}}</p>
-                </ion-label>
-              </ion-item>
-            </ion-list>
-          </ion-card-content>
-        </ion-card>
+        <div class="evaluation-panel" *ngIf="showResult && evaluationResult">
+          <div class="option-title ion-text-center">Évaluation</div>
+          <div class="option-sub ion-text-center">Score: {{evaluationResult.score}}%</div>
+          <p class="ion-text-center ion-padding">{{evaluationResult.overallFeedback}}</p>
+          <div class="feedback-list">
+            <div class="feedback-item" *ngFor="let feedback of evaluationResult.feedback">
+              <div class="option-title">{{feedback.question}}</div>
+              <div class="option-sub"><strong>Votre réponse:</strong> {{feedback.userAnswer}}</div>
+              <div class="option-sub"><strong>Explication:</strong> {{feedback.explanation}}</div>
+              <div class="option-sub" *ngIf="!feedback.isCorrect"><strong>Réponse correcte:</strong> {{feedback.correctAnswer}}</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
-    <div class="ion-padding ion-text-center">
-      <!-- Bouton de sauvegarde -->
-      <ion-button 
-        *ngIf="!isTextAlreadySaved()"
-        (click)="saveText()" 
-        expand="block" 
-        color="success" 
-        class="ion-margin-vertical">
-        <ion-icon name="bookmark-outline" slot="start"></ion-icon>
+    <div class="results-container ion-padding">
+      <h3 class="ion-text-center">Actions</h3>
+      
+      <div class="exercise-option" *ngIf="!isTextAlreadySaved()" (click)="saveText()">
         Sauvegarder ce texte
-      </ion-button>
-      
-      <ion-button 
-        *ngIf="isTextAlreadySaved()"
-        expand="block" 
-        color="success" 
-        class="ion-margin-vertical"
-        disabled>
-        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+      </div>
+      <div class="exercise-option disabled" *ngIf="isTextAlreadySaved()">
         Texte déjà sauvegardé
-      </ion-button>
-      
-      <ion-button (click)="finishExercise()" expand="block" color="medium" class="ion-margin-vertical">
-        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+      </div>
+
+      <div class="exercise-option" (click)="finishExercise()">
         Retour
-      </ion-button>
+      </div>
       
-      <ion-button routerLink="/category" expand="block" color="tertiary" class="ion-margin-vertical">
-        <ion-icon name="list-outline" slot="start"></ion-icon>
-        Catégories
-      </ion-button>
+      <div class="exercise-option" routerLink="/category">
+        Retour aux catégories
+      </div>
       
-      <ion-button routerLink="/home" expand="block" color="light" class="ion-margin-vertical">
-        <ion-icon name="home-outline" slot="start"></ion-icon>
-        Accueil
-      </ion-button>
+      <div class="exercise-option" routerLink="/home">
+        Retour à l'accueil
+      </div>
     </div>
   </div>
 </ion-content>

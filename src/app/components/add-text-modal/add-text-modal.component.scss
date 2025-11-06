@@ -1,57 +1,66 @@
+/**
+ * Add Text Modal - Design System Moderne
+ * Styles adaptatifs dark/light mode
+ */
+
 .text-input-section, .url-input-section {
-  margin-bottom: 20px;
+  margin-bottom: var(--ds-space-md);
   
   h3 {
-    color: var(--ion-color-dark);
-    margin-bottom: 8px;
+    color: var(--color-text-primary);
+    margin-bottom: var(--ds-space-xxs);
+    font-family: var(--ds-font-family-sans);
   }
   
   .text-input {
-    --background: var(--ion-color-light);
-    --border-radius: 8px;
-    --padding: 16px;
-    --color: var(--ion-color-dark);
-    border: 1px solid var(--ion-color-light-shade);
-    margin: 16px 0;
-    font-size: 16px;
-    line-height: 1.5;
+    --background: var(--color-surface);
+    --border-radius: var(--ds-radius-md);
+    --padding: var(--ds-space-md);
+    --color: var(--color-text-primary);
+    border: 1px solid var(--color-border-subtle);
+    margin: var(--ds-space-md) 0;
+    font-size: var(--ds-font-size-body);
+    line-height: var(--ds-line-height-normal);
     width: 100%;
     min-height: 200px;
     resize: vertical;
+    font-family: var(--ds-font-family-sans);
   }
   
   .character-count {
     text-align: right;
-    font-size: 12px;
-    color: var(--ion-color-medium);
-    margin-top: 8px;
+    font-size: var(--ds-font-size-caption);
+    color: var(--color-text-muted);
+    margin-top: var(--ds-space-xxs);
   }
 }
 
 .mode-selector {
-  margin-bottom: 20px;
+  margin-bottom: var(--ds-space-md);
 }
 
 .extract-button {
   --background: var(--ion-color-secondary);
-  --color: white;
-  margin: 0 16px;
+  --color: var(--ion-color-secondary-contrast);
+  margin: 0 var(--ds-space-md);
 }
 
 .extracted-content {
-  margin-top: 20px;
-  padding: 16px;
-  background-color: var(--ion-color-light);
-  border-radius: 8px;
+  margin-top: var(--ds-space-md);
+  padding: var(--ds-space-md);
+  background-color: var(--color-surface);
+  border-radius: var(--ds-radius-md);
+  border: 1px solid var(--color-border-subtle);
   
   h4 {
     margin-top: 0;
     color: var(--ion-color-primary);
+    font-family: var(--ds-font-family-sans);
   }
 }
 
 .preview-button {
   --background: var(--ion-color-primary);
-  --color: white;
-  margin: 0 16px;
+  --color: var(--ion-color-primary-contrast);
+  margin: 0 var(--ds-space-md);
 }

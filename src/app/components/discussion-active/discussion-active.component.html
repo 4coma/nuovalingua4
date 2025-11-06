@@ -1,5 +1,5 @@
 <ion-content [fullscreen]="true">
-  <div style="padding: 20px;">
+  <div class="discussion-container">
     
     <!-- Contexte de la discussion -->
     <ion-card *ngIf="currentContext">
@@ -43,7 +43,7 @@
     <!-- Chargement initial -->
     <ion-card *ngIf="isStarting">
       <ion-card-content>
-        <div style="text-align: center; padding: 20px;">
+        <div class="loading-content">
           <ion-spinner name="crescent"></ion-spinner>
           <p>Préparation de la discussion...</p>
         </div>
@@ -71,7 +71,7 @@
               [audioUrl]="turn.audioUrl || null" 
               [showControls]="true" 
               [isLoading]="isAudioGenerating(i, turn)"
-              style="margin-top: 8px; background: transparent; box-shadow: none;">
+              class="audio-player-wrapper">
             </app-audio-player>
 
             <div *ngIf="turn.speaker === 'ai' && isLastAiTurn(i) && fullRevisionActive && getRemainingUserWords().length > 0" class="remaining-user-words">
@@ -97,7 +97,7 @@
     </div>
 
     <!-- Sélecteur de mode de réponse -->
-    <ion-card *ngIf="!isStarting && currentSession && !isLoading" style="margin-bottom: 16px;">
+    <ion-card *ngIf="!isStarting && currentSession && !isLoading" class="response-mode-card">
       <ion-card-content>
         <ion-segment [(ngModel)]="responseMode" (ionChange)="onResponseModeChange()">
           <ion-segment-button value="voice">
@@ -115,11 +115,11 @@
     <!-- Mode vocal -->
     <div *ngIf="responseMode === 'voice' && !isStarting && currentSession && !isLoading">
       <!-- Indicateur de traitement -->
-      <ion-card *ngIf="isLoading" style="margin-bottom: 16px;">
+      <ion-card *ngIf="isLoading" class="loading-card">
         <ion-card-content>
-          <div style="text-align: center; padding: 10px;">
+          <div class="loading-content">
             <ion-spinner name="crescent"></ion-spinner>
-            <p style="margin: 8px 0 0 0; font-size: 14px;">
+            <p class="loading-text">
               {{ isRecording ? 'Arrêt de l\'enregistrement...' : 'Traitement en cours...' }}
             </p>
           </div>
@@ -144,7 +144,7 @@
 
     <!-- Mode écrit -->
     <div *ngIf="responseMode === 'text' && !isStarting && currentSession && !isLoading">
-      <ion-card style="margin-bottom: 16px;">
+      <ion-card class="text-input-card">
         <ion-card-content>
           <ion-textarea
             [(ngModel)]="textResponse"
@@ -152,9 +152,9 @@
             rows="4"
             maxlength="500"
             [disabled]="isLoading"
-            style="border: 1px solid #ccc; border-radius: 8px; padding: 12px;">
+            class="text-response-input">
           </ion-textarea>
-          <div style="text-align: right; margin-top: 8px; font-size: 12px; color: #666;">
+          <div class="character-count">
             {{ textResponse.length }}/500 caractères
           </div>
         </ion-card-content>
@@ -190,7 +190,7 @@
                 fill="outline" 
                 expand="block"
                 [disabled]="isLoading"
-                style="margin-top: 16px;">
+                class="back-button">
       <ion-icon name="arrow-back" slot="start"></ion-icon>
       {{ fullRevisionActive ? 'Retour à l\'accueil' : 'Retour à la sélection' }}
     </ion-button>

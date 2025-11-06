@@ -630,21 +630,14 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   
   /**
    * Navigue vers l'exercice de vocabulaire
+   * Utilise toujours les mots de l'exercice d'association actuel (this.wordPairs)
+   * pour garantir que l'exercice d'encodage porte sur les mots qui viennent d'être vus
    */
   goToVocabularyExercise() {
     this.saveRevisionDelays(); // Sauvegarder avant de naviguer
 
-    if (this.isFullRevisionSession) {
-      const exercise = this.fullRevisionService.getVocabularyExercisePayload();
-      const sessionInfo = this.fullRevisionService.getSessionInfoSummary();
-      if (exercise) {
-        localStorage.setItem('vocabularyExercise', JSON.stringify(exercise));
-        if (sessionInfo) {
-          localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
-        }
-      }
-      this.fullRevisionService.setStage('encoding');
-    } else if (this.wordPairs && this.wordPairs.length > 0 && this.sessionInfo) {
+    // Utiliser toujours les mots de l'exercice d'association actuel
+    if (this.wordPairs && this.wordPairs.length > 0 && this.sessionInfo) {
       const vocabularyExercise = {
         items: this.wordPairs.map(pair => ({
           word: this.sessionInfo?.translationDirection === 'fr2it' ? pair.fr : pair.it,
@@ -655,6 +648,34 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         topic: this.sessionInfo.topic || 'Général'
       };
       localStorage.setItem('vocabularyExercise', JSON.stringify(vocabularyExercise));
+      
+      // Si c'est une révision complète, mettre à jour le stage
+      if (this.isFullRevisionSession) {
+        this.fullRevisionService.setStage('encoding');
+        // Mettre à jour sessionInfo avec les infos de la révision complète si disponibles
+        const fullRevisionSessionInfo = this.fullRevisionService.getSessionInfoSummary();
+        if (fullRevisionSessionInfo) {
+          // Conserver la direction de traduction de la session actuelle
+          const updatedSessionInfo = {
+            ...fullRevisionSessionInfo,
+            translationDirection: this.sessionInfo.translationDirection
+          };
+          localStorage.setItem('sessionInfo', JSON.stringify(updatedSessionInfo));
+        }
+      }
+    } else {
+      // Fallback : si pas de wordPairs mais révision complète, utiliser le payload
+      if (this.isFullRevisionSession) {
+        const exercise = this.fullRevisionService.getVocabularyExercisePayload();
+        const sessionInfo = this.fullRevisionService.getSessionInfoSummary();
+        if (exercise) {
+          localStorage.setItem('vocabularyExercise', JSON.stringify(exercise));
+          if (sessionInfo) {
+            localStorage.setItem('sessionInfo', JSON.stringify(sessionInfo));
+          }
+        }
+        this.fullRevisionService.setStage('encoding');
+      }
     }
 
     this.router.navigate(['/vocabulary']);
@@ -736,9 +757,34 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Définir le flag pour indiquer que l'utilisateur vient d'une session d'association
     localStorage.setItem('fromWordPairs', 'true');
     
+    // Sauvegarder les mots du prompt (uniquement ceux de la session d'association)
+    localStorage.setItem('comprehensionPromptWords', JSON.stringify(this.wordPairs.map(p => p.it)));
+
     // Générer le texte de compréhension via le service avec les thèmes sélectionnés
     this.textGeneratorService.generateComprehensionText(this.wordPairs, 'written', selectedThemes).subscribe({
       next: (result: ComprehensionText) => {
+        // Assurer la mise en évidence des mots de la session d'association
+        const sessionVocabulary = this.wordPairs.map(pair => ({
+          word: pair.it,
+          translation: pair.fr,
+          context: pair.context
+        }));
+
+        // Fusionner/compléter les vocabularyItems retournés par l'IA avec ceux de la session
+        const existing = (result.vocabularyItems || []).reduce((acc: Record<string, number>, item, idx) => {
+          acc[item.word?.toLowerCase?.() || ''] = idx;
+          return acc;
+        }, {});
+
+        const merged = [...(result.vocabularyItems || [])];
+        for (const item of sessionVocabulary) {
+          const key = item.word.toLowerCase();
+          if (key && existing[key] === undefined) {
+            merged.push(item);
+          }
+        }
+        result.vocabularyItems = merged;
+
         // Stocker le texte dans le localStorage pour y accéder depuis le composant de compréhension
         localStorage.setItem('comprehensionText', JSON.stringify(result));
         
@@ -791,9 +837,34 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Définir le flag pour indiquer que l'utilisateur vient d'une session d'association
     localStorage.setItem('fromWordPairs', 'true');
     
+    // Sauvegarder les mots du prompt (uniquement ceux de la session d'association)
+    localStorage.setItem('comprehensionPromptWords', JSON.stringify(this.wordPairs.map(p => p.it)));
+
     // Générer le texte de compréhension via le service avec les thèmes sélectionnés
     this.textGeneratorService.generateComprehensionText(this.wordPairs, 'oral', selectedThemes).subscribe({
       next: (result: ComprehensionText) => {
+        // Assurer la mise en évidence des mots de la session d'association
+        const sessionVocabulary = this.wordPairs.map(pair => ({
+          word: pair.it,
+          translation: pair.fr,
+          context: pair.context
+        }));
+
+        // Fusionner/compléter les vocabularyItems retournés par l'IA avec ceux de la session
+        const existing = (result.vocabularyItems || []).reduce((acc: Record<string, number>, item, idx) => {
+          acc[item.word?.toLowerCase?.() || ''] = idx;
+          return acc;
+        }, {});
+
+        const merged = [...(result.vocabularyItems || [])];
+        for (const item of sessionVocabulary) {
+          const key = item.word.toLowerCase();
+          if (key && existing[key] === undefined) {
+            merged.push(item);
+          }
+        }
+        result.vocabularyItems = merged;
+
         // Stocker le texte dans le localStorage pour y accéder depuis le composant de compréhension
         localStorage.setItem('comprehensionText', JSON.stringify(result));
         
