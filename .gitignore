@@ -68,3 +68,29 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Android
+android/local.properties
+*.apk
+*.aab
+*.keystore
+*.jks
+google-services.json
+google-services.json.backup
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Test results and reports
+test-results/
+playwright-report/
+
+# Temporary files with potential secrets
+filter-rules.txt
