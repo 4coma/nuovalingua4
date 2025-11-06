@@ -41,6 +41,8 @@ export class DiscussionContextSelectionComponent implements OnInit {
 
   ngOnInit() {
     this.loadContexts();
+    // Démarrage depuis le menu: aucun vocabulaire ciblé par défaut
+    localStorage.removeItem('conversationTargetVocabulary');
   }
 
   loadContexts() {
@@ -79,6 +81,8 @@ export class DiscussionContextSelectionComponent implements OnInit {
   }
 
   selectContext(context: DiscussionContext, idx?: number) {
+    // Conversation démarrée depuis le menu: pas de vocabulaire ciblé
+    localStorage.removeItem('conversationTargetVocabulary');
     this.router.navigate(['/discussion', context.id]);
   }
 
@@ -141,6 +145,7 @@ export class DiscussionContextSelectionComponent implements OnInit {
       // Ajoute le contexte custom à la liste (en mémoire)
       this.discussionService.getDiscussionContexts().push(data);
       // Navigue directement vers la discussion
+      localStorage.removeItem('conversationTargetVocabulary');
       this.router.navigate(['/discussion', data.id]);
     }
   }
@@ -469,8 +474,8 @@ export class DiscussionContextSelectionComponent implements OnInit {
     // 3) Pousser ce contexte dans la liste pour qu'il soit trouvable par la vue de discussion
     this.discussionService.getDiscussionContexts().push(context);
 
-    // 4) Sélectionner 8 mots cibles: 4 récents + 4 anciens
-    this.prepareRandomTargetVocabulary(tpl.category, tpl.title);
+    // 4) Menu principal: pas de vocabulaire ciblé
+    localStorage.removeItem('conversationTargetVocabulary');
 
     // 5) Naviguer vers la discussion
     this.router.navigate(['/discussion', context.id]);
