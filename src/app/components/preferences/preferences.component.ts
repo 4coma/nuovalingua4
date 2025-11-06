@@ -54,9 +54,9 @@ export class PreferencesComponent implements OnInit {
   // Thèmes personnalisés pour la compréhension quotidienne
   dailyComprehensionThemes: string[] = [''];
   
-  // État d'expansion des sections
+  // État d'expansion des sections (toutes fermées par défaut pour montrer les chevrons)
   expandedSections: { [key: string]: boolean } = {
-    openai: true,
+    openai: false,
     comprehensionNotification: false,
     googleTts: false,
     firebase: false,
