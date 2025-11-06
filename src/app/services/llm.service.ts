@@ -163,7 +163,7 @@ export class LlmService {
       ${reviewWordsContext}${exclusionPrompt}
       
       IMPORTANT : Les verbes italiens DOIVENT être conjugués au temps "${topic}", pas à l'infinitif.
-      
+      IMPORTANT : NE GENERE JAMAIS DEUX FOIS LA MEME PAIRE DE MOTS.
       Exemples corrects selon le temps :
       - Présent : "it": "mangio", "fr": "je mange"
       - Passé composé : "it": "ho mangiato", "fr": "j'ai mangé"

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NuovaLingua - Apprenez l'italien de manière interactive</title>
+  <meta name="description" content="Application mobile pour apprendre l'italien avec dictionnaire personnel évolutif, compréhensions orales, conversations IA et exercices interactifs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Navigation -->
+    <nav class="nav" :class="{ 'nav-scrolled': scrolled }">
+      <div class="nav-container">
+        <div class="nav-logo">
+          <span class="logo-icon">🇮🇹</span>
+          <span class="logo-text">NuovaLingua</span>
+        </div>
+        <div class="nav-links">
+          <a href="#features" class="nav-link">Fonctionnalités</a>
+          <a href="#screenshots" class="nav-link">Captures</a>
+          <a href="#download" class="nav-link nav-cta">Télécharger</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-icon">✨</span>
+          <span>Apprendre l'italien, réinventé</span>
+        </div>
+        <h1 class="hero-title">
+          Votre dictionnaire personnel<br>
+          <span class="gradient-text">qui grandit avec vous</span>
+        </h1>
+        <p class="hero-description">
+          NuovaLingua combine exercices interactifs, compréhensions orales, conversations avec une IA 
+          et un dictionnaire personnel évolutif pour vous faire progresser efficacement en italien.
+        </p>
+        <div class="hero-cta">
+          <a href="#download" class="btn btn-primary">
+            <span>Télécharger l'app</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M10 3V17M10 17L4 11M10 17L16 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a href="#features" class="btn btn-secondary">
+            Découvrir les fonctionnalités
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-value">100%</div>
+            <div class="stat-label">Personnalisé</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="stat-value">IA</div>
+            <div class="stat-label">Intégrée</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="stat-value">∞</div>
+            <div class="stat-label">Mots à apprendre</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Fonctionnalités principales</h2>
+          <p class="section-description">
+            Tout ce dont vous avez besoin pour maîtriser l'italien, dans une seule application
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature 1: Dictionnaire personnel -->
+          <div class="feature-card" data-aos="fade-up">
+            <div class="feature-icon">📚</div>
+            <h3 class="feature-title">Dictionnaire personnel évolutif</h3>
+            <p class="feature-description">
+              Ajoutez des mots depuis n'importe où : textes lus, articles web, conversations. 
+              Votre dictionnaire grandit naturellement avec votre progression.
+            </p>
+            <ul class="feature-list">
+              <li>Traductions contextuelles</li>
+              <li>Suivi de progression intelligent</li>
+              <li>Révisions adaptatives</li>
+            </ul>
+          </div>
+
+          <!-- Feature 2: Web -->
+          <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="feature-icon">🌐</div>
+            <h3 class="feature-title">Apprentissage depuis le web</h3>
+            <p class="feature-description">
+              Importez des articles italiens depuis n'importe quelle URL. 
+              Traductions instantanées et ajout au dictionnaire en un clic.
+            </p>
+            <ul class="feature-list">
+              <li>Extraction automatique de contenu</li>
+              <li>Traductions contextuelles</li>
+              <li>Textes sauvegardés</li>
+            </ul>
+          </div>
+
+          <!-- Feature 3: Compréhension orale -->
+          <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="feature-icon">🎧</div>
+            <h3 class="feature-title">Compréhensions orales</h3>
+            <p class="feature-description">
+              Écoutez des textes adaptés à votre niveau avec prononciation naturelle. 
+              Recevez chaque jour un nouveau texte de compréhension.
+            </p>
+            <ul class="feature-list">
+              <li>Textes audio générés</li>
+              <li>Exercices d'écoute</li>
+              <li>Notifications quotidiennes</li>
+            </ul>
+          </div>
+
+          <!-- Feature 4: Conversations IA -->
+          <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+            <div class="feature-icon">💬</div>
+            <h3 class="feature-title">Conversations avec l'IA</h3>
+            <p class="feature-description">
+              Pratiquez l'italien dans différents contextes : restaurant, voyage, travail. 
+              L'IA s'adapte à votre niveau et corrige vos erreurs.
+            </p>
+            <ul class="feature-list">
+              <li>Contextes variés</li>
+              <li>Corrections en temps réel</li>
+              <li>Feedback personnalisé</li>
+            </ul>
+          </div>
+
+          <!-- Feature 5: Exercices -->
+          <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+            <div class="feature-icon">🎯</div>
+            <h3 class="feature-title">Exercices interactifs</h3>
+            <p class="feature-description">
+              Vocabulaire par catégories, jeux de paires de mots, compréhensions écrites. 
+              Des exercices variés pour progresser de manière ludique.
+            </p>
+            <ul class="feature-list">
+              <li>Vocabulaire par catégories</li>
+              <li>Jeux interactifs</li>
+              <li>Révisions personnalisées</li>
+            </ul>
+          </div>
+
+          <!-- Feature 6: Synchronisation -->
+          <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+            <div class="feature-icon">☁️</div>
+            <h3 class="feature-title">Synchronisation cloud</h3>
+            <p class="feature-description">
+              Accédez à vos progrès sur plusieurs appareils. 
+              Vos données sont sauvegardées et synchronisées automatiquement.
+            </p>
+            <ul class="feature-list">
+              <li>Synchronisation Firebase</li>
+              <li>Multi-appareils</li>
+              <li>Sauvegarde automatique</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section id="screenshots" class="screenshots">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Découvrez l'application</h2>
+          <p class="section-description">
+            Une interface moderne et intuitive pour apprendre efficacement
+          </p>
+        </div>
+        <div class="screenshots-grid">
+          <div class="screenshot-card" data-aos="zoom-in">
+            <img src="images/mode-apprentissage-association.png" alt="Mode apprentissage par association" class="screenshot-image">
+            <div class="screenshot-overlay">
+              <h3 class="screenshot-title">Mode apprentissage par association</h3>
+              <p class="screenshot-description">Associez les mots français et italiens pour mémoriser le vocabulaire de manière interactive. Parfait pour apprendre les conjugaisons et le vocabulaire par thème.</p>
+            </div>
+          </div>
+          <div class="screenshot-card" data-aos="zoom-in" data-aos-delay="200">
+            <img src="images/conversation-ia.png" alt="Conversation avec l'IA" class="screenshot-image">
+            <div class="screenshot-overlay">
+              <h3 class="screenshot-title">Conversation avec l'IA</h3>
+              <p class="screenshot-description">Pratiquez l'italien dans des conversations naturelles avec une IA qui s'adapte à votre niveau. Recevez des corrections en temps réel et progressez rapidement.</p>
+            </div>
+          </div>
+          <div class="screenshot-card" data-aos="zoom-in" data-aos-delay="300">
+            <img src="images/dictionnaire-personnel.png" alt="Mon dictionnaire personnel" class="screenshot-image">
+            <div class="screenshot-overlay">
+              <h3 class="screenshot-title">Dictionnaire personnel évolutif</h3>
+              <p class="screenshot-description">Votre dictionnaire personnel grandit avec vous. Ajoutez des mots depuis n'importe où, suivez votre progression et révisez intelligemment.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download">
+      <div class="container">
+        <div class="download-content">
+          <h2 class="download-title">Prêt à commencer ?</h2>
+          <p class="download-description">
+            Téléchargez NuovaLingua et commencez votre voyage vers la maîtrise de l'italien
+          </p>
+          <div class="download-buttons">
+            <a href="#" class="btn btn-primary btn-large">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M17.05 20.28L14.18 17.41C13.59 16.82 13.59 15.89 14.18 15.3L17.05 12.43C17.64 11.84 18.57 11.84 19.16 12.43L22.03 15.3C22.62 15.89 22.62 16.82 22.03 17.41L19.16 20.28C18.57 20.87 17.64 20.87 17.05 20.28Z" fill="currentColor"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
+              </svg>
+              <span>Télécharger pour Android</span>
+            </a>
+            <a href="https://github.com/4coma/nuovalingua4" target="_blank" class="btn btn-secondary btn-large">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C6.477 2 2 6.477 2 12C2 16.42 4.865 20.335 8.839 21.489C9.339 21.58 9.521 21.272 9.521 21.007C9.521 20.767 9.513 19.988 9.508 19.19C6.726 19.84 6.14 17.95 6.14 17.95C5.685 16.81 5.029 16.5 5.029 16.5C4.121 15.88 5.097 15.895 5.097 15.895C6.101 15.965 6.629 16.93 6.629 16.93C7.521 18.45 8.97 18 9.539 17.757C9.631 17.11 9.889 16.684 10.175 16.467C7.954 16.227 5.62 15.31 5.62 11.49C5.62 10.39 6.01 9.49 6.649 8.79C6.546 8.54 6.203 7.5 6.747 6.15C6.747 6.15 7.586 5.88 9.496 7.17C10.295 6.95 11.15 6.84 12 6.836C12.85 6.84 13.705 6.95 14.504 7.17C16.414 5.88 17.253 6.15 17.253 6.15C17.797 7.5 17.454 8.54 17.351 8.79C17.99 9.49 18.38 10.39 18.38 11.49C18.38 15.33 16.036 16.227 13.81 16.467C14.171 16.757 14.5 17.33 14.5 18.16C14.5 19.42 14.488 20.44 14.488 21.007C14.488 21.275 14.666 21.588 15.174 21.489C19.138 20.335 22 16.418 22 12C22 6.477 17.523 2 12 2Z" fill="currentColor"/>
+              </svg>
+              <span>Voir sur GitHub</span>
+            </a>
+          </div>
+          <p class="download-note">
+            Disponible bientôt sur Google Play Store
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-brand">
+            <div class="footer-logo">
+              <span class="logo-icon">🇮🇹</span>
+              <span class="logo-text">NuovaLingua</span>
+            </div>
+            <p class="footer-description">
+              Apprenez l'italien de manière interactive et personnalisée
+            </p>
+          </div>
+          <div class="footer-links">
+            <div class="footer-column">
+              <h4 class="footer-title">Ressources</h4>
+              <a href="https://github.com/4coma/nuovalingua4" target="_blank" class="footer-link">GitHub</a>
+            </div>
+            <div class="footer-column">
+              <h4 class="footer-title">Support</h4>
+              <a href="https://github.com/4coma/nuovalingua4/issues/new" target="_blank" class="footer-link">Signaler un bug</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 NuovaLingua. Tous droits réservés.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
