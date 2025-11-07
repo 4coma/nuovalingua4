@@ -274,10 +274,10 @@ export class TextGeneratorService {
       Voici un texte en italien (s'il est vide, ignore ce passage):
       "${text}"
       
-      OBLIGATOIRE: Tu dois extraire EXACTEMENT 8-12 paires de mots français-italien qui apparaissent LITTÉRALEMENT dans ce texte. Si le texte est vide, génère 8-12 paires de mots français-italien aléatoires et uniques (pas de répétition).
+      OBLIGATOIRE: Tu dois extraire EXACTEMENT 8-12 paires de mots français-italien qui apparaissent LITTÉRALEMENT dans ce texte. 
       
       Règles strictes:
-      - Les mots italiens doivent être EXACTEMENT ceux qui sont dans le texte (pas de variantes) (uniquement si texte non vide)
+      - Les mots italiens doivent être EXACTEMENT ceux qui sont dans le texte (pas de variantes) 
       - Choisis des mots de vocabulaire importants pour comprendre le texte
       - Inclus des mots variés (noms, verbes, adjectifs, adverbes)
       - Les traductions doivent être précises et contextuelles

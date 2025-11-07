@@ -25,16 +25,32 @@
     "singleProjectMode": true
   },
   "hosting": {
-    "public": "www",
+    "public": "landing-page",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "**/*.sh",
+      "**/*.md",
+      "**/GUIDE_*.md",
+      "**/README.md",
+      "**/downloads/*.apk"
     ],
     "rewrites": [
       {
         "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "downloads/*.apk",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/vnd.android.package-archive"
+          }
+        ]
       }
     ]
   }
