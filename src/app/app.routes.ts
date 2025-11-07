@@ -23,6 +23,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/personal-revision-setup/personal-revision-setup.component').then(m => m.PersonalRevisionSetupComponent)
   },
   {
+    path: 'comprehension-setup',
+    loadComponent: () => import('./components/comprehension-setup/comprehension-setup.component').then(m => m.ComprehensionSetupComponent)
+  },
+  {
     path: 'vocabulary',
     loadComponent: () => import('./components/vocabulary-exercise/vocabulary-exercise.component').then(m => m.VocabularyExerciseComponent)
   },

@@ -1,0 +1,89 @@
+<ion-content [fullscreen]="true" class="comprehension-setup-content">
+  <div class="container">
+    <app-card variant="glass" padding="large">
+      <h2 class="page-title">
+        <ion-icon name="headset-outline" class="title-icon"></ion-icon>
+        Compréhension
+      </h2>
+      
+      <p class="page-description">
+        Entrez une consigne pour générer une session de compréhension orale personnalisée. 
+        Vous pourrez ensuite lire ou écouter le texte généré.
+      </p>
+
+      <!-- Champ de consigne -->
+      <div class="prompt-section">
+        <ion-item class="prompt-item">
+          <ion-label position="stacked">Consigne pour la génération</ion-label>
+          <ion-textarea
+            [(ngModel)]="customPrompt"
+            placeholder="Ex: Un dialogue dans un restaurant italien, une conversation sur le voyage en Italie..."
+            rows="4"
+            [disabled]="isLoading"
+            class="prompt-textarea">
+          </ion-textarea>
+        </ion-item>
+
+        <!-- Bouton de génération -->
+        <ion-button
+          expand="block"
+          color="primary"
+          (click)="generateComprehension()"
+          [disabled]="isLoading || !customPrompt?.trim()"
+          class="generate-button">
+          <ion-icon name="play-outline" slot="start"></ion-icon>
+          <span *ngIf="!isLoading">Générer la compréhension</span>
+          <span *ngIf="isLoading">Génération en cours...</span>
+        </ion-button>
+      </div>
+
+      <!-- Consignes sauvegardées -->
+      <div class="saved-prompts-section" *ngIf="savedPrompts.length > 0">
+        <h3 class="saved-prompts-title">
+          <ion-icon name="time-outline"></ion-icon>
+          Consignes précédentes
+        </h3>
+        
+        <ion-list class="saved-prompts-list">
+          <ion-item
+            *ngFor="let prompt of savedPrompts"
+            class="saved-prompt-item"
+            (click)="usePrompt(prompt.prompt)">
+            <ion-label>
+              <p class="prompt-text">{{ prompt.prompt }}</p>
+              <span class="prompt-date">{{ formatDate(prompt.date) }}</span>
+            </ion-label>
+            <ion-button
+              slot="end"
+              fill="clear"
+              size="small"
+              color="danger"
+              (click)="deletePrompt(prompt.id, $event)"
+              class="delete-button">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </ion-list>
+      </div>
+
+      <!-- Message si aucune consigne sauvegardée -->
+      <div class="no-prompts" *ngIf="savedPrompts.length === 0">
+        <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+        <p>Aucune consigne sauvegardée. Vos consignes seront sauvegardées automatiquement après génération.</p>
+      </div>
+
+      <!-- Bouton retour -->
+      <ion-button
+        routerLink="/home"
+        color="medium"
+        fill="outline"
+        expand="block"
+        [disabled]="isLoading"
+        class="back-button">
+        <ion-icon name="arrow-back" slot="start"></ion-icon>
+        Retour à l'accueil
+      </ion-button>
+    </app-card>
+  </div>
+</ion-content>
+

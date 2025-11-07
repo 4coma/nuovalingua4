@@ -66,6 +66,9 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
 
   // Référence au loader actuel
   private currentLoader: HTMLIonLoadingElement | null = null;
+  
+  // Cache pour les mots dans le dictionnaire (mis à jour après chaque ajout/suppression)
+  private dictionaryWordsCache: DictionaryWord[] = [];
 
   constructor(
     private textGeneratorService: TextGeneratorService,
@@ -85,6 +88,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     this.loadComprehensionText();
     this.loadPromptWords();
     this.prepareHighlightedWords();
+    this.updateDictionaryCache();
     
     // Générer automatiquement les questions si le texte existe mais pas de questions
     if (this.comprehensionText?.text && !this.comprehensionText?.questions?.length) {
@@ -649,6 +653,126 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
       color: 'danger'
     });
     await toast.present();
+  }
+
+  /**
+   * Met à jour le cache des mots du dictionnaire
+   */
+  private updateDictionaryCache(): void {
+    this.dictionaryWordsCache = this.dictionaryService.getAllWords();
+  }
+
+  /**
+   * Vérifie si un mot de vocabulaire est dans le dictionnaire
+   */
+  isVocabularyItemInDictionary(item: VocabularyItem): boolean {
+    return this.dictionaryWordsCache.some(word => 
+      word.sourceWord.toLowerCase() === item.word.toLowerCase() &&
+      word.sourceLang === 'it' &&
+      word.targetLang === 'fr'
+    );
+  }
+
+  /**
+   * Trouve le mot dans le dictionnaire et retourne son ID
+   */
+  private findWordIdInDictionary(item: VocabularyItem): string | null {
+    const word = this.dictionaryWordsCache.find(w => 
+      w.sourceWord.toLowerCase() === item.word.toLowerCase() &&
+      w.sourceLang === 'it' &&
+      w.targetLang === 'fr'
+    );
+    return word?.id || null;
+  }
+
+  /**
+   * Retire un mot du vocabulaire du dictionnaire personnel
+   */
+  removeVocabularyItemFromDictionary(item: VocabularyItem, event: Event): void {
+    // Empêcher la propagation du clic pour éviter d'ouvrir la traduction
+    event.stopPropagation();
+    
+    const wordId = this.findWordIdInDictionary(item);
+    
+    if (!wordId) {
+      this.showErrorToast('Mot non trouvé dans le dictionnaire');
+      return;
+    }
+    
+    const removed = this.dictionaryService.removeWord(wordId);
+    
+    if (removed) {
+      this.updateDictionaryCache();
+      this.showSuccessToast('Mot retiré du dictionnaire personnel');
+    } else {
+      this.showErrorToast('Erreur lors de la suppression');
+    }
+  }
+
+  /**
+   * Ajoute un mot du vocabulaire au dictionnaire personnel
+   */
+  addVocabularyItemToDictionary(item: VocabularyItem, event: Event): void {
+    // Empêcher la propagation du clic pour éviter d'ouvrir la traduction
+    event.stopPropagation();
+    
+    // Récupérer les thèmes depuis sessionInfo ou utiliser des thèmes par défaut
+    let themes: string[] = [];
+    
+    // Essayer de récupérer les thèmes depuis sessionInfo
+    if (this.sessionInfo && (this.sessionInfo as any).themes) {
+      themes = (this.sessionInfo as any).themes;
+    }
+    
+    // Si pas de thèmes dans sessionInfo, utiliser des thèmes par défaut basés sur le contexte
+    if (themes.length === 0) {
+      themes = ['vocabulaire', 'compréhension'];
+      if (this.comprehensionText?.type === 'oral') {
+        themes.push('compréhension orale');
+      } else {
+        themes.push('compréhension écrite');
+      }
+      if (this.sessionInfo?.category) {
+        themes.push(this.sessionInfo.category);
+      }
+      if (this.sessionInfo?.topic) {
+        themes.push(this.sessionInfo.topic);
+      }
+    }
+    
+    const newWord: DictionaryWord = {
+      id: '',
+      sourceWord: item.word,
+      sourceLang: 'it',
+      targetWord: item.translation,
+      targetLang: 'fr',
+      contextualMeaning: item.context || '',
+      partOfSpeech: '',
+      examples: [],
+      dateAdded: 0,
+      themes: themes
+    };
+    
+    const added = this.dictionaryService.addWord(newWord);
+    
+    if (added) {
+      this.updateDictionaryCache();
+      this.showSuccessToast('Mot ajouté à votre dictionnaire personnel');
+      
+      // Suivre également ce mot pour la révision si on a les infos de session
+      if (this.sessionInfo) {
+        this.vocabularyTrackingService.trackWord(
+          item.word,
+          item.translation,
+          this.sessionInfo.category,
+          this.sessionInfo.topic,
+          true, // Considéré comme reconnu car ajouté au dictionnaire
+          item.context
+        );
+      }
+    } else {
+      this.showErrorToast('Ce mot existe déjà dans votre dictionnaire');
+    }
   }
 
   /**

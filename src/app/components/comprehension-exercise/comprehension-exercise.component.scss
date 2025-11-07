@@ -8,31 +8,26 @@ ion-content {
 }
 
 .container {
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-md);
-  padding: var(--ds-space-md);
+  gap: var(--ds-space-xs);
+  padding: var(--ds-space-xs);
 }
 
 .exercise-header {
-  margin-bottom: var(--ds-space-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--ds-radius-lg);
-  padding: var(--ds-space-md);
-  box-shadow: var(--ds-shadow-sm);
+  margin-bottom: var(--ds-space-xs);
   text-align: center;
   
   h2 {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--ds-space-sm);
+    gap: var(--ds-space-xs);
     font-size: var(--ds-font-size-h2);
     font-weight: var(--ds-font-weight-medium);
-    margin-bottom: var(--ds-space-3xs);
+    margin-bottom: var(--ds-space-xxs);
     color: var(--color-text-primary);
     font-family: var(--ds-font-family-sans);
     
@@ -45,26 +40,28 @@ ion-content {
   p {
     color: var(--color-text-secondary);
     font-size: var(--ds-font-size-body);
-    margin-top: var(--ds-space-3xs);
+    margin-top: var(--ds-space-xxs);
     font-family: var(--ds-font-family-sans);
   }
 }
 
-.text-card {
-  margin-bottom: var(--ds-space-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--ds-radius-lg);
-  box-shadow: var(--ds-shadow-md);
-  transition: var(--ds-transition-base);
+.text-content {
+  margin-bottom: var(--ds-space-xs);
   
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--ds-shadow-lg);
+  .audio-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-xs);
   }
   
-  ion-card-content {
-    padding: var(--ds-space-md);
+  .transcription-control {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--ds-space-xs);
+  }
+  
+  .transcription-container {
+    margin-top: var(--ds-space-xs);
   }
 }
 
@@ -87,7 +84,7 @@ ion-content {
 }
 
 .comprehension-text {
-  line-height: var(--ds-line-height-relaxed);
+  line-height: 1.4;
   font-size: var(--ds-font-size-body);
   font-family: var(--ds-font-family-sans);
   color: var(--color-text-primary);
@@ -156,26 +153,23 @@ ion-content {
 }
 
 .feedback-container {
-  margin-top: var(--ds-space-md);
+  margin-top: var(--ds-space-xs);
   
   .correct-answer, .wrong-answer {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--ds-space-md);
-    border-radius: var(--ds-radius-md);
-    margin-bottom: var(--ds-space-md);
-    border: 1px solid var(--color-border-subtle);
+    padding: var(--ds-space-xs);
+    margin-bottom: var(--ds-space-xs);
     transition: var(--ds-transition-base);
     
     &:hover {
       transform: translateY(-2px);
-      box-shadow: var(--ds-shadow-sm);
     }
     
     ion-icon {
       font-size: var(--ds-font-size-h3);
-      margin-right: var(--ds-space-sm);
+      margin-right: var(--ds-space-xs);
     }
     
     p {
@@ -189,54 +183,47 @@ ion-content {
   .correct-answer {
     background: rgba(var(--ion-color-success-rgb), 0.1);
     color: var(--ion-color-success);
-    border-color: rgba(var(--ion-color-success-rgb), 0.3);
   }
   
   .wrong-answer {
     background: rgba(var(--ion-color-danger-rgb), 0.1);
     color: var(--ion-color-danger);
-    border-color: rgba(var(--ion-color-danger-rgb), 0.3);
   }
 }
 
 .help-buttons {
-  margin-top: var(--ds-space-md);
+  margin-top: var(--ds-space-xs);
 }
 
 .revealed-answer {
-  margin-top: var(--ds-space-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--ds-radius-md);
-  padding: var(--ds-space-md);
+  margin-top: var(--ds-space-xs);
+  padding: var(--ds-space-xs);
   text-align: center;
-  box-shadow: var(--ds-shadow-sm);
   transition: var(--ds-transition-base);
-  
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--ds-shadow-md);
-  }
   
   p {
     font-size: var(--ds-font-size-body-lg);
     font-weight: var(--ds-font-weight-bold);
-    margin-bottom: var(--ds-space-md);
+    margin-bottom: var(--ds-space-xs);
     color: var(--color-text-primary);
     font-family: var(--ds-font-family-sans);
   }
 }
 
 .results-container {
-  padding: var(--ds-space-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--ds-radius-lg);
-  box-shadow: var(--ds-shadow-md);
+  padding: var(--ds-space-xs);
   
   h2 {
     font-size: var(--ds-font-size-h2);
-    margin-bottom: var(--ds-space-md);
+    margin-bottom: var(--ds-space-xs);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
+    text-align: center;
+  }
+  
+  h3 {
+    font-size: var(--ds-font-size-h3);
+    margin-bottom: var(--ds-space-xs);
     color: var(--color-text-primary);
     font-family: var(--ds-font-family-sans);
     text-align: center;
@@ -246,8 +233,8 @@ ion-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: var(--ds-space-md) 0;
-    padding: var(--ds-space-md);
+    margin: var(--ds-space-xs) 0;
+    padding: var(--ds-space-sm);
     background: var(--gradient-primary);
     border-radius: var(--ds-radius-md);
     box-shadow: var(--ds-shadow-sm);
@@ -255,7 +242,7 @@ ion-content {
     ion-icon {
       font-size: 48px;
       color: var(--ion-color-primary-contrast);
-      margin-bottom: var(--ds-space-sm);
+      margin-bottom: var(--ds-space-xs);
     }
     
     h3 {
@@ -271,7 +258,7 @@ ion-content {
 .option-title {
   font-weight: var(--ds-font-weight-semibold);
   color: var(--color-text-primary);
-  margin-bottom: var(--ds-space-3xs);
+  margin-bottom: 0;
 }
 
 .option-sub {
@@ -281,21 +268,19 @@ ion-content {
 
 /* Questions style sobre */
 .question-item {
-  padding: var(--ds-space-sm) 0;
+  padding: var(--ds-space-xxs) 0;
   border-bottom: 1px solid var(--color-border-subtle);
-  margin-bottom: var(--ds-space-xs);
+  margin-bottom: var(--ds-space-xxs);
 }
 
 .answer-input {
   --background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--ds-radius-sm);
   padding: var(--ds-space-xxs);
   margin-top: var(--ds-space-3xs);
 }
 
 .evaluation-panel {
-  margin-top: var(--ds-space-md);
+  margin-top: var(--ds-space-xs);
 }
 
 /* Options d'action en style sobre (aligné avec l'exercice de vocabulaire) */
@@ -303,13 +288,16 @@ ion-content {
   color: var(--color-text-secondary);
   font-size: var(--ds-font-size-body-sm);
   font-weight: var(--ds-font-weight-medium);
-  padding: var(--ds-space-sm) 0;
+  padding: var(--ds-space-xxs) 0;
   cursor: pointer;
   transition: var(--ds-transition-fast);
   font-family: var(--ds-font-family-sans);
   border-bottom: 1px solid var(--color-border-subtle);
-  margin-bottom: var(--ds-space-xs);
+  margin-bottom: var(--ds-space-xxs);
   text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
   &:hover:not(.disabled) {
     color: var(--color-text-primary);
@@ -331,18 +319,52 @@ ion-content {
       transform: none;
     }
   }
+  
+  &.vocabulary-item {
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+.vocabulary-content {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  
+  &:hover {
+    color: var(--color-text-primary);
+  }
+}
+
+.add-word-btn {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin-left: var(--ds-space-xs);
+  flex-shrink: 0;
+  
+  &:hover {
+    --color: var(--ion-color-success-shade);
+  }
+}
+
+.remove-word-btn {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin-left: var(--ds-space-xs);
+  flex-shrink: 0;
+  
+  &:hover {
+    --color: var(--ion-color-danger-shade);
+  }
 }
 
 // Styles pour la section des erreurs moderne
 .error-summary-section {
-  margin: var(--ds-space-md) 0;
+  margin: var(--ds-space-xs) 0;
   
   .error-list {
-    margin-top: var(--ds-space-sm);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-subtle);
-    border-radius: var(--ds-radius-md);
-    box-shadow: var(--ds-shadow-sm);
+    margin-top: var(--ds-space-xs);
     
     ion-item-divider {
       --background: var(--ion-color-danger);
@@ -354,7 +376,7 @@ ion-content {
   }
   
   .error-item {
-    margin-bottom: var(--ds-space-sm);
+    margin-bottom: var(--ds-space-xs);
     --background: var(--color-surface);
     --border-color: rgba(var(--ion-color-danger-rgb), 0.2);
     --border-style: solid;
@@ -363,46 +385,43 @@ ion-content {
     
     &:hover {
       transform: translateY(-1px);
-      box-shadow: var(--ds-shadow-sm);
     }
     
     h2 {
       font-size: var(--ds-font-size-body-lg);
       font-weight: var(--ds-font-weight-semibold);
       color: var(--ion-color-primary);
-      margin-bottom: var(--ds-space-sm);
+      margin-bottom: var(--ds-space-xs);
       font-family: var(--ds-font-family-sans);
     }
     
     .context-error {
       font-style: italic;
       color: var(--color-text-secondary);
-      margin: var(--ds-space-3xs) 0;
+      margin: var(--ds-space-xxs) 0;
       font-family: var(--ds-font-family-sans);
     }
     
     .error-details {
       display: flex;
       flex-direction: column;
-      gap: var(--ds-space-sm);
-      margin-top: var(--ds-space-sm);
+      gap: var(--ds-space-xs);
+      margin-top: var(--ds-space-xs);
       
       .user-answer, .correct-answer {
-        padding: var(--ds-space-sm);
-        border-radius: var(--ds-radius-sm);
-        border: 1px solid var(--color-border-subtle);
+        padding: var(--ds-space-xs);
         transition: var(--ds-transition-base);
         
         ion-label {
           font-size: var(--ds-font-size-body);
           font-weight: var(--ds-font-weight-semibold);
-          margin-bottom: var(--ds-space-3xs);
+          margin-bottom: var(--ds-space-xxs);
           font-family: var(--ds-font-family-sans);
           color: var(--color-text-primary);
         }
         
         p {
-          margin: var(--ds-space-3xs) 0 0 0;
+          margin: var(--ds-space-xxs) 0 0 0;
           font-weight: var(--ds-font-weight-medium);
           font-family: var(--ds-font-family-sans);
           color: var(--color-text-primary);
@@ -411,27 +430,21 @@ ion-content {
       
       .user-answer {
         background: rgba(var(--ion-color-danger-rgb), 0.1);
-        border-color: rgba(var(--ion-color-danger-rgb), 0.3);
       }
       
       .correct-answer {
         background: rgba(var(--ion-color-success-rgb), 0.1);
-        border-color: rgba(var(--ion-color-success-rgb), 0.3);
       }
     }
   }
 }
 
 .loading-container {
-  padding: var(--ds-space-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--ds-radius-md);
-  box-shadow: var(--ds-shadow-sm);
+  padding: var(--ds-space-xs);
   text-align: center;
   
   ion-spinner {
-    margin-bottom: var(--ds-space-sm);
+    margin-bottom: var(--ds-space-xs);
   }
   
   p {

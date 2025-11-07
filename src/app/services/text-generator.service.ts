@@ -110,23 +110,29 @@ export class TextGeneratorService {
       ? `\n\nCONSIGNE PERSONNALISÉE POUR LE CONTENU:\n${customPrompt.trim()}`
       : '';
     
+    // Si pas de mots mais une consigne personnalisée, adapter le prompt
+    const wordsSection = italianWords.length > 0
+      ? `Voici la liste des mots italiens que tu dois utiliser dans ton texte:\n${italianWords.map(word => `"${word}"`).join(', ')}\n\nPour information, ces mots proviennent des paires de traduction suivantes:\n${formattedPairs.join('\n')}`
+      : customPrompt && customPrompt.trim()
+      ? `Aucun mot spécifique n'est fourni. Tu dois créer un texte basé uniquement sur la consigne personnalisée ci-dessous.`
+      : `Aucun mot spécifique n'est fourni. Crée un texte de niveau intermédiaire.`;
+    
+    const useAllWordsInstruction = italianWords.length > 0
+      ? `- Utilise TOUS les mots italiens de la liste dans ton texte\n`
+      : '';
+    
     return `
       Tu es un assistant de langue spécialisé dans la création de textes pédagogiques pour l'apprentissage de l'italien.
       
-      Voici la liste des mots italiens que tu dois utiliser dans ton texte:
-      ${italianWords.map(word => `"${word}"`).join(', ')}
+      ${wordsSection}${themesSection}${customPromptSection}
       
-      Pour information, ces mots proviennent des paires de traduction suivantes:
-      ${formattedPairs.join('\n')}${themesSection}${customPromptSection}
-      
-      Peux-tu créer un ${type === 'written' ? 'texte narratif' : 'dialogue'} original UNIQUEMENT EN ITALIEN d'environ ${targetLength} mots qui utilise tous ces mots italiens de manière naturelle?
+      Peux-tu créer un ${type === 'written' ? 'texte narratif' : 'dialogue'} original UNIQUEMENT EN ITALIEN d'environ ${targetLength} mots${italianWords.length > 0 ? ' qui utilise tous ces mots italiens de manière naturelle' : ''}?
       Le texte doit être de niveau intermédiaire, facile à comprendre mais avec une structure correcte.${themes && themes.length > 0 ? '\n      Respecte impérativement le contexte et les consignes spécifiques ci-dessus pour la création du texte.' : ''}${customPrompt && customPrompt.trim() ? '\n      Respecte impérativement la consigne personnalisée ci-dessus pour le contenu du texte.' : ''}
       
       De plus, génère 3 à 5 questions de compréhension en FRANÇAIS sur ce texte, qui permettent de vérifier si l'apprenant a bien compris le contenu.
       
       Important:
-      - Utilise TOUS les mots italiens de la liste dans ton texte
-      - Le texte DOIT être écrit INTÉGRALEMENT en italien (aucun mot ou phrase en français)
+      ${useAllWordsInstruction}- Le texte DOIT être écrit INTÉGRALEMENT en italien (aucun mot ou phrase en français)
       - Crée une histoire cohérente et intéressante${type === 'oral' ? ' sous forme de dialogue entre 2-3 personnes' : ''}${themes && themes.length > 0 ? ', en respectant parfaitement le contexte et les consignes spécifiques fournis' : ''}${customPrompt && customPrompt.trim() ? ', en respectant parfaitement la consigne personnalisée pour le contenu' : ''}
       - Ne fais pas de liste, mais un texte narratif fluide
       - Ne mets PAS en évidence les mots, laisse-les intégrés naturellement dans le texte
@@ -148,8 +154,7 @@ export class TextGeneratorService {
           ...
         ]
       }
-      - Assure-toi que chaque mot de la liste apparaît dans le texte ET dans le tableau vocabularyItems
-      - Tous les mots dans le texte doivent être en italien
+      ${italianWords.length > 0 ? '- Assure-toi que chaque mot de la liste apparaît dans le texte ET dans le tableau vocabularyItems\n' : ''}- Tous les mots dans le texte doivent être en italien
       - Les questions doivent être en français et être de niveau intermédiaire
       - Le format JSON doit être valide pour pouvoir être traité par une application
     `;

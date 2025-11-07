@@ -1,49 +1,46 @@
 <ion-content>
   <div class="container" *ngIf="comprehensionText">
-    <div class="exercise-header ion-padding ion-text-center">
+    <div class="exercise-header ion-text-center">
       <h2>
-        <ion-icon [name]="comprehensionText.type === 'written' ? 'book-outline' : 'mic-outline'"></ion-icon>
         {{ comprehensionText.type === 'written' ? 'Lisez le texte' : 'Écoutez le dialogue' }}
       </h2>
       <p>Les mots de vocabulaire sont mis en évidence</p>
     </div>
 
-    <ion-card class="text-card">
-      <ion-card-content>
-        <!-- Nouvelle interface audio pour la compréhension orale -->
-        <div *ngIf="comprehensionText.type === 'oral'" class="audio-section">
-          <app-audio-player [audioUrl]="audioUrl" [isLoading]="isAudioLoading"></app-audio-player>
-          
-          <div class="transcription-control">
-            <ion-button (click)="toggleTranscription()" fill="outline" size="small">
-              <ion-icon [name]="showTranscription ? 'eye-off-outline' : 'eye-outline'" slot="start"></ion-icon>
-              {{ showTranscription ? 'Masquer la transcription' : 'Afficher la transcription' }}
-            </ion-button>
-          </div>
-          
-          <!-- Texte affiché uniquement si la transcription est activée -->
-          <div *ngIf="showTranscription" class="transcription-container">
-            <div [innerHTML]="getHighlightedText() | safeHtml" 
-                 class="comprehension-text" 
-                 appSafeHtml
-                 (wordClick)="onWordClicked($event)"></div>
-            <button *ngIf="selectedFragment" class="translate-fixed-btn" (click)="translateSelection()">
-              Traduire la sélection
-            </button>
-          </div>
+    <div class="text-content">
+      <!-- Nouvelle interface audio pour la compréhension orale -->
+      <div *ngIf="comprehensionText.type === 'oral'" class="audio-section">
+        <app-audio-player [audioUrl]="audioUrl" [isLoading]="isAudioLoading"></app-audio-player>
+        
+        <div class="transcription-control">
+          <ion-button (click)="toggleTranscription()" fill="outline" size="small">
+            <ion-icon [name]="showTranscription ? 'eye-off-outline' : 'eye-outline'" slot="start"></ion-icon>
+            {{ showTranscription ? 'Masquer la transcription' : 'Afficher la transcription' }}
+          </ion-button>
         </div>
         
-        <!-- Affichage normal pour la compréhension écrite -->
-        <div *ngIf="comprehensionText.type === 'written'" 
-             [innerHTML]="getHighlightedText() | safeHtml" 
-             class="comprehension-text" 
-             appSafeHtml
-             (wordClick)="onWordClicked($event)"></div>
-        <button *ngIf="selectedFragment" class="translate-fixed-btn" (click)="translateSelection()">
-          Traduire la sélection
-        </button>
-      </ion-card-content>
-    </ion-card>
+        <!-- Texte affiché uniquement si la transcription est activée -->
+        <div *ngIf="showTranscription" class="transcription-container">
+          <div [innerHTML]="getHighlightedText() | safeHtml" 
+               class="comprehension-text" 
+               appSafeHtml
+               (wordClick)="onWordClicked($event)"></div>
+          <button *ngIf="selectedFragment" class="translate-fixed-btn" (click)="translateSelection()">
+            Traduire la sélection
+          </button>
+        </div>
+      </div>
+      
+      <!-- Affichage normal pour la compréhension écrite -->
+      <div *ngIf="comprehensionText.type === 'written'" 
+           [innerHTML]="getHighlightedText() | safeHtml" 
+           class="comprehension-text" 
+           appSafeHtml
+           (wordClick)="onWordClicked($event)"></div>
+      <button *ngIf="selectedFragment" class="translate-fixed-btn" (click)="translateSelection()">
+        Traduire la sélection
+      </button>
+    </div>
 
     <!-- Modal de traduction contextuelle -->
     <ion-modal [isOpen]="!!translation" [backdropDismiss]="true" (didDismiss)="closeTranslation()">
@@ -113,20 +110,40 @@
       </ng-template>
     </ion-modal>
 
-    <div class="results-container ion-padding">
+    <div class="results-container">
       <h3 class="ion-text-center">Vocabulaire</h3>
-      <div class="exercise-option" *ngFor="let item of comprehensionText.vocabularyItems" (click)="getWordTranslation(item.word)">
-        <div class="option-title">{{ item.word }}</div>
-        <div class="option-sub">{{ item.translation }}</div>
+      <div class="exercise-option vocabulary-item" *ngFor="let item of comprehensionText.vocabularyItems">
+        <div class="vocabulary-content" (click)="getWordTranslation(item.word)">
+          <div class="option-title">{{ item.word }}</div>
+          <div class="option-sub">{{ item.translation }}</div>
+        </div>
+        <ion-button 
+          *ngIf="!isVocabularyItemInDictionary(item)"
+          fill="clear" 
+          size="small" 
+          color="success"
+          (click)="addVocabularyItemToDictionary(item, $event)"
+          class="add-word-btn">
+          <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button 
+          *ngIf="isVocabularyItemInDictionary(item)"
+          fill="clear" 
+          size="small" 
+          color="danger"
+          (click)="removeVocabularyItemFromDictionary(item, $event)"
+          class="remove-word-btn">
+          <ion-icon name="remove-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
       </div>
     </div>
 
     <!-- Section des questions intégrée -->
-    <div class="results-container ion-padding">
+    <div class="results-container">
       <h3 class="ion-text-center">Questions de compréhension</h3>
       
       <!-- Affichage du chargement pendant la génération des questions -->
-      <div *ngIf="isGeneratingQuestions" class="ion-text-center ion-margin-vertical">
+      <div *ngIf="isGeneratingQuestions" class="ion-text-center">
         <ion-spinner></ion-spinner>
         <p>Génération des questions en cours...</p>
       </div>
@@ -160,7 +177,7 @@
         <div class="evaluation-panel" *ngIf="showResult && evaluationResult">
           <div class="option-title ion-text-center">Évaluation</div>
           <div class="option-sub ion-text-center">Score: {{evaluationResult.score}}%</div>
-          <p class="ion-text-center ion-padding">{{evaluationResult.overallFeedback}}</p>
+          <p class="ion-text-center">{{evaluationResult.overallFeedback}}</p>
           <div class="feedback-list">
             <div class="feedback-item" *ngFor="let feedback of evaluationResult.feedback">
               <div class="option-title">{{feedback.question}}</div>
@@ -173,7 +190,7 @@
       </div>
     </div>
     
-    <div class="results-container ion-padding">
+    <div class="results-container">
       <h3 class="ion-text-center">Actions</h3>
       
       <div class="exercise-option" *ngIf="!isTextAlreadySaved()" (click)="saveText()">
