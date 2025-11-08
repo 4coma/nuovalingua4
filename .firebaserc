@@ -1,5 +1,22 @@
 {
   "projects": {
     "default": "nuovalingua-b0aa0"
-  }
+  },
+  "targets": {
+    "nuovalingua": {
+      "hosting": {
+        "nuovalingua-web": [
+          "nuovalingua-web"
+        ]
+      }
+    },
+    "nuovalingua-b0aa0": {
+      "hosting": {
+        "nuovalingua-web": [
+          "nuovalingua-web"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

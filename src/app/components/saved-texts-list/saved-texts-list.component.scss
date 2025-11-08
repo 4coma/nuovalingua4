@@ -55,29 +55,18 @@ ion-content {
 /* Style pour les mots du dictionnaire personnel */
 .clickable-word.dictionary-word {
   color: var(--ion-color-success) !important;
-  font-weight: var(--ds-font-weight-medium) !important;
-  background-color: rgba(var(--ion-color-success-rgb), 0.15) !important;
-  padding: var(--ds-space-3xs) var(--ds-space-3xs) !important;
-  border-radius: var(--ds-radius-xs) !important;
-  border: 1px solid rgba(var(--ion-color-success-rgb), 0.3) !important;
+  font-weight: var(--ds-font-weight-bold) !important;
   transition: var(--ds-transition-base) !important;
 }
 
 .clickable-word.dictionary-word:hover {
-  background-color: rgba(var(--ion-color-success-rgb), 0.25) !important;
   text-decoration: underline !important;
-  transform: scale(1.02);
 }
 
 /* Combinaison: mot du dictionnaire + mot du vocabulaire */
 .dictionary-word.highlighted-word.vocabulary-word {
-  color: var(--ion-color-warning);
-  background-color: rgba(var(--ion-color-warning-rgb), 0.15);
-  font-weight: var(--ds-font-weight-semibold);
-}
-
-.dictionary-word.highlighted-word.vocabulary-word:hover {
-  background-color: rgba(var(--ion-color-warning-rgb), 0.25);
+  color: var(--ion-color-success) !important;
+  font-weight: var(--ds-font-weight-bold) !important;
 }
 
 .translation {
@@ -148,5 +137,41 @@ ion-content {
 @media (prefers-color-scheme: dark) {
   ion-content {
     --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  }
+}
+
+// Styles pour la modale de consultation du dictionnaire
+.dictionary-word-header {
+  margin-bottom: var(--ds-space-md);
+  padding-bottom: var(--ds-space-md);
+  border-bottom: 1px solid var(--color-border-subtle);
+  
+  h2 {
+    font-size: var(--ds-font-size-h2);
+    font-weight: var(--ds-font-weight-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--ds-space-xs);
+  }
+  
+  .translation-display {
+    font-size: var(--ds-font-size-h3);
+    color: var(--ion-color-success);
+    font-weight: var(--ds-font-weight-semibold);
+    margin: 0;
+  }
+}
+
+.themes-section {
+  h3 {
+    font-size: var(--ds-font-size-h4);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--ds-space-sm);
+  }
+  
+  .themes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-xs);
   }
 }

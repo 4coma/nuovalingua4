@@ -89,10 +89,10 @@ ion-content {
   font-family: var(--ds-font-family-sans);
   color: var(--color-text-primary);
   
-  /* Mots du vocabulaire de la session: juste du vert (pas de fond/bordure) */
+  /* Mots du vocabulaire de la session: gras (pas de couleur verte) */
   .highlighted-word.vocabulary-word {
-    color: var(--ion-color-success);
-    font-weight: var(--ds-font-weight-regular);
+    color: var(--color-text-primary);
+    font-weight: var(--ds-font-weight-bold);
     transition: var(--ds-transition-base);
   }
   
@@ -107,9 +107,9 @@ ion-content {
     }
   }
   
-  /* Mots du dictionnaire personnel: même couleur que le texte, plus gras */
+  /* Mots du dictionnaire personnel: vert et gras */
   .clickable-word.dictionary-word {
-    color: var(--color-text-primary);
+    color: var(--ion-color-success);
     font-weight: var(--ds-font-weight-bold);
     transition: var(--ds-transition-base);
   }
@@ -458,5 +458,41 @@ ion-content {
 @media (prefers-color-scheme: dark) {
   ion-content {
     --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  }
+}
+
+// Styles pour la modale de consultation du dictionnaire
+.dictionary-word-header {
+  margin-bottom: var(--ds-space-md);
+  padding-bottom: var(--ds-space-md);
+  border-bottom: 1px solid var(--color-border-subtle);
+  
+  h2 {
+    font-size: var(--ds-font-size-h2);
+    font-weight: var(--ds-font-weight-bold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--ds-space-xs);
+  }
+  
+  .translation-display {
+    font-size: var(--ds-font-size-h3);
+    color: var(--ion-color-success);
+    font-weight: var(--ds-font-weight-semibold);
+    margin: 0;
+  }
+}
+
+.themes-section {
+  h3 {
+    font-size: var(--ds-font-size-h4);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--ds-space-sm);
+  }
+  
+  .themes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-xs);
   }
 }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, OnChanges, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, OnChanges, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ComprehensionText, VocabularyItem, ComprehensionQuestion, EvaluationResult } from '../../models/vocabulary';
 import { CommonModule } from '@angular/common';
 import { IonicModule, PopoverController, LoadingController, ToastController } from '@ionic/angular';
@@ -42,6 +42,9 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
   editableTranslation: string = '';
   isTranslating: boolean = false;
   
+  // Pour la consultation du dictionnaire
+  selectedDictionaryWord: DictionaryWord | null = null;
+  
   // Pour la transcription
   showTranscription: boolean = false;
   
@@ -79,7 +82,8 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
     private toastCtrl: ToastController,
     private dictionaryService: PersonalDictionaryService,
     private vocabularyTrackingService: VocabularyTrackingService,
-    private savedTextsService: SavedTextsService
+    private savedTextsService: SavedTextsService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -437,7 +441,121 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
    * Gère un mot cliqué via la directive SafeHtmlDirective
    */
   onWordClicked(word: string): void {
+    console.log('🔵 onWordClicked appelé avec:', word);
+    
+    // S'assurer que le cache est à jour
+    this.updateDictionaryCache();
+    
+    // Utiliser EXACTEMENT la même logique que dans getHighlightedText pour détecter les mots du dictionnaire
+    const normalize = (s: string) => s
+      .toLowerCase()
+      .normalize('NFC')
+      .replace(/[’']/g, "'");
+    
+    const normalizedWord = normalize(word.trim());
+    console.log('🔵 Mot normalisé:', normalizedWord);
+    
+    // Utiliser EXACTEMENT la même méthode que dans getHighlightedText
+    const dictionaryWordsSetRaw = this.dictionaryService.getDictionaryWordsSet('it');
+    console.log('🔵 Set brut du dictionnaire:', Array.from(dictionaryWordsSetRaw).slice(0, 5));
+    
+    const dictionarySet = new Set(Array.from(dictionaryWordsSetRaw).map(w => normalize(w)));
+    console.log('🔵 Set normalisé du dictionnaire:', Array.from(dictionarySet).slice(0, 5));
+    console.log('🔵 Le mot normalisé est dans le Set?', dictionarySet.has(normalizedWord));
+    
+    // Vérifier si le mot est dans le dictionnaire (comme dans getHighlightedText)
+    const isDictionaryWord = dictionarySet.has(normalizedWord);
+    console.log('🔵 Est dans le dictionnaire?', isDictionaryWord);
+    console.log('🔵 Cache du dictionnaire:', this.dictionaryWordsCache.length, 'mots');
+    
+    if (isDictionaryWord) {
+      // Trouver le mot dans le cache
+      const dictionaryWord = this.dictionaryWordsCache.find(w => {
+        const normalizedSource = normalize(w.sourceWord);
+        const matches = normalizedSource === normalizedWord && w.sourceLang === 'it';
+        if (matches) {
+          console.log('🔵 Match trouvé:', w.sourceWord, '->', normalizedSource);
+        }
+        return matches;
+      });
+      
+      console.log('🔵 Mot trouvé dans le cache?', !!dictionaryWord);
+      
+      if (dictionaryWord) {
+        console.log('✅ Affichage de la modale du dictionnaire');
+        // Afficher directement les infos du mot depuis le dictionnaire
+        this.showDictionaryWordInfo(dictionaryWord);
+        return;
+      } else {
+        console.log('⚠️ Mot dans le Set mais pas trouvé dans le cache');
+      }
+    }
+    
+    console.log('❌ Appel API pour traduction');
+    // Sinon, faire l'appel API pour la traduction
     this.getWordTranslation(word);
+  }
+
+  /**
+   * Trouve un mot dans le dictionnaire personnel par son texte source
+   */
+  private findWordInDictionary(word: string): DictionaryWord | null {
+    // Utiliser la même normalisation que pour la mise en évidence
+    const normalize = (s: string) => s
+      .toLowerCase()
+      .normalize('NFC')
+      .replace(/[’']/g, "'");
+    
+    const normalizedWord = normalize(word.trim());
+    
+    // Utiliser getDictionaryWordsSet comme dans getHighlightedText pour être cohérent
+    const dictionaryWordsSetRaw = this.dictionaryService.getDictionaryWordsSet('it');
+    const dictionarySet = new Set(Array.from(dictionaryWordsSetRaw).map(w => normalize(w)));
+    
+    // Vérifier d'abord si le mot est dans le Set (comme dans getHighlightedText)
+    if (!dictionarySet.has(normalizedWord)) {
+      return null;
+    }
+    
+    // Si le mot est dans le Set, le trouver dans le cache
+    return this.dictionaryWordsCache.find(w => 
+      normalize(w.sourceWord) === normalizedWord &&
+      w.sourceLang === 'it'
+    ) || null;
+  }
+
+  /**
+   * Affiche les informations d'un mot du dictionnaire dans une modale
+   */
+  private showDictionaryWordInfo(dictionaryWord: DictionaryWord): void {
+    // Utiliser la nouvelle modale dédiée au dictionnaire
+    this.selectedDictionaryWord = dictionaryWord;
+  }
+
+  /**
+   * Ferme la modale de consultation du dictionnaire
+   */
+  closeDictionaryModal(): void {
+    this.selectedDictionaryWord = null;
+  }
+
+  /**
+   * Retire un mot du dictionnaire depuis la modale de consultation
+   */
+  removeWordFromDictionaryModal(): void {
+    if (!this.selectedDictionaryWord?.id) return;
+    
+    const removed = this.dictionaryService.removeWord(this.selectedDictionaryWord.id);
+    
+    if (removed) {
+      this.updateDictionaryCache();
+      this.showSuccessToast('Mot retiré du dictionnaire personnel');
+      this.closeDictionaryModal();
+      // Forcer la mise à jour de la vue pour retirer la mise en évidence
+      this.cdr.detectChanges();
+    } else {
+      this.showErrorToast('Erreur lors de la suppression');
+    }
   }
 
   /**
@@ -660,6 +778,7 @@ export class ComprehensionExerciseComponent implements OnInit, OnChanges, OnDest
    */
   private updateDictionaryCache(): void {
     this.dictionaryWordsCache = this.dictionaryService.getAllWords();
+    console.log('📚 Cache mis à jour:', this.dictionaryWordsCache.length, 'mots');
   }
 
   /**

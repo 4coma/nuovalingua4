@@ -41,6 +41,9 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
   isTranslating = false;
   selectedWord = '';
 
+  // Pour la consultation du dictionnaire
+  selectedDictionaryWord: DictionaryWord | null = null;
+
   // Pour la sélection d'extrait
   selectedFragment = '';
 
@@ -56,6 +59,9 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
   private dictionarySubscription?: Subscription;
   // Compteur pour forcer la mise à jour de la vue
   public highlightUpdateCounter = 0;
+  
+  // Cache pour les mots dans le dictionnaire (mis à jour après chaque ajout/suppression)
+  private dictionaryWordsCache: DictionaryWord[] = [];
 
   constructor(
     private savedTextsService: SavedTextsService,
@@ -71,6 +77,7 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
   ngOnInit() {
     this.loadTexts();
     this.loadGeneratedSessions();
+    this.updateDictionaryCache();
     
     // Écouter l'événement de sauvegarde de texte
     this.textSavedListener = () => {
@@ -80,6 +87,8 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
 
     // S'abonner aux changements du dictionnaire pour mettre à jour la vue du texte
     this.dictionarySubscription = this.dictionaryService.dictionaryWords$.subscribe(() => {
+      // Mettre à jour le cache quand le dictionnaire change
+      this.updateDictionaryCache();
       // Si un texte est actuellement affiché, forcer la mise à jour de son rendu
       if (this.selectedText) {
         this.highlightUpdateCounter++;
@@ -104,6 +113,8 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
   ionViewWillEnter() {
     // Recharger les textes à chaque fois que la vue devient visible
     this.loadTexts();
+    // Mettre à jour le cache du dictionnaire
+    this.updateDictionaryCache();
   }
 
   loadTexts() {
@@ -414,6 +425,37 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
 
   onWordClicked(word: string, text: SavedText | null) {
     if (!text) return;
+    
+    // Utiliser EXACTEMENT la même logique que dans comprehension-exercise pour détecter les mots du dictionnaire
+    const normalize = (s: string) => s
+      .toLowerCase()
+      .normalize('NFC')
+      .replace(/[’']/g, "'");
+    
+    const normalizedWord = normalize(word.trim());
+    
+    // Utiliser EXACTEMENT la même méthode que dans getHighlightedText
+    const dictionaryWordsSetRaw = this.dictionaryService.getDictionaryWordsSet('it');
+    const dictionarySet = new Set(Array.from(dictionaryWordsSetRaw).map(w => normalize(w)));
+    
+    // Vérifier si le mot est dans le dictionnaire (comme dans getHighlightedText)
+    const isDictionaryWord = dictionarySet.has(normalizedWord);
+    
+    if (isDictionaryWord) {
+      // Trouver le mot dans le cache
+      const dictionaryWord = this.dictionaryWordsCache.find(w => {
+        const normalizedSource = normalize(w.sourceWord);
+        return normalizedSource === normalizedWord && w.sourceLang === 'it';
+      });
+      
+      if (dictionaryWord) {
+        // Afficher directement les infos du mot depuis le dictionnaire
+        this.showDictionaryWordInfo(dictionaryWord);
+        return;
+      }
+    }
+    
+    // Sinon, faire l'appel API pour la traduction
     this.selectedWord = word;
     this.isTranslating = true;
     this.translation = null;
@@ -459,6 +501,48 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
     });
   }
 
+  /**
+   * Met à jour le cache des mots du dictionnaire
+   */
+  private updateDictionaryCache(): void {
+    this.dictionaryWordsCache = this.dictionaryService.getAllWords();
+  }
+
+  /**
+   * Affiche les informations d'un mot du dictionnaire dans une modale
+   */
+  private showDictionaryWordInfo(dictionaryWord: DictionaryWord): void {
+    // Utiliser la nouvelle modale dédiée au dictionnaire
+    this.selectedDictionaryWord = dictionaryWord;
+  }
+
+  /**
+   * Ferme la modale de consultation du dictionnaire
+   */
+  closeDictionaryModal(): void {
+    this.selectedDictionaryWord = null;
+  }
+
+  /**
+   * Retire un mot du dictionnaire depuis la modale de consultation
+   */
+  removeWordFromDictionaryModal(): void {
+    if (!this.selectedDictionaryWord?.id) return;
+    
+    const removed = this.dictionaryService.removeWord(this.selectedDictionaryWord.id);
+    
+    if (removed) {
+      this.updateDictionaryCache();
+      this.showToast('Mot retiré du dictionnaire personnel', 'success');
+      this.closeDictionaryModal();
+      // Forcer la mise à jour de la vue pour retirer la mise en évidence
+      this.highlightUpdateCounter++;
+      this.cdr.detectChanges();
+    } else {
+      this.showToast('Erreur lors de la suppression', 'danger');
+    }
+  }
+
   closeTranslation() {
     this.translation = null;
     this.editableTranslation = '';
@@ -481,6 +565,7 @@ export class SavedTextsListComponent implements OnInit, OnDestroy, ViewWillEnter
     };
     const added = this.dictionaryService.addWord(newWord);
     if (added) {
+      this.updateDictionaryCache(); // Mettre à jour le cache après ajout
       this.showToast('Mot ajouté à votre dictionnaire personnel', 'success');
       // Forcer la mise à jour de la vue pour mettre en évidence le nouveau mot
       this.highlightUpdateCounter++;

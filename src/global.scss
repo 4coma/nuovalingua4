@@ -177,14 +177,14 @@ ion-menu ion-header ion-title {
 
 /* Mots du vocabulaire (dans les textes) */
 .highlighted-word.vocabulary-word {
-  color: var(--ion-color-success) !important; /* vert net */
-  font-weight: 500; /* léger */
+  color: inherit !important; /* couleur du texte normale */
+  font-weight: 700 !important; /* gras pour mise en évidence */
 }
 
 /* 🟢 MOTS DU DICTIONNAIRE PERSONNEL - EN VERT (simple couleur) */
 .clickable-word.dictionary-word {
-  color: inherit !important; /* même couleur que le texte */
-  font-weight: 700 !important; /* mise en évidence légère par le gras */
+  color: var(--ion-color-success) !important; /* vert */
+  font-weight: 700 !important; /* mise en évidence par le gras */
 }
 
 .clickable-word.dictionary-word:hover {

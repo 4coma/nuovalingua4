@@ -74,6 +74,73 @@
         </ng-template>
       </ion-modal>
 
+      <!-- Modal de consultation du dictionnaire -->
+      <ion-modal [isOpen]="!!selectedDictionaryWord" [backdropDismiss]="true" (didDismiss)="closeDictionaryModal()">
+        <ng-template>
+          <ion-header>
+            <ion-toolbar color="success">
+              <ion-title>
+                <ion-icon name="bookmark" slot="start"></ion-icon>
+                Mot du dictionnaire
+              </ion-title>
+              <ion-buttons slot="end">
+                <ion-button (click)="closeDictionaryModal()">
+                  <ion-icon name="close-outline"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+          <ion-content class="ion-padding" *ngIf="selectedDictionaryWord">
+            <div class="dictionary-word-header">
+              <h2 class="ion-text-center">{{ selectedDictionaryWord.sourceWord }}</h2>
+              <p class="ion-text-center translation-display">{{ selectedDictionaryWord.targetWord }}</p>
+            </div>
+            
+            <ion-item lines="none" *ngIf="selectedDictionaryWord.contextualMeaning">
+              <ion-label>
+                <h3>Sens dans ce contexte</h3>
+                <p>{{ selectedDictionaryWord.contextualMeaning }}</p>
+              </ion-label>
+            </ion-item>
+            
+            <ion-item lines="none" *ngIf="selectedDictionaryWord.partOfSpeech">
+              <ion-label>
+                <h3>Catégorie grammaticale</h3>
+                <p>{{ selectedDictionaryWord.partOfSpeech }}</p>
+              </ion-label>
+            </ion-item>
+            
+            <div *ngIf="selectedDictionaryWord.examples && selectedDictionaryWord.examples.length > 0" class="examples-section ion-padding-top">
+              <h3>Exemples</h3>
+              <ion-list>
+                <ion-item *ngFor="let example of selectedDictionaryWord.examples">
+                  <ion-label text-wrap>{{ example }}</ion-label>
+                </ion-item>
+              </ion-list>
+            </div>
+            
+            <div *ngIf="selectedDictionaryWord.themes && selectedDictionaryWord.themes.length > 0" class="themes-section ion-padding-top">
+              <h3>Thèmes</h3>
+              <div class="themes-list">
+                <ion-chip *ngFor="let theme of selectedDictionaryWord.themes" color="primary">
+                  {{ theme }}
+                </ion-chip>
+              </div>
+            </div>
+            
+            <div class="ion-padding-top ion-text-center">
+              <ion-button (click)="removeWordFromDictionaryModal()" color="danger" fill="outline" class="ion-margin-end">
+                <ion-icon name="trash-outline" slot="start"></ion-icon>
+                Retirer du dictionnaire
+              </ion-button>
+              <ion-button (click)="closeDictionaryModal()" color="medium">
+                Fermer
+              </ion-button>
+            </div>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
+
       <!-- Modal de traduction contextuelle -->
       <ion-modal [isOpen]="!!translation" [backdropDismiss]="true" (didDismiss)="closeTranslation()">
         <ng-template>
