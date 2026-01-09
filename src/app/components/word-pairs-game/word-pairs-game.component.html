@@ -13,19 +13,13 @@
         <span class="configuration-title">Options</span>
         <ion-icon [name]="showConfiguration ? 'chevron-up' : 'chevron-down'" class="toggle-icon"></ion-icon>
       </div>
-      
+
       <!-- Options de configuration (dépliables) -->
       <div *ngIf="showConfiguration" class="configuration-options">
         <!-- Input pour le nombre de paires -->
         <div class="pairs-title">
-          <ion-input 
-            type="number" 
-            [(ngModel)]="maxPairsToReview" 
-            (ionInput)="onPairsCountChange($event)"
-            [disabled]="matchedPairs > 0"
-            min="3" 
-            max="50"
-            class="pairs-input">
+          <ion-input type="number" [(ngModel)]="maxPairsToReview" (ionInput)="onPairsCountChange($event)"
+            [disabled]="matchedPairs > 0" min="3" max="50" class="pairs-input">
           </ion-input>
           <span class="pairs-label">paires</span>
         </div>
@@ -34,32 +28,22 @@
         <div *ngIf="availableThemes.length > 0" class="theme-filter-inline">
           <ion-item lines="none">
             <ion-label position="stacked">Thèmes</ion-label>
-            <ion-input 
-              [(ngModel)]="themeInput" 
-              (ionInput)="onThemeInputChange($event)"
-              (ionFocus)="showAutocomplete = true"
-              (ionBlur)="hideAutocomplete()"
-              placeholder="Thème..."
+            <ion-input [(ngModel)]="themeInput" (ionInput)="onThemeInputChange($event)"
+              (ionFocus)="showAutocomplete = true" (ionBlur)="hideAutocomplete()" placeholder="Thème..."
               [disabled]="matchedPairs > 0">
             </ion-input>
           </ion-item>
-          
+
           <!-- Autocomplete dropdown -->
           <div *ngIf="showAutocomplete && filteredThemes.length > 0" class="autocomplete-dropdown">
-            <div 
-              *ngFor="let theme of filteredThemes" 
-              class="autocomplete-item"
-              (click)="selectTheme(theme)">
+            <div *ngFor="let theme of filteredThemes" class="autocomplete-item" (click)="selectTheme(theme)">
               {{ theme }}
             </div>
           </div>
-          
+
           <!-- Chiplist des thèmes sélectionnés -->
           <div *ngIf="selectedThemes.length > 0" class="selected-themes">
-            <ion-chip 
-              *ngFor="let theme of selectedThemes" 
-              color="primary"
-              (click)="removeTheme(theme)">
+            <ion-chip *ngFor="let theme of selectedThemes" color="primary" (click)="removeTheme(theme)">
               {{ theme }}
               <ion-icon name="close-circle" slot="end"></ion-icon>
             </ion-chip>
@@ -73,23 +57,48 @@
       <p>
         <span class="set-indicator">Set {{ currentPairsSet }}/{{ getTotalSets() }}</span>
         <!-- Bouton mute/unmute entre le set et les paires -->
-        <ion-button 
-          fill="clear" 
-          size="small" 
-          (click)="toggleAudio()" 
-          class="audio-toggle-btn">
+        <ion-button fill="clear" size="small" (click)="toggleAudio()" class="audio-toggle-btn">
           <ion-icon [name]="audioEnabled ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
         </ion-button>
         <span class="progress-indicator">{{ matchedPairs }} / {{ currentPairs.length / 2 }} paires</span>
       </p>
       <ion-progress-bar [value]="matchedPairs / (currentPairs.length / 2)"></ion-progress-bar>
     </div>
-    
+
+    <!-- Bouton de test pour compléter instantanément (uniquement pour les révisions POM) -->
+    <div *ngIf="isPomReview && !gameComplete" class="test-button-container ion-text-center ion-margin-top">
+      <ion-button color="warning" fill="outline" size="small" (click)="completeReviewInstantly()">
+        <ion-icon name="flash-outline" slot="start"></ion-icon>
+        Compléter (Test)
+      </ion-button>
+    </div>
+
     <div class="game-complete" *ngIf="gameComplete">
       <p>Vous avez terminé l'exercice d'association !</p>
       <ion-badge color="success">
         {{ totalPairs }} paires associées | {{ attempts }} tentatives
       </ion-badge>
+
+      <div class="session-words-list ion-padding-top" *ngIf="wordPairs.length > 0">
+        <h3 class="ion-text-center ion-margin-bottom">Mots de cette session</h3>
+        <ion-list class="word-list">
+          <ion-item *ngFor="let pair of wordPairs; let i = index; trackBy: trackByWordPair">
+            <ion-label>
+              <h2>{{ pair.it }}</h2>
+              <p>{{ pair.fr }}</p>
+            </ion-label>
+            <ion-button fill="clear" [color]="isWordKnown(pair) ? 'success' : 'medium'" slot="end"
+              (click)="toggleWordKnownStatus(pair)" title="Marquer comme connu">
+              <ion-icon [name]="isWordKnown(pair) ? 'checkmark-circle' : 'checkmark-circle-outline'"
+                slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" [color]="isTracked(pair) ? 'medium' : 'success'" slot="end"
+              (click)="toggleWordTracking(pair)">
+              <ion-icon [name]="isTracked(pair) ? 'trash-outline' : 'add-circle-outline'" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </ion-list>
+      </div>
     </div>
 
     <!-- Grille de jeu -->
@@ -99,26 +108,20 @@
           <!-- Colonne de mots sources (à gauche) -->
           <ion-col size="6">
             <div class="source-words">
-              <ion-card 
-                *ngFor="let pair of currentPairs | filter:'isSource':true" 
-                class="word-card" 
-                [class]="getCardClass(pair)"
-                (click)="selectWord(pair)">
+              <ion-card *ngFor="let pair of currentPairs | filter:'isSource':true" class="word-card"
+                [class]="getCardClass(pair)" (click)="selectWord(pair)">
                 <ion-card-content>
                   {{ pair.word }}
                 </ion-card-content>
               </ion-card>
             </div>
           </ion-col>
-          
+
           <!-- Colonne de mots cibles (à droite) -->
           <ion-col size="6">
             <div class="target-words">
-              <ion-card 
-                *ngFor="let pair of currentPairs | filter:'isSource':false" 
-                class="word-card" 
-                [class]="getCardClass(pair)"
-                (click)="selectWord(pair)">
+              <ion-card *ngFor="let pair of currentPairs | filter:'isSource':false" class="word-card"
+                [class]="getCardClass(pair)" (click)="selectWord(pair)">
                 <ion-card-content>
                   {{ pair.word }}
                 </ion-card-content>
@@ -150,7 +153,7 @@
         <p class="ion-text-center ion-text-muted">
           <small>Définissez quand ces mots pourront être révisés à nouveau</small>
         </p>
-        
+
         <ion-list>
           <ion-item *ngFor="let word of revisedWords" class="revised-word-item">
             <ion-label>
@@ -158,12 +161,8 @@
               <p *ngIf="word.context" class="word-context">{{ word.context }}</p>
             </ion-label>
             <div class="word-controls">
-              <ion-select 
-                [(ngModel)]="word.revisionDelay" 
-                (ionChange)="onRevisionDelayChange(word)"
-                placeholder="Délai"
-                interface="popover"
-                class="revision-delay-select">
+              <ion-select [(ngModel)]="word.revisionDelay" (ionChange)="onRevisionDelayChange(word)" placeholder="Délai"
+                interface="popover" class="revision-delay-select">
                 <ion-select-option value="1j">1 jour</ion-select-option>
                 <ion-select-option value="3j">3 jours</ion-select-option>
                 <ion-select-option value="7j">7 jours</ion-select-option>
@@ -172,16 +171,13 @@
                 <ion-select-option value="3m">3 mois</ion-select-option>
                 <ion-select-option value="6m">6 mois</ion-select-option>
               </ion-select>
-              <ion-toggle 
-                [(ngModel)]="word.isKnown" 
-                (ionChange)="onKnownStatusChange(word)"
-                class="known-toggle">
+              <ion-toggle [(ngModel)]="word.isKnown" (ionChange)="onKnownStatusChange(word)" class="known-toggle">
                 <ion-label>Connu</ion-label>
               </ion-toggle>
             </div>
           </ion-item>
         </ion-list>
-        
+
         <p class="ion-text-center ion-text-muted ion-margin-top">
           <small>Les délais de révision seront sauvegardés automatiquement quand vous quitterez cet écran</small>
         </p>
@@ -189,12 +185,8 @@
 
       <!-- Menu principal simplifié -->
       <div class="main-actions">
-        <ion-button
-          *ngIf="isFullRevisionSession"
-          (click)="goToFullRevisionConversation()"
-          expand="block"
-          color="success"
-          class="main-button">
+        <ion-button *ngIf="isFullRevisionSession" (click)="goToFullRevisionConversation()" expand="block"
+          color="success" class="main-button">
           <ion-icon name="chatbubbles-outline" slot="start"></ion-icon>
           Passer à la conversation
         </ion-button>
@@ -207,56 +199,50 @@
         <div class="more-options-text" (click)="toggleMoreOptions()">
           {{ showMoreOptions ? 'Moins d\'options' : 'Plus d\'options' }}
         </div>
-        
+
         <!-- Options supplémentaires (affichées conditionnellement) -->
         <div class="additional-options" *ngIf="showMoreOptions">
           <!-- Options sous forme de texte simple -->
           <div class="option-text" (click)="openDictionaryModal()">
             Ajouter au dictionnaire personnel
           </div>
-          
+
           <div class="option-text" (click)="restartExercise()">
             Recommencer l'exercice
           </div>
-          
-          <div class="option-text" 
-               (click)="restartFailedWords()" 
-               [class.disabled]="!hasFailedWords">
+
+          <div class="option-text" (click)="restartFailedWords()" [class.disabled]="!hasFailedWords">
             Recommencer les mots ratés ({{ failedWords.length }})
           </div>
-          
-          <div class="option-text" 
-               (click)="generateWrittenComprehension()" 
-               [class.disabled]="isGenerating">
+
+          <div class="option-text" (click)="generateWrittenComprehension()" [class.disabled]="isGenerating">
             Compréhension écrite
           </div>
-          
-          <div class="option-text" 
-               (click)="generateOralComprehension()" 
-               [class.disabled]="isGenerating">
+
+          <div class="option-text" (click)="generateOralComprehension()" [class.disabled]="isGenerating">
             Compréhension orale
           </div>
-          
+
           <div class="option-text" (click)="goToVocabularyExercise()">
             Exercice d'encodage
           </div>
-          
+
           <!-- Indicateur de chargement pour la génération -->
           <div *ngIf="isGenerating" class="loading-container ion-text-center ion-margin-vertical">
             <ion-spinner></ion-spinner>
             <p>Génération du texte en cours...</p>
           </div>
         </div>
-        
+
         <!-- Boutons principaux toujours visibles -->
         <div class="main-option-text" (click)="navigateToCategory()">
           Retour aux catégories
         </div>
-        
+
         <div class="main-option-text" (click)="navigateToHome()">
           Retour à l'accueil
         </div>
       </div>
     </div>
   </div>
-</ion-content> 
+</ion-content>

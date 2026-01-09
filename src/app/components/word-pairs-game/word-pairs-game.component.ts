@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, ModalController, AlertController } from '@ionic/angular';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { WordPair, TranslationDirection, LlmService } from '../../services/llm.service';
 import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
 import { FilterPipe } from '../../pipes/filter.pipe';
@@ -9,14 +10,16 @@ import { FormsModule } from '@angular/forms';
 import { TextGeneratorService } from '../../services/text-generator.service';
 import { ComprehensionText } from '../../models/vocabulary';
 import { ThemeSelectionModalComponent } from '../theme-selection-modal/theme-selection-modal.component';
-import { SpeechService } from 'src/app/services/speech.service';
+import { SpeechService } from '../../services/speech.service';
 import { StorageService } from '../../services/storage.service';
 import { DictionaryModalComponent } from './dictionary-modal.component';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 import { Injector } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { AddTextModalComponent } from '../add-text-modal/add-text-modal.component';
 import { TextPreviewModalComponent } from '../text-preview-modal/text-preview-modal.component';
 import { FullRevisionService } from '../../services/full-revision.service';
+import { PomService } from '../../services/pom.service';
 
 interface GamePair {
   id: number;
@@ -50,65 +53,81 @@ interface RevisedWord {
 })
 export class WordPairsGameComponent implements OnInit, OnDestroy {
   pageTitle: string = 'Associer les mots';
-  
+
   // Propriétés pour le jeu d'association
   wordPairs: WordPair[] = [];
   currentPairs: GamePair[] = [];
   currentPairsSet: number = 1; // Première ou deuxième moitié (1 ou 2)
   gameComplete: boolean = false;
-  
+
   // Contrôle du nombre de paires à réviser
   maxPairsToReview: number = 6; // Nombre de paires à réviser (par défaut 6)
   isPersonalDictionaryRevision: boolean = false; // Pour savoir si c'est une révision du dictionnaire personnel
   isFullRevisionSession: boolean = false; // Indique si la session fait partie d'une révision complète
   fullRevisionSessionId: string | null = null;
-  
+  isPomReview: boolean = false; // Indique si c'est une révision POM
+  pomId: string | null = null;
+  lessonId: string | null = null; // ID de la leçon statique associée
+
   // Filtrage par thèmes
   themeInput: string = ''; // Input en cours de saisie
   selectedThemes: string[] = []; // Thèmes sélectionnés
   availableThemes: string[] = []; // Thèmes disponibles dans le dictionnaire
   filteredThemes: string[] = []; // Thèmes filtrés pour l'autocomplete
   showAutocomplete: boolean = false; // Afficher l'autocomplete
-  
+
   // Configuration pliable
   showConfiguration: boolean = false; // Afficher/masquer les options de configuration
-  
+
   // État du jeu
   selectedPair: GamePair | null = null;
   selectedWordId: number | null = null;
   errorShown: boolean = false;
   isGenerating: boolean = false; // Pour la génération de textes de compréhension
   audioEnabled: boolean = true; // Pour activer/désactiver la prononciation audio
-  
+
   // Pour les mots ratés
   failedWords: number[] = []; // IDs des mots ratés
   hasFailedWords: boolean = false; // Si il y a des mots ratés
-  
+
   // Pour les sessions générées
   generatedSessions: any[] = [];
-  
+
   // Pour les mots révisés
   revisedWords: RevisedWord[] = [];
-  
+
   // Pour l'affichage conditionnel des options
   showMoreOptions: boolean = false;
-  
+
   // Informations de session
-  sessionInfo: { 
-    category: string; 
-    topic: string; 
+  sessionInfo: {
+    category: string;
+    topic: string;
     date: string;
-    translationDirection: TranslationDirection; 
+    translationDirection: TranslationDirection;
   } | null = null;
-  
+
   // Statistiques
   matchedPairs: number = 0;
   totalPairs: number = 0;
   attempts: number = 0;
 
+  // Cache pour le statut des mots (évite de lire localStorage dans le template)
+  private trackedWordsSet = new Set<string>();
+  private knownWordsSet = new Set<string>();
+  private dictionarySubscription: Subscription | null = null;
+  private routerSubscription: Subscription | null = null;
+
+  /**
+   * Fonction pour optimiser le rendu de la liste de mots (évite de tout redessiner)
+   */
+  trackByWordPair(index: number, pair: WordPair) {
+    return pair.it + '|' + pair.fr;
+  }
+
   // Variable globale pour la clé API
   private googleTtsApiKey: string | null = null;
-  
+
   constructor(
     private router: Router,
     private vocabularyTrackingService: VocabularyTrackingService,
@@ -120,17 +139,78 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     private storageService: StorageService,
     private personalDictionaryService: PersonalDictionaryService,
     private fullRevisionService: FullRevisionService,
+    private pomService: PomService,
     private injector: Injector,
     private alertController: AlertController,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
+    this.subscribeToDictionary();
+    this.subscribeToRouterEvents();
     this.loadSessionData();
     this.loadAudioPreference();
     this.loadGeneratedSessions();
     this.checkForGeneratedSession();
     this.loadAvailableThemes();
+  }
+
+  private subscribeToRouterEvents() {
+    this.routerSubscription = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      console.log('[CORE DEBUG] NavigationEnd detected in WordPairsGame, reloading session data');
+      this.loadSessionData();
+    });
+  }
+
+  private subscribeToDictionary() {
+    console.log('🔍 [WordPairsGame] Inscription aux changements du dictionnaire');
+    this.dictionarySubscription = this.personalDictionaryService.dictionaryWords$.subscribe(words => {
+      console.log('🔍 [WordPairsGame] Dictionnaire mis à jour, nb mots:', words.length);
+      this.updateStatusSets(words);
+    });
+  }
+
+  private updateStatusSets(words: DictionaryWord[]) {
+    this.trackedWordsSet.clear();
+    this.knownWordsSet.clear();
+    words.forEach(w => {
+      const id = this.normalizeWordId(w.sourceWord, w.targetWord);
+      this.trackedWordsSet.add(id);
+      if (w.isKnown) {
+        this.knownWordsSet.add(id);
+      }
+    });
+    console.log('🔍 [WordPairsGame] Cache mis à jour. Tracked:', this.trackedWordsSet.size, 'Known:', this.knownWordsSet.size);
+    this.cdr.markForCheck();
+  }
+
+  private normalizeWordId(word1: string, word2: string): string {
+    const w1 = word1?.toLowerCase().trim() || '';
+    const w2 = word2?.toLowerCase().trim() || '';
+    const id = [w1, w2].sort().join('|');
+    return id;
+  }
+
+  private parseStoredString(value: string | null): string | null {
+    if (value === null) return null;
+    try {
+      const parsed = JSON.parse(value);
+      return typeof parsed === 'string' ? parsed : value;
+    } catch {
+      return value;
+    }
+  }
+
+  private parseStoredBoolean(value: string | null): boolean {
+    if (value === null) return false;
+    try {
+      const parsed = JSON.parse(value);
+      return typeof parsed === 'boolean' ? parsed : value === 'true';
+    } catch {
+      return value === 'true';
+    }
   }
 
   /**
@@ -143,8 +223,10 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     const fullRevisionActive = localStorage.getItem('fullRevisionActive');
     const fullRevisionSessionId = localStorage.getItem('fullRevisionSessionId');
     const revisedWordsJson = localStorage.getItem('revisedWords');
-    
-    
+    const isPomReview = localStorage.getItem('isPomReview');
+    const pomId = localStorage.getItem('pomId');
+
+
     if (wordPairsJson && sessionInfoJson) {
       try {
         this.wordPairs = JSON.parse(wordPairsJson);
@@ -152,6 +234,14 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         this.isPersonalDictionaryRevision = isPersonalRevision === 'true';
         this.isFullRevisionSession = fullRevisionActive === 'true' && !!fullRevisionSessionId;
         this.fullRevisionSessionId = fullRevisionSessionId;
+        this.isPomReview = this.parseStoredBoolean(isPomReview);
+        this.pomId = this.parseStoredString(pomId);
+        if (this.sessionInfo?.category === 'Leçon') {
+          this.lessonId = localStorage.getItem('lessonId');
+        } else {
+          this.lessonId = null;
+          localStorage.removeItem('lessonId');
+        }
 
         if (this.isFullRevisionSession && !this.fullRevisionService.getSession()) {
           console.warn('🔍 [WordPairsGame] Indicateur de révision complète présent sans session active. Nettoyage.');
@@ -159,34 +249,34 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           localStorage.removeItem('fullRevisionActive');
           localStorage.removeItem('fullRevisionSessionId');
         }
-        
+
         // Si c'est une révision du dictionnaire personnel, charger le nombre de paires configuré
         if (this.isPersonalDictionaryRevision) {
           const savedCount = localStorage.getItem('personalDictionaryWordsCount');
           this.maxPairsToReview = savedCount ? parseInt(savedCount) : 6;
-          
+
           // Limiter les paires selon la configuration
           if (this.wordPairs.length > this.maxPairsToReview) {
             this.wordPairs = this.wordPairs.slice(0, this.maxPairsToReview);
           }
         }
-        
+
         if (this.isFullRevisionSession) {
           this.fullRevisionService.assignQueuesFromWords();
         }
-        
+
         // Charger les mots révisés si c'est une révision du dictionnaire personnel
         if (this.isPersonalDictionaryRevision && revisedWordsJson) {
           this.revisedWords = JSON.parse(revisedWordsJson);
         } else {
         }
-        
+
         // Préparer le jeu
         this.totalPairs = this.wordPairs.length;
         this.setupCurrentGameRound();
         this.updateConversationTargetVocabularyStorage();
 
-        
+
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
         this.showToast('Erreur lors du chargement des données de session');
@@ -204,12 +294,12 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    */
   async loadAudioPreference() {
     const savedAudioEnabled = localStorage.getItem('audioEnabled');
-    
+
     // Charger la préférence audio d'abord
     if (savedAudioEnabled !== null) {
       this.audioEnabled = JSON.parse(savedAudioEnabled);
     }
-    
+
     // Récupérer la clé API Google TTS depuis le StorageService
     this.googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
     if (!this.googleTtsApiKey && this.audioEnabled) {
@@ -246,7 +336,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   loadGeneratedSession(sessionId: string) {
     const sessions = JSON.parse(localStorage.getItem('associationSessions') || '[]');
     const session = sessions.find((s: any) => s.id === sessionId);
-    
+
     if (session && session.wordPairs) {
       this.wordPairs = session.wordPairs;
       this.sessionInfo = {
@@ -255,11 +345,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         date: session.createdAt,
         translationDirection: 'fr2it' // Par défaut
       };
-      
+
       // Sauvegarder les données pour le jeu
       localStorage.setItem('wordPairs', JSON.stringify(this.wordPairs));
       localStorage.setItem('sessionInfo', JSON.stringify(this.sessionInfo));
-      
+
       // Préparer le jeu
       this.totalPairs = this.wordPairs.length;
       this.setupCurrentGameRound();
@@ -283,14 +373,14 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    */
   async toggleAudio() {
     this.audioEnabled = !this.audioEnabled;
-    
+
     // Récupérer la clé API Google TTS depuis le StorageService
     this.googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
     if (!this.googleTtsApiKey && this.audioEnabled) {
       await this.showApiKeyAlert();
       return;
     }
-    
+
     this.saveAudioPreference();
     this.showToast(this.audioEnabled ? 'Prononciation activée' : 'Prononciation désactivée');
   }
@@ -304,25 +394,25 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Récupérer 6 paires ou moins si pas assez
     const endIndex = Math.min(startIndex + 6, this.wordPairs.length);
     const pairsForRound = this.wordPairs.slice(startIndex, endIndex);
-    
+
     // Si pas de paires, le jeu est terminé
     if (pairsForRound.length === 0) {
       this.gameComplete = true;
       this.onGameComplete();
       return;
     }
-    
+
     this.currentPairs = [];
-    
+
     // Créer les objets de jeu pour les mots source et cible
     pairsForRound.forEach((pair, index) => {
       const wordId = startIndex + index;
       const direction = this.sessionInfo?.translationDirection || 'fr2it';
-      
+
       // Déterminer les mots source et cible selon la direction
       const sourceWord = direction === 'fr2it' ? pair.fr : pair.it;
       const targetWord = direction === 'fr2it' ? pair.it : pair.fr;
-      
+
       // Ajouter le mot source
       this.currentPairs.push({
         id: wordId,
@@ -331,7 +421,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         isSelected: false,
         isMatched: false
       });
-      
+
       // Ajouter le mot cible
       this.currentPairs.push({
         id: wordId,
@@ -341,11 +431,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         isMatched: false
       });
     });
-    
+
     // Mélanger uniquement les mots cible
     this.shuffleTargetWords();
   }
-  
+
   /**
    * Mélange les mots cible dans le tableau des paires actuelles
    */
@@ -353,34 +443,34 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Séparer les mots source et cible
     const sourceWords = this.currentPairs.filter(pair => pair.isSource);
     let targetWords = this.currentPairs.filter(pair => !pair.isSource);
-    
+
     // Mélanger les mots cible
     for (let i = targetWords.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [targetWords[i], targetWords[j]] = [targetWords[j], targetWords[i]];
     }
-    
+
     // Recombiner les mots source et cible
     this.currentPairs = [...sourceWords, ...targetWords];
   }
-  
+
   /**
    * Gère la sélection d'un mot
    */
   selectWord(pair: GamePair) {
     // Si la paire est déjà associée, ne rien faire
     if (pair.isMatched) return;
-    
+
     // Si erreur actuellement affichée, ne rien faire
     if (this.errorShown) return;
-    
+
     // Si c'est le premier mot sélectionné
     if (!this.selectedPair) {
       this.selectedPair = pair;
       pair.isSelected = true;
       return;
     }
-    
+
     // Si on clique sur le même mot, le désélectionner
     if (this.selectedPair === pair) {
       if (this.selectedPair) {
@@ -389,29 +479,29 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       this.selectedPair = null;
       return;
     }
-    
+
     this.attempts++;
-    
+
     // Vérifier si les deux mots forment une paire
     if (this.selectedPair && this.selectedPair.id === pair.id) {
       // Match trouvé
       this.selectedPair.isMatched = true;
       pair.isMatched = true;
-      
+
       // Tracker ce mot comme réussi
       if (this.selectedPair) {
         this.trackWordMatch(this.selectedPair.id, true);
       }
-      
+
       this.matchedPairs++;
-      
+
       // Prononcer le mot italien lors d'une association réussie
       this.playWordPronunciation(pair.id, 'target');
-      
+
       // Réinitialiser la sélection
       this.selectedPair.isSelected = false;
       this.selectedPair = null;
-      
+
       // Si toutes les paires sont trouvées, passer au set suivant ou terminer
       if (this.matchedPairs === this.currentPairs.length / 2) {
         const totalSets = this.getTotalSets();
@@ -432,12 +522,12 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       // Erreur
       pair.isSelected = true;
       this.errorShown = true;
-      
+
       // Tracker ce mot comme raté
       if (this.selectedPair) {
         this.trackWordMatch(this.selectedPair.id, false);
       }
-      
+
       // Réinitialiser après un court délai
       setTimeout(() => {
         if (this.selectedPair) {
@@ -450,18 +540,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Appelé lorsque le jeu est terminé
-   */
-  private async onGameComplete() {
-    // Pour la révision du dictionnaire personnel, sauvegarder automatiquement les délais
-    if (this.isPersonalDictionaryRevision) {
-      await this.saveRevisionDelays();
-    }
-    this.updateConversationTargetVocabularyStorage();
-  }
 
-  
+
   /**
    * Joue la prononciation d'un mot italien
    */
@@ -471,55 +551,55 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     }
 
     try {
-      
+
       // Récupérer la paire de mots correspondante
       const wordPair = this.wordPairs[wordId];
       if (!wordPair) {
         return;
       }
-      
+
       // Déterminer le mot italien selon la direction de traduction
       const direction = this.sessionInfo?.translationDirection || 'fr2it';
       const italianWord = direction === 'fr2it' ? wordPair.it : wordPair.fr;
-      
+
       // Vérifier la clé API Google TTS
       if (!this.googleTtsApiKey) {
         await this.showApiKeyAlert();
         return;
       }
-      
+
       const request = {
         input: { text: italianWord },
         voice: { languageCode: 'it-IT', ssmlGender: "NEUTRAL" },
         audioConfig: { audioEncoding: "MP3" },
       };
-      
+
       const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.googleTtsApiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),
       });
-      
-      
+
+
       if (!response.ok) {
         console.error('❌ Erreur lors de la génération de l\'audio:', response.statusText);
         const errorText = await response.text();
         console.error('Détails de l\'erreur:', errorText);
         return;
       }
-      
+
       const data = await response.json();
-      
+
       const audioContent = data.audioContent;
       if (!audioContent) {
         console.error('❌ Pas d\'audioContent dans la réponse');
         return;
       }
-      
+
       const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
-      
+
       await audio.play();
-      
+
     } catch (error) {
       console.error('❌ Erreur lors de la prononciation:', error);
       if (error instanceof Error) {
@@ -534,7 +614,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   async showApiKeyAlert() {
     const alert = await this.alertController.create({
       header: 'Clé API manquante',
-      message: 'Pour utiliser la prononciation audio des mots, vous devez configurer votre clé API Google Text-to-Speech dans les préférences. \n En attendant, vous pouvez désactiver les sons via l\'icone mute ci-dessus.' ,
+      message: 'Pour utiliser la prononciation audio des mots, vous devez configurer votre clé API Google Text-to-Speech dans les préférences. \n En attendant, vous pouvez désactiver les sons via l\'icone mute ci-dessus.',
       buttons: [
         {
           text: 'Compris',
@@ -551,15 +631,15 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
     await alert.present();
   }
-  
+
   /**
    * Suit les performances de l'utilisateur sur un mot
    */
   trackWordMatch(wordId: number, isCorrect: boolean) {
     if (!this.sessionInfo) return;
-    
+
     const pair = this.wordPairs[wordId];
-    
+
     if (pair) {
       this.vocabularyTrackingService.trackWord(
         pair.it,
@@ -569,7 +649,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         isCorrect,
         pair.context
       );
-      
+
       // Ajouter aux mots ratés si incorrect
       if (!isCorrect && !this.failedWords.includes(wordId)) {
         this.failedWords.push(wordId);
@@ -604,17 +684,17 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       this.showToast('Aucun mot raté à recommencer');
       return;
     }
-    
+
     // Créer un nouveau jeu avec seulement les mots ratés
-    const failedPairs = this.currentPairs.filter(pair => 
+    const failedPairs = this.currentPairs.filter(pair =>
       this.failedWords.includes(pair.id)
     );
-    
+
     if (failedPairs.length === 0) {
       this.showToast('Aucun mot raté disponible');
       return;
     }
-    
+
     this.currentPairs = failedPairs;
     this.matchedPairs = 0;
     this.attempts = 0;
@@ -627,7 +707,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.currentPairsSet = 1; // Réinitialiser au premier set
     this.setupCurrentGameRound();
   }
-  
+
   /**
    * Navigue vers l'exercice de vocabulaire
    * Utilise toujours les mots de l'exercice d'association actuel (this.wordPairs)
@@ -648,7 +728,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         topic: this.sessionInfo.topic || 'Général'
       };
       localStorage.setItem('vocabularyExercise', JSON.stringify(vocabularyExercise));
-      
+
       // Si c'est une révision complète, mettre à jour le stage
       if (this.isFullRevisionSession) {
         this.fullRevisionService.setStage('encoding');
@@ -689,7 +769,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     console.log('🔍 [WordPairsGame] isFullRevisionSession:', this.isFullRevisionSession);
     console.log('🔍 [WordPairsGame] gameComplete:', this.gameComplete);
     console.log('🔍 [WordPairsGame] wordPairs.length:', this.wordPairs.length);
-    
+
     if (!this.isFullRevisionSession) {
       return;
     }
@@ -705,14 +785,14 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       fr: pair.fr,
       context: pair.context
     }));
-    
+
     console.log('🔍 [WordPairsGame] associationWords:', associationWords);
     this.fullRevisionService.syncWordsFromAssociation(associationWords);
 
     // IMPORTANT: Sauvegarder le vocabulaire cible pour la conversation
     console.log('🔍 [WordPairsGame] Appel de updateConversationTargetVocabularyStorage()');
     this.updateConversationTargetVocabularyStorage();
-    
+
     // Vérifier ce qui a été sauvegardé
     const saved = localStorage.getItem('conversationTargetVocabulary');
     console.log('🔍 [WordPairsGame] Vocabulaire sauvegardé dans localStorage:', saved ? JSON.parse(saved) : null);
@@ -728,7 +808,175 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       queryParams: { fullRevision: 'true' }
     });
   }
-  
+
+  /**
+   * Vérifie si un mot est présent dans le dictionnaire personnel
+   */
+  isTracked(pair: WordPair): boolean {
+    return this.trackedWordsSet.has(this.normalizeWordId(pair.it, pair.fr));
+  }
+
+  /**
+   * Vérifie si un mot est marqué comme connu (maîtrisé)
+   */
+  isWordKnown(pair: WordPair): boolean {
+    return this.knownWordsSet.has(this.normalizeWordId(pair.it, pair.fr));
+  }
+
+  /**
+   * Alterne le statut connu/maîtrisé d'un mot
+   */
+  toggleWordKnownStatus(pair: WordPair) {
+    console.log('🔍 [WordPairsGame] toggleWordKnownStatus pour:', pair.it, '/', pair.fr);
+    const it = pair.it.toLowerCase().trim();
+    const fr = pair.fr.toLowerCase().trim();
+    const dictWords = this.personalDictionaryService.getAllWords();
+    const word = dictWords.find(w =>
+      (w.sourceWord.toLowerCase().trim() === it && w.targetWord.toLowerCase().trim() === fr) ||
+      (w.sourceWord.toLowerCase().trim() === fr && w.targetWord.toLowerCase().trim() === it)
+    );
+
+    if (word) {
+      console.log('🔍 [WordPairsGame] Mot trouvé dans le dict, id:', word.id, 'actuellement connu:', word.isKnown);
+      this.personalDictionaryService.setWordKnownStatus(word.id, !word.isKnown);
+    } else {
+      console.log('🔍 [WordPairsGame] Mot non trouvé, ajout comme connu');
+      // Si le mot n'est pas dans le dictionnaire, on l'ajoute d'abord comme connu
+      const newWord: DictionaryWord = {
+        id: '',
+        sourceWord: pair.it,
+        sourceLang: 'it',
+        targetWord: pair.fr,
+        targetLang: 'fr',
+        contextualMeaning: pair.context,
+        themes: pair.themes || [],
+        dateAdded: Date.now(),
+        isKnown: true
+      };
+      this.personalDictionaryService.addWord(newWord);
+    }
+  }
+
+  /**
+   * Active ou désactive le suivi d'un mot dans le dictionnaire personnel
+   */
+  toggleWordTracking(pair: WordPair) {
+    const isTracked = this.isTracked(pair);
+
+    if (isTracked) {
+      // Trouver l'ID pour supprimer
+      const it = pair.it.toLowerCase().trim();
+      const fr = pair.fr.toLowerCase().trim();
+      const dictWords = this.personalDictionaryService.getAllWords();
+      const wordToRemove = dictWords.find(w =>
+        (w.sourceWord.toLowerCase().trim() === it && w.targetWord.toLowerCase().trim() === fr) ||
+        (w.sourceWord.toLowerCase().trim() === fr && w.targetWord.toLowerCase().trim() === it)
+      );
+
+      if (wordToRemove) {
+        this.personalDictionaryService.removeWord(wordToRemove.id);
+        // On supprime aussi du tracking de vocabulaire global pour être cohérent
+        const trackId = this.vocabularyTrackingService.generateWordId(pair.it, pair.fr);
+        this.vocabularyTrackingService.deleteTrackedWord(trackId);
+      }
+    } else {
+      // Ajouter au dictionnaire personnel (ce qui l'ajoute aussi au tracking global)
+      const newWord: DictionaryWord = {
+        id: '', // Sera généré par le service
+        sourceWord: pair.it,
+        sourceLang: 'it',
+        targetWord: pair.fr,
+        targetLang: 'fr',
+        contextualMeaning: pair.context,
+        themes: pair.themes || [],
+        dateAdded: Date.now()
+      };
+      this.personalDictionaryService.addWord(newWord);
+    }
+  }
+
+  /**
+   * Appelé lorsque le jeu est terminé
+   */
+  private async onGameComplete() {
+    // Ajouter automatiquement tous les mots de la session au dictionnaire personnel
+    // Sauf s'ils y sont déjà
+    let addedCount = 0;
+    this.wordPairs.forEach(pair => {
+      if (!this.isTracked(pair)) {
+        const newWord: DictionaryWord = {
+          id: '',
+          sourceWord: pair.it,
+          sourceLang: 'it',
+          targetWord: pair.fr,
+          targetLang: 'fr',
+          contextualMeaning: pair.context,
+          themes: pair.themes || [],
+          dateAdded: Date.now()
+        };
+        this.personalDictionaryService.addWord(newWord);
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      console.log(`[WordPairsGame] ${addedCount} mots ajoutés au dictionnaire personnel.`);
+    }
+
+    // Gestion des POMs
+    console.log(`[CORE DEBUG] Handling POM completion: isPomReview=${this.isPomReview}, pomId=${this.pomId}`);
+    if (this.isPomReview && this.pomId) {
+      console.log(`[CORE DEBUG] Triggering processPomReview for ${this.pomId}`);
+      await this.pomService.processPomReview(this.pomId);
+      await this.showToast('Session POM terminée et mise à jour !');
+      this.router.navigate(['/poms'], { queryParams: { pomId: this.pomId } });
+    } else {
+      // Essayer de créer un POM pour cette session
+      const words = this.wordPairs.map(wp => ({ word: wp.it, translation: wp.fr }));
+      const newPom = await this.pomService.createPom(words, this.lessonId || undefined);
+      if (newPom) {
+        this.showToast('Un nouveau cycle de révision (POM) a été créé pour ces mots !');
+      }
+    }
+
+    // Pour la révision du dictionnaire personnel, sauvegarder automatiquement les délais
+    if (this.isPersonalDictionaryRevision) {
+      await this.saveRevisionDelays();
+    }
+    this.updateConversationTargetVocabularyStorage();
+  }
+
+  /**
+   * Complète instantanément la révision POM (mode test uniquement)
+   */
+  async completeReviewInstantly() {
+    if (!this.isPomReview || !this.pomId) {
+      await this.showToast('Cette fonction est uniquement disponible pour les révisions POM');
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Compléter la révision (Test)',
+      message: 'Voulez-vous marquer cette révision POM comme complétée instantanément ?',
+      buttons: [
+        {
+          text: 'Annuler',
+          role: 'cancel'
+        },
+        {
+          text: 'Compléter',
+          handler: async () => {
+            console.log(`[CORE DEBUG] Test completion triggered for POM ${this.pomId}`);
+            await this.pomService.processPomReview(this.pomId!);
+            await this.showToast('Révision POM complétée !');
+            this.router.navigate(['/poms'], { queryParams: { pomId: this.pomId } });
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
   /**
    * Génère un texte de compréhension écrite
    */
@@ -739,24 +987,24 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       component: ThemeSelectionModalComponent,
       cssClass: 'theme-selection-modal'
     });
-    
+
     await modal.present();
-    
+
     const { data } = await modal.onDidDismiss();
     const selectedThemes = data?.themes || [];
-    
+
     // Convertir les WordPair en VocabularyItem pour être compatible avec l'interface existante
     const vocabularyItems = this.wordPairs.map(pair => ({
       word: pair.it,
       translation: pair.fr,
       context: pair.context
     }));
-    
+
     this.isGenerating = true;
-    
+
     // Définir le flag pour indiquer que l'utilisateur vient d'une session d'association
     localStorage.setItem('fromWordPairs', 'true');
-    
+
     // Sauvegarder les mots du prompt (uniquement ceux de la session d'association)
     localStorage.setItem('comprehensionPromptWords', JSON.stringify(this.wordPairs.map(p => p.it)));
 
@@ -777,6 +1025,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         }, {});
 
         const merged = [...(result.vocabularyItems || [])];
+
         for (const item of sessionVocabulary) {
           const key = item.word.toLowerCase();
           if (key && existing[key] === undefined) {
@@ -787,7 +1036,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
         // Stocker le texte dans le localStorage pour y accéder depuis le composant de compréhension
         localStorage.setItem('comprehensionText', JSON.stringify(result));
-        
+
         // Mettre à jour le sessionInfo dans le localStorage pour la sauvegarde
         if (this.sessionInfo) {
           const sessionInfoWithThemes = {
@@ -796,9 +1045,9 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           };
           localStorage.setItem('sessionInfo', JSON.stringify(sessionInfoWithThemes));
         }
-        
+
         this.isGenerating = false;
-        
+
         // Naviguer vers la page de compréhension
         this.router.navigate(['/comprehension']);
       },
@@ -809,7 +1058,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   /**
    * Génère un exercice de compréhension orale
    */
@@ -821,22 +1070,22 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       component: ThemeSelectionModalComponent,
       cssClass: 'theme-selection-modal'
     });
-    
+
     await modal.present();
-    
+
     const { data } = await modal.onDidDismiss();
     const selectedThemes = data?.themes || [];
-    
+
     // Convertir les WordPair en VocabularyItem pour être compatible avec l'interface existante
     const vocabularyItems = this.wordPairs.map(pair => ({
       word: pair.it,
       translation: pair.fr,
       context: pair.context
     }));
-    
+
     // Définir le flag pour indiquer que l'utilisateur vient d'une session d'association
     localStorage.setItem('fromWordPairs', 'true');
-    
+
     // Sauvegarder les mots du prompt (uniquement ceux de la session d'association)
     localStorage.setItem('comprehensionPromptWords', JSON.stringify(this.wordPairs.map(p => p.it)));
 
@@ -867,7 +1116,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
         // Stocker le texte dans le localStorage pour y accéder depuis le composant de compréhension
         localStorage.setItem('comprehensionText', JSON.stringify(result));
-        
+
         // Mettre à jour le sessionInfo dans le localStorage pour la sauvegarde
         if (this.sessionInfo) {
           const sessionInfoWithThemes = {
@@ -882,7 +1131,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         });
 
 
-        
+
         // Naviguer vers la page de compréhension
         this.router.navigate(['/comprehension']);
       },
@@ -896,7 +1145,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
 
 
-  
+
   /**
    * Affiche un toast d'information
    */
@@ -923,7 +1172,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
     await modal.present();
   }
-  
+
   /**
    * Retourne une classe CSS en fonction de l'état de la paire
    */
@@ -962,7 +1211,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       const personalDictionaryService = this.injector.get(PersonalDictionaryService);
       let savedCount = 0;
       let knownCount = 0;
-      
+
       for (const word of this.revisedWords) {
         // Sauvegarder le statut "connu"
         if (word.isKnown !== undefined) {
@@ -971,7 +1220,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
             knownCount++;
           }
         }
-        
+
         // Sauvegarder le délai de révision (seulement si le mot n'est pas marqué comme connu)
         if (word.revisionDelay && !word.isKnown) {
           const delayInMs = this.calculateDelayInMs(word.revisionDelay);
@@ -984,14 +1233,14 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           }
         }
       }
-      
+
       if (savedCount > 0 || knownCount > 0) {
-        
+
         // Vider la liste des mots révisés après sauvegarde
         this.revisedWords = [];
         localStorage.removeItem('revisedWords');
       }
-      
+
     } catch (error) {
       console.error('Erreur lors de la sauvegarde automatique des délais de révision:', error);
     }
@@ -1004,7 +1253,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     const now = Date.now();
     const oneDay = 24 * 60 * 60 * 1000;
     const oneMonth = 30 * oneDay; // Approximation
-    
+
     switch (delay) {
       case '1j':
         return oneDay;
@@ -1044,7 +1293,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     });
 
     const { data } = await modal.onDidDismiss();
-    
+
     if (data && data.action === 'preview') {
       this.openTextPreviewModal(data.text);
     }
@@ -1063,7 +1312,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     });
 
     const { data } = await modal.onDidDismiss();
-    
+
     if (data && data.action === 'edit') {
       this.openAddTextModal();
     }
@@ -1077,21 +1326,21 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     if (this.matchedPairs > 0) {
       return;
     }
-    
+
     // Convertir la valeur string en number
     const newValue = parseInt(event.detail.value);
-    
+
     // Valider la valeur
     if (newValue < 3 || newValue > 50) {
       return;
     }
-    
+
     // Mettre à jour la propriété
     this.maxPairsToReview = newValue;
-    
+
     // Sauvegarder la nouvelle valeur
     localStorage.setItem('personalDictionaryWordsCount', newValue.toString());
-    
+
     // Recharger la session avec le nouveau nombre de paires
     this.reloadSessionWithNewPairsCount();
   }
@@ -1103,22 +1352,22 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Récupérer les mots révisés originaux
     const revisedWordsJson = localStorage.getItem('revisedWords');
     if (!revisedWordsJson) return;
-    
+
     let revisedWords = JSON.parse(revisedWordsJson);
-    
+
     // Si l'utilisateur demande plus de mots que disponibles, aller chercher plus dans le dictionnaire
     if (this.maxPairsToReview > revisedWords.length) {
-      
+
       // Récupérer TOUS les mots du dictionnaire
       const allWords = this.personalDictionaryService.getAllWords();
-      
+
       if (allWords.length > revisedWords.length) {
         // Mélanger tous les mots
         const shuffledWords = [...allWords].sort(() => Math.random() - 0.5);
-        
+
         // Prendre le nombre demandé
         const additionalWords = shuffledWords.slice(0, this.maxPairsToReview);
-        
+
         // Convertir en format revisedWords
         revisedWords = additionalWords.map(word => ({
           id: word.id,
@@ -1128,28 +1377,28 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           revisionDelay: undefined,
           isKnown: word.isKnown || false
         }));
-        
+
       }
     }
-    
+
     // Limiter selon le nouveau nombre
     const limitedWords = revisedWords.slice(0, this.maxPairsToReview);
-    
+
     // Recréer les paires de mots
     const wordPairs = limitedWords.map((word: any) => ({
       it: word.sourceWord,
       fr: word.targetWord,
       context: word.context
     }));
-    
+
     // Mettre à jour les données
     this.wordPairs = wordPairs;
     localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
-    
+
     // Mettre à jour les mots révisés
     this.revisedWords = limitedWords;
     localStorage.setItem('revisedWords', JSON.stringify(limitedWords));
-    
+
     // Réinitialiser le jeu
     this.currentPairsSet = 1;
     this.matchedPairs = 0;
@@ -1158,7 +1407,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.selectedWordId = null;
     this.failedWords = [];
     this.hasFailedWords = false;
-    
+
     // Redémarrer le jeu
     this.setupCurrentGameRound();
     this.updateConversationTargetVocabularyStorage();
@@ -1179,16 +1428,16 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    */
   loadAvailableThemes() {
     if (!this.isPersonalDictionaryRevision) return;
-    
+
     const allWords = this.personalDictionaryService.getAllWords();
     const themesSet = new Set<string>();
-    
+
     allWords.forEach(word => {
       if (word.themes && word.themes.length > 0) {
         word.themes.forEach(theme => themesSet.add(theme));
       }
     });
-    
+
     this.availableThemes = Array.from(themesSet).sort();
   }
 
@@ -1198,10 +1447,10 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   onThemeInputChange(event: any) {
     const value = event.detail.value;
     this.themeInput = value;
-    
+
     if (value.length > 0) {
       // Filtrer les thèmes disponibles
-      this.filteredThemes = this.availableThemes.filter(theme => 
+      this.filteredThemes = this.availableThemes.filter(theme =>
         theme.toLowerCase().includes(value.toLowerCase()) &&
         !this.selectedThemes.includes(theme)
       );
@@ -1247,36 +1496,36 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    */
   applyThemeFilter() {
     if (!this.isPersonalDictionaryRevision) return;
-    
+
     if (this.selectedThemes.length === 0) {
       // Pas de filtre, recharger tous les mots
       this.reloadSessionWithNewPairsCount();
       return;
     }
-    
+
     // Récupérer tous les mots du dictionnaire
     const allWords = this.personalDictionaryService.getAllWords();
-    
+
     // Filtrer selon les thèmes sélectionnés
     const filteredWords = allWords.filter(word => {
       if (!word.themes || word.themes.length === 0) return false;
-      
-      return this.selectedThemes.some(selectedTheme => 
-        word.themes!.some(wordTheme => 
+
+      return this.selectedThemes.some(selectedTheme =>
+        word.themes!.some(wordTheme =>
           wordTheme.toLowerCase().includes(selectedTheme.toLowerCase())
         )
       );
     });
-    
+
     if (filteredWords.length === 0) {
       this.showToast('Aucun mot trouvé pour ces thèmes');
       return;
     }
-    
+
     // Mélanger et limiter
     const shuffledWords = [...filteredWords].sort(() => Math.random() - 0.5);
     const limitedWords = shuffledWords.slice(0, this.maxPairsToReview);
-    
+
     // Convertir en format WordPair
     const wordPairs = limitedWords.map(word => ({
       it: word.sourceLang === 'it' ? word.sourceWord : word.targetWord,
@@ -1284,7 +1533,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       context: word.contextualMeaning,
       themes: word.themes
     }));
-    
+
     // Mettre à jour les données
     this.wordPairs = wordPairs;
     this.currentPairsSet = 1;
@@ -1292,7 +1541,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.matchedPairs = 0;
     this.failedWords = [];
     this.hasFailedWords = false;
-    
+
     // Initialiser le jeu
     this.setupCurrentGameRound();
     this.updateConversationTargetVocabularyStorage();
@@ -1355,6 +1604,12 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.dictionarySubscription) {
+      this.dictionarySubscription.unsubscribe();
+    }
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
     this.saveRevisionDelays();
   }
 }

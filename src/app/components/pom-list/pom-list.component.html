@@ -1,0 +1,106 @@
+<ion-content class="ion-padding">
+  <div *ngIf="poms.length === 0" class="empty-state">
+    <ion-icon name="albums-outline" size="large"></ion-icon>
+    <p>Aucun parcours de mémorisation actif.</p>
+    <p class="sub-text">Terminez des sessions d'association pour en créer !</p>
+  </div>
+
+  <ion-list *ngIf="poms.length > 0">
+    <ion-card *ngFor="let pom of poms" class="pom-card"
+      [class.pom-highlight]="pom.id === highlightPomId" [attr.id]="'pom-card-' + pom.id">
+      <ion-card-header>
+        <div class="header-row">
+          <ion-card-subtitle>
+            <ion-badge [color]="pom.status === 'active' ? 'success' : 'medium'">{{ pom.status | uppercase }}</ion-badge>
+            <span class="interval-badge">Intervalle: {{ pom.intervalDays }}j</span>
+          </ion-card-subtitle>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <ion-note>{{ getReviewDateLabel(pom.nextReviewDate) }}</ion-note>
+            <ion-button fill="clear" color="secondary" size="small" (click)="resetSchedule(pom)">
+              <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" color="primary" size="small" (click)="editPomTitle(pom)">
+              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" color="danger" size="small" (click)="deletePom(pom)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+        <ion-card-title>{{ getPomTitle(pom) }}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="info-row">
+          <p>Création : {{ formatDate(pom.createdAt) }}</p>
+          <ion-badge color="tertiary" mode="ios">Facteur x{{ pom.factor || 2 }}</ion-badge>
+        </div>
+        <p>Prochaine révision : {{ formatDate(pom.nextReviewDate) }}</p>
+        <p>Révisions effectuées : {{ pom.reviewCount }}</p>
+
+        <div class="actions">
+          <ion-button fill="outline" size="small" (click)="toggleSchedule(pom.id)">
+            {{ expandedSchedulePomId === pom.id ? 'Masquer dates' : 'Voir dates' }}
+            <ion-icon [name]="expandedSchedulePomId === pom.id ? 'calendar-outline' : 'calendar-number-outline'"
+              slot="end"></ion-icon>
+          </ion-button>
+
+          <ion-button fill="outline" size="small" (click)="toggleWords(pom.id)">
+            {{ expandedWordsPomId === pom.id ? 'Masquer mots' : 'Voir mots' }}
+            <ion-icon [name]="expandedWordsPomId === pom.id ? 'chevron-up-outline' : 'chevron-down-outline'"
+              slot="end"></ion-icon>
+          </ion-button>
+
+          <ion-button color="primary" size="small" (click)="startReview(pom)">
+            Réviser
+            <ion-icon name="play-outline" slot="end"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div *ngIf="expandedSchedulePomId === pom.id" class="expand-section">
+          <div class="schedule-container">
+            <h6>Calendrier prévisionnel</h6>
+            <div class="schedule-timeline">
+              <div *ngFor="let step of getProjectedSchedule(pom); let i = index" [style.margin-bottom]="'4px'"
+                [style.font-size]="'0.8em'" [style.opacity]="step.passed ? '0.5' : '1'"
+                [style.font-weight]="step.isNext ? 'bold' : 'normal'"
+                [style.color]="step.isNext ? 'var(--ion-color-primary)' : (step.isOverdue ? 'var(--ion-color-warning)' : 'inherit')">
+                Step {{ i + 1 }}: {{ formatDateTime(step.date) }} ({{ step.interval }}j)
+                <ion-icon *ngIf="step.passed" name="checkmark-circle" color="success"
+                  style="vertical-align: middle; margin-left: 4px;"></ion-icon>
+                <ion-icon *ngIf="step.isNext" name="arrow-forward-circle" color="primary"
+                  style="vertical-align: middle; margin-left: 4px;"></ion-icon>
+                <ion-icon *ngIf="step.isOverdue" name="warning" color="warning"
+                  style="vertical-align: middle; margin-left: 4px;" title="Session en retard"></ion-icon>
+                <ion-button *ngIf="step.isOverdue && i === getFirstOverdueIndex(pom)" size="small" fill="clear"
+                  color="warning" (click)="rescheduleMissedFromStep(pom, step.date)">
+                  <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                  Replanifier
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="expandedWordsPomId === pom.id" class="expand-section">
+          <div class="word-list">
+            <h6>Mots inclus</h6>
+            <ion-list lines="none">
+              <ion-item *ngFor="let word of pomWordsMap[pom.id]">
+                <ion-label class="ion-text-wrap">
+                  <h2>{{ word.it }}</h2>
+                  <p>{{ word.fr }}</p>
+                </ion-label>
+                <ion-button fill="clear" [color]="word.isKnown ? 'success' : 'medium'" slot="end"
+                  (click)="togglePomWordKnownStatus(pom.id, word)" title="Marquer comme connu">
+                  <ion-icon [name]="word.isKnown ? 'checkmark-circle' : 'checkmark-circle-outline'"
+                    slot="icon-only"></ion-icon>
+                </ion-button>
+              </ion-item>
+            </ion-list>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
+</ion-content>

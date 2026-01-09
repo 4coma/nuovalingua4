@@ -7,6 +7,7 @@ import { VocabularyTrackingService, WordMastery } from '../../services/vocabular
 import { NotificationService } from '../../services/notification.service';
 import { FirebaseSyncService } from '../../services/firebase-sync.service';
 import { DataMigrationService } from '../../services/data-migration.service';
+import { PomService } from '../../services/pom.service';
 
 @Component({
   selector: 'app-preferences',
@@ -22,7 +23,7 @@ import { DataMigrationService } from '../../services/data-migration.service';
 export class PreferencesComponent implements OnInit {
   // Titre de la page pour le header global
   pageTitle: string = 'Préférences';
-  
+
   // Préférences utilisateur
   openaiApiKey: string = '';
   googleTtsApiKey: string = '';
@@ -31,7 +32,7 @@ export class PreferencesComponent implements OnInit {
   personalDictionaryWordsCount: number = 8; // Nombre de mots par session de révision du dictionnaire personnel
   showApiKey: boolean = false;
   showGoogleApiKey: boolean = false;
-  
+
   // Configuration Firebase
   firebaseEnabled: boolean = false;
   firebaseApiKey: string = '';
@@ -42,7 +43,7 @@ export class PreferencesComponent implements OnInit {
   firebaseAppId: string = '';
   firebaseCustomUid: string = '';
   showFirebaseConfig: boolean = false;
-  
+
   // Propriétés pour les notifications
   notificationsEnabled: boolean = false;
   notificationTime: string = '18:30';
@@ -50,10 +51,15 @@ export class PreferencesComponent implements OnInit {
   comprehensionNotificationsEnabled: boolean = false;
   comprehensionNotificationTime: string = '19:00';
   comprehensionNotificationCustomPrompt: string = '';
-  
+
   // Thèmes personnalisés pour la compréhension quotidienne
   dailyComprehensionThemes: string[] = [''];
-  
+
+  // Paramètres avancés
+  pomReviewFactor: number = 2;
+  pomInitialIntervalSeconds: number = 43200; // 12 heures par défaut
+  pomNotificationGraceMinutes: number = 10; // Délai pour démarrer une révision POM
+
   // État d'expansion des sections (toutes fermées par défaut pour montrer les chevrons)
   expandedSections: { [key: string]: boolean } = {
     openai: false,
@@ -64,9 +70,10 @@ export class PreferencesComponent implements OnInit {
     oralComprehension: false,
     dailyThemes: false,
     personalDictionary: false,
-    notifications: false
+    notifications: false,
+    pom: false
   };
-  
+
   constructor(
     private storageService: StorageService,
     private toastController: ToastController,
@@ -74,7 +81,8 @@ export class PreferencesComponent implements OnInit {
     private vocabularyTrackingService: VocabularyTrackingService,
     private notificationService: NotificationService,
     private firebaseSync: FirebaseSyncService,
-    private dataMigration: DataMigrationService
+    private dataMigration: DataMigrationService,
+    private pomService: PomService
   ) { }
 
   ngOnInit() {
@@ -135,11 +143,11 @@ export class PreferencesComponent implements OnInit {
     const compSettings = this.notificationService.getComprehensionSettings();
     this.comprehensionNotificationsEnabled = compSettings.enabled;
     this.comprehensionNotificationTime = compSettings.time;
-    
+
     // Charger le prompt personnalisé pour la compréhension orale
     const savedCustomPrompt = this.storageService.get('comprehensionNotificationCustomPrompt');
     this.comprehensionNotificationCustomPrompt = savedCustomPrompt || '';
-    
+
     // Charger les thèmes personnalisés pour la compréhension quotidienne
     const savedThemes = this.storageService.get('dailyComprehensionThemes');
     if (savedThemes) {
@@ -150,13 +158,33 @@ export class PreferencesComponent implements OnInit {
         this.dailyComprehensionThemes = [''];
       }
     }
+
+    // Charger le facteur de révision POM
+    const savedPomFactor = this.storageService.get('pomReviewFactor');
+    if (savedPomFactor) {
+      this.pomReviewFactor = parseFloat(savedPomFactor);
+    }
+
+    // Charger l'intervalle initial POM
+    const savedPomInterval = this.storageService.get('pomInitialIntervalSeconds');
+    if (savedPomInterval) {
+      this.pomInitialIntervalSeconds = parseInt(savedPomInterval);
+    }
+
+    const savedPomGrace = this.storageService.get('pomNotificationGraceMinutes');
+    if (savedPomGrace) {
+      const parsed = parseInt(savedPomGrace);
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        this.pomNotificationGraceMinutes = parsed;
+      }
+    }
   }
 
   /**
    * Sauvegarde les préférences dans le localStorage
    */
   savePreferences() {
-    
+
     // Valider le nombre d'associations
     if (this.wordAssociationsCount < 1 || this.wordAssociationsCount > 100) {
       this.showToast('Le nombre d\'associations doit être entre 1 et 100.');
@@ -173,6 +201,11 @@ export class PreferencesComponent implements OnInit {
     // Valider le nombre de mots pour la révision du dictionnaire personnel
     if (this.personalDictionaryWordsCount < 1 || this.personalDictionaryWordsCount > 50) {
       this.showToast('Le nombre de mots par session de révision du dictionnaire personnel doit être entre 5 et 50.');
+      return;
+    }
+
+    if (this.pomNotificationGraceMinutes < 1 || this.pomNotificationGraceMinutes > 240) {
+      this.showToast('Le délai POM doit être entre 1 et 240 minutes.');
       return;
     }
 
@@ -194,13 +227,13 @@ export class PreferencesComponent implements OnInit {
     this.storageService.set('firebaseEnabled', this.firebaseEnabled.toString());
     if (this.firebaseEnabled) {
       // Valider que tous les champs Firebase sont remplis
-      if (!this.firebaseApiKey.trim() || !this.firebaseAuthDomain.trim() || 
-          !this.firebaseProjectId.trim() || !this.firebaseStorageBucket.trim() || 
-          !this.firebaseMessagingSenderId.trim() || !this.firebaseAppId.trim()) {
+      if (!this.firebaseApiKey.trim() || !this.firebaseAuthDomain.trim() ||
+        !this.firebaseProjectId.trim() || !this.firebaseStorageBucket.trim() ||
+        !this.firebaseMessagingSenderId.trim() || !this.firebaseAppId.trim()) {
         this.showToast('Tous les champs de configuration Firebase doivent être remplis.');
         return;
       }
-      
+
       this.storageService.set('firebaseApiKey', this.firebaseApiKey.trim());
       this.storageService.set('firebaseAuthDomain', this.firebaseAuthDomain.trim());
       this.storageService.set('firebaseProjectId', this.firebaseProjectId.trim());
@@ -228,7 +261,7 @@ export class PreferencesComponent implements OnInit {
 
     // Sauvegarder le nombre de mots pour la révision du dictionnaire personnel
     this.storageService.set('personalDictionaryWordsCount', this.personalDictionaryWordsCount);
-    
+
     // Sauvegarder les thèmes personnalisés pour la compréhension quotidienne (filtrer les vides)
     const validThemes = this.dailyComprehensionThemes.filter(t => t.trim() !== '');
     this.storageService.set('dailyComprehensionThemes', JSON.stringify(validThemes));
@@ -239,6 +272,15 @@ export class PreferencesComponent implements OnInit {
     } else {
       this.storageService.remove('comprehensionNotificationCustomPrompt');
     }
+
+    // Sauvegarder le facteur de révision POM
+    this.storageService.set('pomReviewFactor', this.pomReviewFactor.toString());
+
+    // Sauvegarder l'intervalle initial POM
+    this.storageService.set('pomInitialIntervalSeconds', this.pomInitialIntervalSeconds.toString());
+
+    // Sauvegarder le délai POM
+    this.storageService.set('pomNotificationGraceMinutes', this.pomNotificationGraceMinutes.toString());
 
     this.showToast('Préférences sauvegardées avec succès !');
   }
@@ -252,11 +294,13 @@ export class PreferencesComponent implements OnInit {
     this.wordAssociationsCount = 10;
     this.oralComprehensionLength = 150;
     this.personalDictionaryWordsCount = 8; // Réinitialiser le nombre de mots pour la révision du dictionnaire personnel
+    this.pomNotificationGraceMinutes = 10;
     this.storageService.remove('userOpenaiApiKey');
     this.storageService.remove('userGoogleTtsApiKey');
     this.storageService.remove('wordAssociationsCount');
     this.storageService.remove('oralComprehensionLength');
     this.storageService.remove('personalDictionaryWordsCount');
+    this.storageService.remove('pomNotificationGraceMinutes');
     this.showToast('Préférences réinitialisées aux valeurs par défaut.');
   }
 
@@ -388,12 +432,16 @@ export class PreferencesComponent implements OnInit {
    */
   async onNotificationToggleChange() {
     try {
+      if (this.notificationsEnabled) {
+        await this.notificationService.requestPermissions();
+      }
+
       await this.notificationService.toggleNotifications(
         this.notificationsEnabled,
         this.notificationTime,
         this.notificationMessage
       );
-      
+
       if (this.notificationsEnabled) {
         this.showToast('Notifications quotidiennes activées !');
       } else {
@@ -550,7 +598,7 @@ export class PreferencesComponent implements OnInit {
 
       // Tester la connexion
       const isConnected = await this.firebaseSync.testConnection();
-      
+
       if (isConnected) {
         this.showToast('✅ Connexion Firebase réussie !');
       } else {
@@ -577,7 +625,7 @@ export class PreferencesComponent implements OnInit {
     }
 
     const summary = this.dataMigration.getLocalDataSummary();
-    
+
     const alert = await this.alertController.create({
       header: 'Migration des données',
       message: `Voulez-vous migrer vos données locales vers Firebase ?
@@ -602,7 +650,7 @@ Note : Vos données locales seront conservées.`,
         }
       ]
     });
-    
+
     await alert.present();
   }
 
@@ -612,9 +660,9 @@ Note : Vos données locales seront conservées.`,
   private async performMigration() {
     try {
       this.showToast('🔄 Migration en cours...');
-      
+
       await this.dataMigration.migrateAllDataToFirebase();
-      
+
       this.showToast('✅ Migration terminée avec succès !');
     } catch (error) {
       console.error('Erreur lors de la migration:', error);
@@ -627,7 +675,7 @@ Note : Vos données locales seront conservées.`,
    */
   async showMigrationInfo() {
     const summary = this.dataMigration.getLocalDataSummary();
-    
+
     const alert = await this.alertController.create({
       header: 'Migration des données',
       message: `
@@ -650,7 +698,7 @@ Note : Vos données locales seront conservées.`,
       `,
       buttons: ['Compris']
     });
-    
+
     await alert.present();
   }
 
@@ -660,7 +708,7 @@ Note : Vos données locales seront conservées.`,
   async checkNotificationPermissions() {
     try {
       const status = await this.notificationService.checkPermissionsStatus();
-      
+
       const alert = await this.alertController.create({
         header: 'Statut des permissions',
         message: status.message,
@@ -691,4 +739,26 @@ Note : Vos données locales seront conservées.`,
     // Pour l'instant, on affiche juste un message
     this.showToast('Allez dans Paramètres > Applications > NuovaLingua > Notifications');
   }
-} 
+
+  async testPomNotification() {
+    await this.notificationService.schedulePomNotification('test', new Date(Date.now() + 2000), 'Test');
+    this.showToast('Test... (2s)');
+  }
+
+  /**
+   * Achève tous les POMs dus pour faciliter le test
+   */
+  async completeDuePoms() {
+    const duePoms = this.pomService.getDuePoms();
+    if (duePoms.length === 0) {
+      this.showToast('Aucun POM dû pour le moment.');
+      return;
+    }
+
+    for (const pom of duePoms) {
+      await this.pomService.processPomReview(pom.id);
+    }
+
+    this.showToast(`${duePoms.length} POM(s) traité(s) avec succès !`);
+  }
+}

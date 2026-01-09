@@ -35,14 +35,14 @@ export class LlmService {
   private apiUrl = environment.openaiApiUrl;
   private apiKey = environment.openaiApiKey;
   private model = environment.openaiModel;
-  
+
   // Direction de traduction par défaut (FR vers IT)
   private _translationDirection: TranslationDirection = 'fr2it';
-  
+
   get translationDirection(): TranslationDirection {
     return this._translationDirection;
   }
-  
+
   set translationDirection(direction: TranslationDirection) {
     this._translationDirection = direction;
     // Sauvegarder la préférence dans le localStorage
@@ -79,7 +79,7 @@ export class LlmService {
 
   generateComprehensionExercise(type: 'written' | 'oral', vocabularyItems: VocabularyItem[]): Observable<ComprehensionText> {
     const words = vocabularyItems.map(item => item.word).join(', ');
-    
+
     const prompt = `Generate an Italian ${type === 'written' ? 'text' : 'dialogue'} that includes the following words: ${words}.
     The text should be suitable for a language learner at an intermediate level.
     Return a JSON object with the following structure:
@@ -130,7 +130,7 @@ export class LlmService {
       })
     );
   }
-  
+
   /**
    * Génère de nouveaux mots de vocabulaire
    */
@@ -152,12 +152,12 @@ export class LlmService {
     const exclusionPrompt = excludeWords.length > 0
       ? `Les mots suivants ont déjà été étudiés et ne doivent PAS être inclus: ${excludeWords.join(', ')}. `
       : '';
-    
+
     // Adapter le prompt en fonction de la direction de traduction
-    const translationDirection = direction === 'fr2it' 
+    const translationDirection = direction === 'fr2it'
       ? 'du français vers l\'italien'
       : 'de l\'italien vers le français';
-      
+
     if (category === 'conjugation') {
       prompt = `Génère ${count} verbes en italien avec leur traduction en français pour pratiquer la conjugaison au temps "${topic}".
       ${reviewWordsContext}${exclusionPrompt}
@@ -192,6 +192,9 @@ export class LlmService {
     } else {
       prompt = `Génère ${count} paires de mots en italien avec leur traduction en français sur le thème: "${topic}".
       ${reviewWordsContext}${exclusionPrompt}
+      
+      IMPORTANT : Assure-toi qu'il n'y ait AUCUN doublon dans la liste générée. Chaque paire doit être unique.
+
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
@@ -216,25 +219,25 @@ export class LlmService {
    * Génère de nouveaux mots de vocabulaire avec une consigne personnalisée
    */
   private generateNewWordPairsWithCustomInstruction(
-    topic: string, 
+    topic: string,
     customInstruction: string,
-    category?: string, 
+    category?: string,
     count: number = 12,
     wordsToReview: WordPair[] = [],
     direction: TranslationDirection = 'fr2it'
   ): Observable<WordPair[]> {
     let prompt: string;
-    
+
     // Liste des mots à réviser pour le contexte
-    const reviewWordsContext = wordsToReview.length > 0 
-      ? `Inclure ces mots dans les ${count} mots générés pour révision: ${wordsToReview.map(w => w.it).join(', ')}. ` 
+    const reviewWordsContext = wordsToReview.length > 0
+      ? `Inclure ces mots dans les ${count} mots générés pour révision: ${wordsToReview.map(w => w.it).join(', ')}. `
       : '';
-    
+
     // Adapter le prompt en fonction de la direction de traduction
-    const translationDirection = direction === 'fr2it' 
+    const translationDirection = direction === 'fr2it'
       ? 'du français vers l\'italien'
       : 'de l\'italien vers le français';
-      
+
     if (category === 'conjugation') {
       prompt = `Génère ${count} verbes en italien avec leur traduction en français pour pratiquer la conjugaison au temps "${topic}". 
       ${reviewWordsContext}
@@ -259,6 +262,9 @@ export class LlmService {
       prompt = `Génère ${count} paires de mots en italien avec leur traduction en français sur le thème: "${topic}".
       ${reviewWordsContext}
       CONSIGNE SPÉCIFIQUE: ${customInstruction}
+      
+      IMPORTANT : Assure-toi qu'il n'y ait AUCUN doublon dans la liste générée. Chaque paire doit être unique.
+
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
       Retourne uniquement un tableau JSON avec la structure suivante:
       [
@@ -278,34 +284,34 @@ export class LlmService {
 
     return this.callOpenAI<WordPair[]>(prompt);
   }
-  
+
   /**
    * Récupère les mots à réviser pour une catégorie/sujet donnés
    */
   private getReviewWords(category: string, topic: string): Observable<WordMastery[]> {
     // Récupérer les mots suivis pour cette catégorie et ce sujet
     const trackedWords = this.vocabularyTrackingService.getTrackedWordsByCategory(category, topic);
-    
+
     // Si pas de mots à réviser, retourner un tableau vide
     if (trackedWords.length === 0) {
       return of([]);
     }
-    
+
     // S'il y a moins de 6 mots, les retourner tous
     if (trackedWords.length <= 6) {
       return of(trackedWords);
     }
-    
+
     // Sinon, utiliser LLM pour déterminer les meilleurs mots à réviser
     return this.getMostRelevantWordsToReview(trackedWords, category, topic);
   }
-  
+
   /**
    * Utilise le LLM pour déterminer les mots les plus pertinents à réviser
    */
   private getMostRelevantWordsToReview(
-    words: WordMastery[], 
-    category: string, 
+    words: WordMastery[],
+    category: string,
     topic: string
   ): Observable<WordMastery[]> {
     // Formater les données pour le LLM
@@ -317,7 +323,7 @@ export class LlmService {
       masteryLevel: w.masteryLevel,
       timesReviewed: w.timesReviewed
     }));
-    
+
     const prompt = `
     Je t'envoie une liste de mots italiens que l'utilisateur a déjà vus lors de sessions précédentes.
     Sélectionne les 6 mots les plus pertinents à réviser maintenant, en te basant sur :
@@ -332,7 +338,7 @@ export class LlmService {
     
     Réponds uniquement avec un tableau JSON contenant les ID des 6 mots que tu recommandes de réviser, par ordre de priorité :
     ["id1", "id2", "id3", "id4", "id5", "id6"]`;
-    
+
     return this.callOpenAI<string[]>(prompt).pipe(
       map(recommendedIds => {
         // Filtrer les mots selon les IDs recommandés
@@ -349,17 +355,19 @@ export class LlmService {
    */
   generateCustomWordPairs(customPrompt: string, direction: TranslationDirection): Observable<WordPair[]> {
     // Adapter le prompt en fonction de la direction de traduction
-    const translationDirection = direction === 'fr2it' 
+    const translationDirection = direction === 'fr2it'
       ? 'du français vers l\'italien'
       : 'de l\'italien vers le français';
-    
+
     // Récupérer le nombre d'associations défini par l'utilisateur
     const userAssociationsCount = this.storageService.get('wordAssociationsCount') || 10;
-    
+
     const prompt = `
       Je souhaite apprendre du vocabulaire italien selon cette consigne personnalisée: "${customPrompt}".
       
       Génère ${userAssociationsCount} paires de mots en italien avec leur traduction en français qui correspondent à ma demande.
+      
+      IMPORTANT : Assure-toi qu'il n'y ait AUCUN doublon dans la liste générée. Chaque paire doit être unique.
       
       La direction de traduction est ${translationDirection}, l'utilisateur devra traduire ${direction === 'fr2it' ? 'du français vers l\'italien' : 'de l\'italien vers le français'}.
       
@@ -392,7 +400,7 @@ export class LlmService {
   generateWordPairsWithCustomInstruction(topic: string, category: string, customInstruction: string): Observable<WordPair[]> {
     // Utiliser le même système que generateWordPairs mais avec la consigne personnalisée
     const userAssociationsCount = this.storageService.get('wordAssociationsCount') || 10;
-    
+
     // Récupérer les mots suivis pour cette catégorie et ce sujet
     return this.getReviewWords(category, topic).pipe(
       switchMap(wordsToReview => {
@@ -403,16 +411,16 @@ export class LlmService {
           fr: w.translation,
           context: w.context || undefined
         }));
-        
+
         const numReviewWords = reviewWords.length;
         const maxReviewWords = Math.min(6, Math.floor(userAssociationsCount / 2)); // Max 50% de mots de révision
         const numNewWords = userAssociationsCount - Math.min(numReviewWords, maxReviewWords);
-        
+
         // S'il n'y a pas de mots à réviser, générer tous les nouveaux mots avec la consigne personnalisée
         if (numReviewWords === 0) {
           return this.generateNewWordPairsWithCustomInstruction(topic, customInstruction, category, userAssociationsCount, []);
         }
-        
+
         // Sinon, générer des nouveaux mots pour compléter avec la consigne personnalisée
         return this.generateNewWordPairsWithCustomInstruction(topic, customInstruction, category, numNewWords, reviewWords.slice(0, maxReviewWords))
           .pipe(
@@ -435,15 +443,15 @@ export class LlmService {
   private callOpenAI<T>(prompt: string): Observable<T> {
     // Vérifier si l'utilisateur a défini sa propre clé API
     const userApiKey = this.storageService.get('userOpenaiApiKey');
-    
+
     // Si aucune clé utilisateur n'est définie, afficher une notification
     if (!userApiKey) {
       this.showApiKeyNotification();
       return throwError(() => new Error('Clé API non configurée'));
     }
-    
+
     const apiKeyToUse = userApiKey || this.apiKey;
-    
+
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKeyToUse}`

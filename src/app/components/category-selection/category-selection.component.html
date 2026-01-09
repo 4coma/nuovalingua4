@@ -4,7 +4,8 @@
     <div class="header-section">
       <!-- Sélection de la direction de traduction compacte -->
       <div class="direction-selector">
-        <ion-segment [(ngModel)]="translationDirection" (ionChange)="changeTranslationDirection($event.detail.value)" class="compact-segment">
+        <ion-segment [(ngModel)]="translationDirection" (ionChange)="changeTranslationDirection($event.detail.value)"
+          class="compact-segment">
           <ion-segment-button value="fr2it">
             <ion-label>FR → IT</ion-label>
           </ion-segment-button>
@@ -13,71 +14,147 @@
           </ion-segment-button>
         </ion-segment>
       </div>
-      
+
       <!-- Contrôle du nombre de mots à générer - ligne compacte -->
       <div class="words-count-selector">
         <ion-item lines="none" class="compact-words-item">
           <ion-label slot="start">Mots:</ion-label>
-          <ion-input 
-            type="number" 
-            [(ngModel)]="wordsToGenerate" 
-            min="3" 
-            max="50"
-            placeholder="10"
+          <ion-input type="number" [(ngModel)]="wordsToGenerate" min="3" max="50" placeholder="10"
             class="words-count-input">
           </ion-input>
         </ion-item>
       </div>
     </div>
-    
-    <!-- Étape 1: Affichage des catégories principales -->
-    <div *ngIf="!showTopics" class="categories-section">
-      <div class="categories-grid">
-        <div *ngFor="let category of categories" 
-             class="category-card" 
-             [class.selected]="selectedCategory === category.id" 
-             (click)="selectCategory(category.id)">
-          <div class="category-icon">
-            <ion-icon [name]="category.icon"></ion-icon>
+
+    <!-- Liste des Niveaux (Timeline / Mindmap Style) -->
+    <div class="timeline-container">
+      <div class="timeline-line"></div>
+
+      <div class="timeline-item" *ngFor="let level of levels; let isLast = last">
+        <!-- Marker sur la ligne -->
+        <div class="timeline-marker-wrapper">
+          <div class="timeline-marker" [class.completed]="level.progress === 100">
+            <span class="level-number" *ngIf="level.progress < 100">{{ level.id }}</span>
+            <ion-icon name="checkmark" *ngIf="level.progress === 100"></ion-icon>
           </div>
-          <div class="category-content">
-            <h3 class="category-title">{{ category.name }}</h3>
+        </div>
+
+        <!-- Carte de contenu "Schema" -->
+        <div class="timeline-content-card" (click)="confirmStartLevel(level)"
+          [class.completed]="level.progress === 100">
+          <!-- En-tête du niveau -->
+          <div class="level-header">
+            <h2 class="level-title">{{ level.title }}</h2>
+            <div class="level-subtitle-badge">{{ level.subtitle }}</div>
+            <div class="level-progress-badge" *ngIf="level.progress > 0">{{ level.progress }}%</div>
           </div>
-          <div class="category-arrow">
-            <ion-icon name="chevron-forward"></ion-icon>
+
+          <!-- Objectif Central -->
+          <div class="objective-box">
+            <ion-icon name="bulb-outline"></ion-icon>
+            <span>{{ level.objective }}</span>
+          </div>
+
+          <!-- Mindmap Branches -->
+          <div class="mindmap-structure">
+
+            <!-- Branche Domaines -->
+            <div class="mindmap-branch">
+              <div class="branch-connector"></div>
+              <div class="branch-node">
+                <div class="node-title">
+                  Domaines <span class="section-percent" *ngIf="level.sections.domainesProgress > 0">{{
+                    level.sections.domainesProgress }}%</span>
+                </div>
+                <div class="node-items">
+                  <span *ngFor="let item of level.sections.domaines" class="node-tag clickable"
+                    (click)="$event.stopPropagation(); confirmStartLevel(level, item)"
+                    [style.--item-progress]="item.progress + '%'" [class.done]="item.progress === 100">
+                    {{ item.label }}
+                    <ion-icon [name]="item.id ? 'layers-outline' : 'sparkles-outline'" class="source-icon"></ion-icon>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Branche Lexique -->
+            <div class="mindmap-branch">
+              <div class="branch-connector"></div>
+              <div class="branch-node">
+                <div class="node-title">
+                  Lexique <span class="section-percent" *ngIf="level.sections.lexicalProgress > 0">{{
+                    level.sections.lexicalProgress }}%</span>
+                </div>
+                <div class="node-items">
+                  <span *ngFor="let item of level.sections.lexical" class="node-tag clickable"
+                    (click)="$event.stopPropagation(); confirmStartLevel(level, item)"
+                    [style.--item-progress]="item.progress + '%'" [class.done]="item.progress === 100">
+                    {{ item.label }}
+                    <ion-icon [name]="item.id ? 'layers-outline' : 'sparkles-outline'" class="source-icon"></ion-icon>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Branche Verbes -->
+            <div class="mindmap-branch">
+              <div class="branch-connector"></div>
+              <div class="branch-node">
+                <div class="node-title">
+                  Verbes <span class="section-percent" *ngIf="level.sections.verbsProgress > 0">{{
+                    level.sections.verbsProgress }}%</span>
+                </div>
+                <div class="node-items">
+                  <span *ngFor="let item of level.sections.verbs" class="node-tag clickable"
+                    (click)="$event.stopPropagation(); confirmStartLevel(level, item)"
+                    [style.--item-progress]="item.progress + '%'" [class.done]="item.progress === 100">
+                    {{ item.label }}
+                    <ion-icon [name]="item.id ? 'layers-outline' : 'sparkles-outline'" class="source-icon"></ion-icon>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bouton d'action discret au survol ou bottom -->
+          <div class="play-action">
+            <ion-button fill="clear" [color]="level.progress === 100 ? 'success' : 'medium'">
+              {{ level.progress === 100 ? 'Revoir' : 'Commencer' }}
+              <ion-icon slot="end"
+                [name]="level.progress === 100 ? 'refresh-circle' : 'arrow-forward-circle'"></ion-icon>
+            </ion-button>
           </div>
         </div>
       </div>
     </div>
-    
-    <!-- Étape 2: Affichage des sous-catégories -->
-    <div *ngIf="showTopics && selectedCategory" class="topics-section">
-      <div class="topics-header">
-        <h2 class="topics-title">Choisissez un sujet</h2>
-      </div>
-      
-      <div class="topics-list">
-        <div *ngFor="let topic of getTopicsForCategory()" 
-             class="topic-item" 
-             (click)="confirmStartSession(topic)">
-          <span class="topic-text">{{ topic }}</span>
-          <ion-icon name="chevron-forward" class="topic-arrow"></ion-icon>
-        </div>
-      </div>
+
+    <!-- Outils personnalisés -->
+    <div class="custom-mode-section ion-padding-top">
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-button fill="outline" expand="block" (click)="startPersonalSession()" class="custom-mode-btn">
+              <ion-icon slot="start" name="bookmarks-outline"></ion-icon>
+              Réviser mon dictionnaire
+            </ion-button>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-button fill="outline" expand="block" (click)="openCustomPromptModal()" class="custom-mode-btn">
+              <ion-icon slot="start" name="rocket-outline"></ion-icon>
+              Session libre / Personnalisée
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </div>
+
   </div>
 </ion-content>
 
 <!-- Boîte de dialogue de confirmation -->
-<ion-alert
-  [isOpen]="showConfirmation"
-  [header]="'Démarrer une session'"
-  [message]="'Voulez-vous démarrer une session d\'apprentissage sur le thème : ' + selectedTopic + ' ?'"
-  [buttons]="alertButtons"
-></ion-alert>
+<ion-alert [isOpen]="showConfirmation" [header]="selectedLevel?.title || 'Démarrer une session'"
+  [message]="'Voulez-vous démarrer une session d\'apprentissage pour ce niveau ?'" [buttons]="alertButtons"></ion-alert>
 
 <!-- Indicateur de chargement -->
-<ion-loading
-  [isOpen]="isLoading"
-  message="Génération de votre session d'apprentissage..."
-></ion-loading>
+<ion-loading [isOpen]="isLoading" message="Génération de votre parcours..."></ion-loading>

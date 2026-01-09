@@ -17,6 +17,7 @@ import { AddTextModalComponent } from './components/add-text-modal/add-text-moda
 import { TextPreviewModalComponent } from './components/text-preview-modal/text-preview-modal.component';
 import { AddWordComponent } from './components/add-word/add-word.component';
 import { NewWordsModalComponent } from './components/new-words-modal/new-words-modal.component';
+import { PomService } from './services/pom.service';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -37,11 +38,11 @@ enum AppState {
 })
 export class AppComponent {
   currentState = AppState.CATEGORY_SELECTION;
-  
+
   // Store the current exercises
   vocabularyExercise: VocabularyExercise | null = null;
   comprehensionText: ComprehensionText | null = null;
-  
+
   // States enum for template
   appStates = AppState;
 
@@ -60,6 +61,7 @@ export class AppComponent {
     '/personal-revision-setup': 'Révision personnalisée',
     '/saved-conversations': 'Mes conversations',
     '/saved-texts': 'Textes sauvegardés',
+    '/poms': 'Mes POMs',
     '/preferences': 'Préférences'
   };
 
@@ -83,10 +85,106 @@ export class AppComponent {
     private toastController: ToastController,
     private textGeneratorService: TextGeneratorService,
     private actionSheetController: ActionSheetController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private pomService: PomService
   ) {
     this.setupRouteListener();
     this.initializeApp();
+  }
+
+  // ... (existing methods)
+
+  /**
+   * Configure la gestion des notifications
+   */
+  private setupNotificationHandling() {
+    // Écouter les clics sur les notifications
+    LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
+
+      // Vérifier l'action associée
+      const extra = notificationAction.notification.extra;
+
+      if (extra && extra.action === 'start_revision') {
+        this.startPersonalDictionaryRevision({
+          newWordIds: extra.newWordIds
+        });
+      }
+
+      if (extra && extra.action === 'start_comprehension') {
+        this.startDailyComprehension();
+      }
+
+      if (extra && extra.action === 'start_pom_review') {
+        this.startPomReviewSession(extra.pomId);
+      }
+    });
+
+    // Écouter les notifications reçues (quand l'app est fermée)
+    LocalNotifications.addListener('localNotificationReceived', (notification) => {
+
+      const extra = notification.extra;
+
+      if (extra && extra.action === 'start_revision') {
+        this.startPersonalDictionaryRevision({
+          newWordIds: extra.newWordIds
+        });
+      }
+
+      if (extra && extra.action === 'start_comprehension') {
+        this.startDailyComprehension();
+      }
+
+      if (extra && extra.action === 'start_pom_review') {
+        this.startPomReviewSession(extra.pomId);
+      }
+    });
+
+    // Écouter les notifications Web (Toasts/Browser)
+    this.notificationService.onAction$.subscribe(payload => {
+      console.log('[AppComponent] Action notification Web reçue:', payload);
+      if (payload.action === 'start_pom_review' && payload.pomId) {
+        this.startPomReviewSession(payload.pomId);
+      } else if (payload.action === 'start_revision') {
+        this.startPersonalDictionaryRevision({ newWordIds: payload.extra?.newWordIds });
+      } else if (payload.action === 'start_comprehension') {
+        this.startDailyComprehension();
+      }
+    });
+  }
+
+  /**
+   * Démarre une session de révision POM
+   */
+  private async startPomReviewSession(pomId: string) {
+    if (!pomId) return;
+
+    try {
+      const pomWords = this.pomService.getPomWords(pomId);
+      if (pomWords.length === 0) {
+        console.warn('Aucun mot trouvé pour le POM:', pomId);
+        return;
+      }
+
+      const sessionInfo = {
+        category: 'Révision Espacée (POM)',
+        topic: 'Révision',
+        date: new Date().toISOString(),
+        translationDirection: 'fr2it' as const
+      };
+
+      this.storageService.set('sessionInfo', sessionInfo);
+      this.storageService.set('wordPairs', pomWords);
+      this.storageService.set('isPomReview', true);
+      this.storageService.set('pomId', pomId);
+
+      // Clear other flags
+      this.storageService.set('isPersonalDictionaryRevision', false);
+      this.storageService.set('fullRevisionActive', false);
+
+      this.router.navigate(['/word-pairs-game']);
+    } catch (error) {
+      console.error('Erreur lors du démarrage de la révision POM:', error);
+    }
   }
 
   /**
@@ -94,26 +192,35 @@ export class AppComponent {
    */
   private async initializeApp() {
     await this.platform.ready();
-    
+
     // Initialiser le service de notification
     await this.notificationService.initialize();
-    
+
     // Configurer la gestion des notifications
     this.setupNotificationHandling();
-    
+
+    // Reprogrammer les notifications POM (important pour le Web après refresh)
+    await this.pomService.reScheduleAllNotifications();
+
+    App.addListener('appStateChange', async (state) => {
+      if (state.isActive) {
+        await this.pomService.reScheduleAllNotifications();
+      }
+    });
+
     if (this.platform.is('android') || this.platform.is('ios')) {
       try {
         // Configuration de la StatusBar pour qu'elle soit opaque
         StatusBar.setBackgroundColor({ color: '#3880ff' });
         StatusBar.setStyle({ style: 'LIGHT' as any });
-        
+
         // Gestion du bouton retour sur Android
         App.addListener('backButton', () => {
           if (!this.router.navigated) {
             App.exitApp();
           }
         });
-        
+
         // S'assurer que le menu est bien initialisé sur mobile
         this.initializeMenu();
       } catch (error) {
@@ -129,18 +236,18 @@ export class AppComponent {
     try {
       // S'assurer que le menu est fermé au démarrage
       await this.menuController.close();
-      
+
       // Activer le menu pour qu'il soit utilisable
       await this.menuController.enable(true);
-      
+
       // Forcer la réinitialisation du menu
       setTimeout(async () => {
         await this.menuController.enable(true);
-        
+
         // Ajouter un écouteur pour les gestes de balayage
         this.setupSwipeGesture();
       }, 1000);
-      
+
     } catch (error) {
       console.error('Error initializing menu:', error);
     }
@@ -153,18 +260,18 @@ export class AppComponent {
     if (this.platform.is('android') || this.platform.is('ios')) {
       let startX = 0;
       let startY = 0;
-      
+
       document.addEventListener('touchstart', (e) => {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
       });
-      
+
       document.addEventListener('touchend', (e) => {
         const endX = e.changedTouches[0].clientX;
         const endY = e.changedTouches[0].clientY;
         const diffX = endX - startX;
         const diffY = endY - startY;
-        
+
         // Si le balayage est horizontal et vers la droite depuis le bord gauche
         if (Math.abs(diffX) > Math.abs(diffY) && diffX > 50 && startX < 50) {
           this.testMenuOpen();
@@ -225,7 +332,7 @@ export class AppComponent {
   private updateHeaderForRoute(route: string) {
     // Mise à jour du titre
     this.currentPageTitle = this.pageTitles[route] || 'NuovaLingua';
-    
+
     // Affichage du bouton retour
     this.showBackButton = this.routesWithBackButton.includes(route);
   }
@@ -240,7 +347,7 @@ export class AppComponent {
     }
   }
 
-  onCategorySelected(event: {category: string, topic: string}) {
+  onCategorySelected(event: { category: string, topic: string }) {
     // Generate a vocabulary exercise based on the selected category and topic
     this.llmService.generateVocabularyExercise(event.category, event.topic)
       .subscribe(
@@ -288,47 +395,10 @@ export class AppComponent {
       component: AddWordComponent,
       cssClass: 'add-word-modal'
     });
-    
+
     await modal.present();
   }
 
-  /**
-   * Configure la gestion des notifications
-   */
-  private setupNotificationHandling() {
-    // Écouter les clics sur les notifications
-    LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
-      
-      // Vérifier l'action associée
-      const extra = notificationAction.notification.extra;
-
-      if (extra && extra.action === 'start_revision') {
-        this.startPersonalDictionaryRevision({
-          newWordIds: extra.newWordIds
-        });
-      }
-
-      if (extra && extra.action === 'start_comprehension') {
-        this.startDailyComprehension();
-      }
-    });
-
-    // Écouter les notifications reçues (quand l'app est fermée)
-    LocalNotifications.addListener('localNotificationReceived', (notification) => {
-      
-      const extra = notification.extra;
-
-      if (extra && extra.action === 'start_revision') {
-        this.startPersonalDictionaryRevision({
-          newWordIds: extra.newWordIds
-        });
-      }
-
-      if (extra && extra.action === 'start_comprehension') {
-        this.startDailyComprehension();
-      }
-    });
-  }
 
   /**
    * Lance directement une session de révision du dictionnaire personnel
@@ -404,6 +474,10 @@ export class AppComponent {
       this.storageService.set('isPersonalDictionaryRevision', true);
       this.storageService.set('revisedWords', revisedWords);
 
+      // Nettoyer les flags POM pour éviter les conflits
+      localStorage.removeItem('isPomReview');
+      localStorage.removeItem('pomId');
+
 
       // Naviguer vers l'exercice d'association
       this.router.navigate(['/word-pairs-game']);
@@ -464,7 +538,7 @@ export class AppComponent {
       // Charger les thèmes personnalisés et en sélectionner un aléatoirement
       const savedThemes = this.storageService.get('dailyComprehensionThemes');
       let selectedContext: string[] | undefined;
-      
+
       if (savedThemes) {
         try {
           const themes = JSON.parse(savedThemes);
@@ -526,7 +600,7 @@ export class AppComponent {
    * Ouvre l'action sheet de sélection d'action pour le bouton +
    */
   async openActionSelection() {
-    
+
     const actionSheet = await this.actionSheetController.create({
       header: 'Que voulez-vous faire ?',
       buttons: [
@@ -560,7 +634,7 @@ export class AppComponent {
    * Ouvre le modal d'ajout de texte
    */
   async openAddTextModal() {
-    
+
     try {
       const modal = await this.modalController.create({
         component: AddTextModalComponent,
@@ -570,7 +644,7 @@ export class AppComponent {
       await modal.present();
 
       const { data } = await modal.onDidDismiss();
-      
+
       if (data && data.action === 'preview') {
         this.openTextPreviewModal(data.text);
       }
@@ -583,7 +657,7 @@ export class AppComponent {
    * Ouvre le modal de prévisualisation du texte
    */
   async openTextPreviewModal(text: string) {
-    
+
     try {
       const modal = await this.modalController.create({
         component: TextPreviewModalComponent,
@@ -596,7 +670,7 @@ export class AppComponent {
       await modal.present();
 
       const { data } = await modal.onDidDismiss();
-      
+
       if (data && data.action === 'edit') {
         this.openAddTextModal();
       }

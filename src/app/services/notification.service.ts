@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { StorageService } from './storage.service';
+import { Capacitor } from '@capacitor/core';
+import { ToastController } from '@ionic/angular';
+import { Subject, Observable } from 'rxjs';
 
 export interface NotificationSettings {
   enabled: boolean;
@@ -24,8 +27,13 @@ export class NotificationService {
   private readonly DAILY_NOTIFICATION_STATE_KEY = 'dailyNotificationState';
 
   private dailyNotificationState: DailyNotificationState;
+  private actionSubject = new Subject<{ action: string, pomId?: string, extra?: any }>();
+  public onAction$: Observable<{ action: string, pomId?: string, extra?: any }> = this.actionSubject.asObservable();
 
-  constructor(private storageService: StorageService) {
+  constructor(
+    private storageService: StorageService,
+    private toastController: ToastController
+  ) {
     this.dailyNotificationState = this.loadDailyNotificationState();
   }
 
@@ -68,10 +76,10 @@ export class NotificationService {
     try {
       // Demander les permissions si nécessaire
       await this.requestPermissions();
-      
+
       // Configurer les actions de notification
       await this.setupNotificationActions();
-      
+
       // Programmer la notification quotidienne si activée
       const settings = this.getSettings();
       if (settings.enabled) {
@@ -93,16 +101,25 @@ export class NotificationService {
    */
   async requestPermissions(): Promise<void> {
     try {
+      if (Capacitor.getPlatform() === 'web') {
+        if ('Notification' in window) {
+          await Notification.requestPermission();
+        }
+        return;
+      }
+
       const result = await LocalNotifications.requestPermissions();
-      
+
       // Vérifier si les permissions sont accordées
       const checkResult = await LocalNotifications.checkPermissions();
-      
+
       if (checkResult.display !== 'granted') {
         console.warn('Permissions de notifications non accordées');
       }
     } catch (error) {
-      console.error('Erreur lors de la demande de permissions:', error);
+      if (Capacitor.getPlatform() !== 'web') {
+        console.error('Erreur lors de la demande de permissions:', error);
+      }
     }
   }
 
@@ -111,6 +128,10 @@ export class NotificationService {
    */
   private async setupNotificationActions(): Promise<void> {
     try {
+      if (Capacitor.getPlatform() === 'web') {
+        return; // Non supporté sur le web
+      }
+
       // Configurer l'action pour la révision quotidienne
       await LocalNotifications.registerActionTypes({
         types: [
@@ -131,15 +152,216 @@ export class NotificationService {
                 title: 'Ouvrir la compréhension'
               }
             ]
+          },
+          {
+            id: 'POM_REVIEW',
+            actions: [
+              {
+                id: 'start_pom_review',
+                title: 'Réviser maintenant'
+              }
+            ]
           }
         ]
       });
-      
+
     } catch (error) {
-      console.error('Erreur lors de la configuration des actions de notification:', error);
+      if (Capacitor.getPlatform() !== 'web') {
+        console.error('Erreur lors de la configuration des actions de notification:', error);
+      }
     }
   }
 
+  // ... (existing methods)
+
+  /**
+   * Programme une notification pour un POM
+   */
+  async schedulePomNotification(pomId: string, date: Date, message: string): Promise<void> {
+    try {
+      const platform = Capacitor.getPlatform();
+      console.log(
+        `[NOTIF DEBUG] schedulePomNotification platform=${platform} pomId=${pomId} ` +
+        `date=${date.toISOString()} message="${message}"`
+      );
+      if (platform === 'web') {
+        // Fallback pour le navigateur sur PC
+        const now = Date.now();
+        const delay = date.getTime() - now;
+        console.log(`[NOTIF DEBUG] web schedule delayMs=${delay}`);
+
+        if (delay <= 0) {
+          console.log('[NOTIF DEBUG] web schedule immediate notify');
+          if (this.shouldShowPomNotification(pomId, date.getTime())) {
+            this.showBrowserNotification('Révision Espacée (POM)', message, pomId);
+          } else {
+            console.log('[NOTIF DEBUG] web schedule skipped (state changed)');
+          }
+        } else {
+          // Utiliser setTimeout pour les notifications programmées dans la session actuelle
+          // Note : Cela ne survivra pas à un rechargement de page,
+          // mais c'est suffisant pour le test de quelques minutes demandé.
+          const timeoutId = setTimeout(() => {
+            if (this.shouldShowPomNotification(pomId, date.getTime())) {
+              this.showBrowserNotification('Révision Espacée (POM)', message, pomId);
+            } else {
+              console.log('[NOTIF DEBUG] web schedule skipped (state changed)');
+            }
+          }, delay);
+          console.log(`[NOTIF DEBUG] web setTimeout id=${String(timeoutId)} in ${Math.round(delay / 1000)}s`);
+        }
+        return;
+      }
+
+      // Générer un ID numérique unique à partir de l'ID du POM
+      const notificationId = this.hashCode(pomId);
+
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: notificationId,
+            title: 'Révision Espacée (POM)',
+            body: message,
+            schedule: { at: date },
+            sound: 'default',
+            actionTypeId: 'POM_REVIEW',
+            extra: {
+              type: 'pom_review',
+              action: 'start_pom_review',
+              pomId: pomId
+            }
+          }
+        ]
+      });
+      console.log(`[NOTIF DEBUG] native schedule done id=${notificationId} pomId=${pomId}`);
+    } catch (error) {
+      console.error('Erreur lors de la programmation de la notification POM:', error);
+    }
+  }
+
+  /**
+   * Affiche une notification dans le navigateur ou via un Toast Ionic
+   */
+  private async showBrowserNotification(title: string, message: string, pomId?: string) {
+    // 1. Essayer l'API Notification du navigateur
+    if ('Notification' in window) {
+      console.log(`[NOTIF DEBUG] browser permission=${Notification.permission}`);
+      if (Notification.permission === 'granted') {
+        const n = new Notification(title, { body: message });
+        n.onclick = () => {
+          this.actionSubject.next({ action: 'start_pom_review', pomId });
+          window.focus();
+        };
+      } else if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        console.log(`[NOTIF DEBUG] browser permission requested result=${permission}`);
+        if (permission === 'granted') {
+          const n = new Notification(title, { body: message });
+          n.onclick = () => {
+            this.actionSubject.next({ action: 'start_pom_review', pomId });
+            window.focus();
+          };
+        }
+      }
+    } else {
+      console.log('[NOTIF DEBUG] browser Notification API not available');
+    }
+
+    if (pomId) {
+      await this.playPomNotificationSound();
+    }
+
+    // 2. Toujours afficher un Toast Ionic (plus fiable sur Web)
+    const toast = await this.toastController.create({
+      message: `${title}: ${message}`,
+      duration: 8000,
+      position: 'top',
+      color: 'primary',
+      buttons: [
+        {
+          text: 'Ouvrir',
+          handler: () => {
+            this.actionSubject.next({ action: 'start_pom_review', pomId });
+          }
+        },
+        {
+          text: 'Fermer',
+          role: 'cancel'
+        }
+      ]
+    });
+    await toast.present();
+
+    // 3. Toujours afficher un log console pour le debug
+    console.log(`%c[CORE DEBUG] Notification affichée`, 'color: #00ff00; font-weight: bold', { title, message, pomId });
+    console.log(`[NOTIFICATION] ${title}: ${message}`, pomId ? `(POM ID: ${pomId})` : '');
+  }
+
+  private async playPomNotificationSound(): Promise<void> {
+    try {
+      const AudioContextRef = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextRef) {
+        console.log('[NOTIF DEBUG] AudioContext not supported');
+        return;
+      }
+
+      const context = new AudioContextRef();
+      if (context.state === 'suspended') {
+        await context.resume();
+      }
+
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, context.currentTime);
+
+      gain.gain.setValueAtTime(0.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.2, context.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.4);
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.4);
+
+      oscillator.onended = () => {
+        context.close().catch(() => {});
+      };
+    } catch (error) {
+      console.warn('[NOTIF DEBUG] Unable to play POM sound:', error);
+    }
+  }
+
+  private shouldShowPomNotification(pomId: string, scheduledAt: number): boolean {
+    const poms = this.storageService.get('poms');
+    if (!Array.isArray(poms)) return false;
+    const pom = poms.find(p => p.id === pomId);
+    if (!pom || pom.status !== 'active') return false;
+
+    const now = Date.now();
+    const due = pom.nextReviewDate <= now + 1000;
+    const diffMs = Math.abs(scheduledAt - pom.nextReviewDate);
+    const scheduleMatches = diffMs <= 2 * 60 * 1000;
+
+    return due && scheduleMatches;
+  }
+
+  /**
+   * Utilitaire pour générer un hash code numérique à partir d'une chaîne
+   */
+  private hashCode(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash); // Ensure positive ID
+  }
+
+  // ... (rest of the file)
   /**
    * Récupère les paramètres de notification
    */
@@ -186,10 +408,10 @@ export class NotificationService {
   async toggleNotifications(enabled: boolean, time?: string, message?: string): Promise<void> {
     const settings = this.getSettings();
     settings.enabled = enabled;
-    
+
     if (time) settings.time = time;
     if (message) settings.message = message;
-    
+
     this.saveSettings(settings);
 
     if (enabled) {
@@ -232,12 +454,12 @@ export class NotificationService {
 
       // Parser l'heure (format "HH:MM")
       const [hours, minutes] = time.split(':').map(Number);
-      
+
       // Calculer la prochaine occurrence
       const now = new Date();
       const nextNotification = new Date();
       nextNotification.setHours(hours, minutes, 0, 0);
-      
+
       // Si l'heure est déjà passée aujourd'hui, programmer pour demain
       if (nextNotification <= now) {
         nextNotification.setDate(nextNotification.getDate() + 1);
@@ -353,13 +575,19 @@ export class NotificationService {
   async sendTestNotification(): Promise<void> {
     try {
       const settings = this.getSettings();
-      
+      const message = settings.message || 'Test de notification quotidienne';
+
+      if (Capacitor.getPlatform() === 'web') {
+        await this.showBrowserNotification('NuovaLingua - Test', message);
+        return;
+      }
+
       await LocalNotifications.schedule({
         notifications: [
           {
             id: 9999, // ID temporaire pour le test
             title: 'NuovaLingua - Test',
-            body: settings.message || 'Test de notification quotidienne',
+            body: message,
             schedule: { at: new Date(Date.now() + 1000) }, // Dans 1 seconde
             sound: 'default',
             actionTypeId: 'DAILY_REVISION',
@@ -396,7 +624,7 @@ export class NotificationService {
   async checkPermissionsStatus(): Promise<{ granted: boolean; message: string }> {
     try {
       const result = await LocalNotifications.checkPermissions();
-      
+
       if (result.display === 'granted') {
         return {
           granted: true,
@@ -487,13 +715,13 @@ export class NotificationService {
 
     if (settings.enabled) {
       const messageToUse = this.dailyNotificationState.messageOverride || settings.message;
-      
+
       // Vérifier si une notification est déjà programmée pour aujourd'hui
       const shouldReschedule = await this.shouldRescheduleNotification(settings.time);
-      
+
       if (shouldReschedule) {
         // Reprogrammer seulement si nécessaire
-      await this.scheduleDailyNotification(settings.time, messageToUse, this.getDailyNotificationExtra());
+        await this.scheduleDailyNotification(settings.time, messageToUse, this.getDailyNotificationExtra());
       } else {
         // Mettre à jour seulement les données extra de la notification existante
         await this.updateExistingNotificationData(messageToUse, this.getDailyNotificationExtra());
@@ -512,7 +740,7 @@ export class NotificationService {
     try {
       const pending = await LocalNotifications.getPending();
       const existingNotification = pending.notifications.find(n => n.id === this.NOTIFICATION_ID);
-      
+
       if (!existingNotification) {
         // Aucune notification programmée, il faut programmer
         return true;
@@ -523,7 +751,7 @@ export class NotificationService {
       const now = new Date();
       const notificationTime = new Date();
       notificationTime.setHours(hours, minutes, 0, 0);
-      
+
       // Si l'heure est passée, il faut reprogrammer pour demain
       if (notificationTime <= now) {
         return true;
@@ -547,7 +775,7 @@ export class NotificationService {
     try {
       const pending = await LocalNotifications.getPending();
       const existingNotification = pending.notifications.find(n => n.id === this.NOTIFICATION_ID);
-      
+
       if (!existingNotification || !existingNotification.schedule?.at) {
         // Si pas de notification existante, on programme normalement
         const settings = this.getSettings();
@@ -567,7 +795,7 @@ export class NotificationService {
       notificationTime.setHours(hours, minutes, 0, 0);
 
       let targetDate: Date;
-      
+
       if (notificationTime <= now) {
         // L'heure est passée, programmer pour demain
         targetDate = new Date(notificationTime);
@@ -577,11 +805,11 @@ export class NotificationService {
         // pour éviter de créer plusieurs notifications
         const existingTime = new Date(existingDate);
         existingTime.setHours(hours, minutes, 0, 0);
-        
+
         // Si la notification existante est pour aujourd'hui, on la garde
-        if (existingDate.getDate() === now.getDate() && 
-            existingDate.getMonth() === now.getMonth() && 
-            existingDate.getFullYear() === now.getFullYear()) {
+        if (existingDate.getDate() === now.getDate() &&
+          existingDate.getMonth() === now.getMonth() &&
+          existingDate.getFullYear() === now.getFullYear()) {
           targetDate = existingDate;
         } else {
           // Sinon, programmer pour aujourd'hui
@@ -591,7 +819,7 @@ export class NotificationService {
 
       // Annuler l'ancienne et reprogrammer avec les nouvelles données
       await this.cancelDailyNotification();
-      
+
       await LocalNotifications.schedule({
         notifications: [
           {
@@ -644,6 +872,7 @@ export class NotificationService {
     }
   }
 }
+
 
 interface DailyNotificationExtra {
   wordCount: number;

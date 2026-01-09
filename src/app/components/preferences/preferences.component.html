@@ -16,43 +16,37 @@
       <ion-icon name="settings-outline"></ion-icon>
       APIs et Services externes
     </h2>
-    
+
     <ion-card>
       <ion-card-header (click)="toggleSection('openai')" style="cursor: pointer;">
         <ion-card-title class="preference-header">
           <ion-icon name="key-outline" class="header-icon"></ion-icon>
           <span class="header-text">Génération des sessions</span>
-          <ion-icon 
-            [name]="expandedSections['openai'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          <ion-icon [name]="expandedSections['openai'] ? 'chevron-up-outline' : 'chevron-down-outline'"
             class="header-chevron">
           </ion-icon>
         </ion-card-title>
       </ion-card-header>
       <ion-card-content *ngIf="expandedSections['openai']">
         <ion-text color="medium">
-          <p>Une clé API OpenAI est nécessaire pour la génération des sessions d'associations de mots, des textes de compréhension écrite et orale, ainsi que pour la traduction.</p>
+          <p>Une clé API OpenAI est nécessaire pour la génération des sessions d'associations de mots, des textes de
+            compréhension écrite et orale, ainsi que pour la traduction.</p>
         </ion-text>
-        
+
         <ion-item>
           <ion-label position="stacked">Clé API OpenAI</ion-label>
-          <ion-input 
-            [(ngModel)]="openaiApiKey" 
-            [type]="showApiKey ? 'text' : 'password'"
-            placeholder="sk-..."
+          <ion-input [(ngModel)]="openaiApiKey" [type]="showApiKey ? 'text' : 'password'" placeholder="sk-..."
             class="api-key-input">
           </ion-input>
-          <ion-button 
-            fill="clear" 
-            slot="end" 
-            (click)="toggleApiKeyVisibility()">
+          <ion-button fill="clear" slot="end" (click)="toggleApiKeyVisibility()">
             <ion-icon [name]="showApiKey ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
           </ion-button>
         </ion-item>
-        
+
         <ion-text color="medium" class="ion-padding-top">
           <p><small>Votre clé API est stockée localement sur votre appareil.</small></p>
         </ion-text>
-        
+
         <ion-button fill="clear" color="primary" size="small" (click)="showApiKeyInfo()" class="ion-margin-top">
           <ion-icon name="information-circle-outline" slot="start"></ion-icon>
           Pourquoi configurer ma clé API ?
@@ -65,37 +59,31 @@
         <ion-card-title class="preference-header">
           <ion-icon name="volume-high-outline" class="header-icon"></ion-icon>
           <span class="header-text">Clé API Google Text-to-Speech</span>
-          <ion-icon 
-            [name]="expandedSections['googleTts'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          <ion-icon [name]="expandedSections['googleTts'] ? 'chevron-up-outline' : 'chevron-down-outline'"
             class="header-chevron">
           </ion-icon>
         </ion-card-title>
       </ion-card-header>
       <ion-card-content *ngIf="expandedSections['googleTts']">
         <ion-text color="medium">
-          <p>Entrez votre clé API Google Text-to-Speech pour activer la prononciation des mots italiens dans le jeu d'association.</p>
+          <p>Entrez votre clé API Google Text-to-Speech pour activer la prononciation des mots italiens dans le jeu
+            d'association.</p>
         </ion-text>
-        
-        <ion-item>  
+
+        <ion-item>
           <ion-label position="stacked">Clé API Google TTS</ion-label>
-          <ion-input 
-            [(ngModel)]="googleTtsApiKey" 
-            [type]="showGoogleApiKey ? 'text' : 'password'"
-            placeholder="AIza..."
+          <ion-input [(ngModel)]="googleTtsApiKey" [type]="showGoogleApiKey ? 'text' : 'password'" placeholder="AIza..."
             class="api-key-input">
           </ion-input>
-          <ion-button 
-            fill="clear" 
-            slot="end" 
-            (click)="toggleGoogleApiKeyVisibility()">
+          <ion-button fill="clear" slot="end" (click)="toggleGoogleApiKeyVisibility()">
             <ion-icon [name]="showGoogleApiKey ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
           </ion-button>
         </ion-item>
-        
+
         <ion-text color="medium" class="ion-padding-top">
           <p><small>Votre clé API est stockée localement sur votre appareil.</small></p>
         </ion-text>
-        
+
         <ion-button fill="clear" color="primary" size="small" (click)="showGoogleApiKeyInfo()" class="ion-margin-top">
           <ion-icon name="information-circle-outline" slot="start"></ion-icon>
           Comment obtenir ma clé API Google TTS ?
@@ -108,129 +96,99 @@
         <ion-card-title class="preference-header">
           <ion-icon name="cloud-outline" class="header-icon"></ion-icon>
           <span class="header-text">Synchronisation Firebase</span>
-          <ion-icon 
-            [name]="expandedSections['firebase'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          <ion-icon [name]="expandedSections['firebase'] ? 'chevron-up-outline' : 'chevron-down-outline'"
             class="header-chevron">
           </ion-icon>
         </ion-card-title>
       </ion-card-header>
       <ion-card-content *ngIf="expandedSections['firebase']">
         <ion-text color="medium">
-          <p>Configurez Firebase pour synchroniser vos données (dictionnaire personnel, statistiques) entre vos appareils.</p>
+          <p>Configurez Firebase pour synchroniser vos données (dictionnaire personnel, statistiques) entre vos
+            appareils.</p>
         </ion-text>
-        
+
         <ion-item>
           <ion-label>Activer la synchronisation Firebase</ion-label>
           <ion-toggle [(ngModel)]="firebaseEnabled"></ion-toggle>
         </ion-item>
-        
+
         <div *ngIf="firebaseEnabled">
           <ion-item>
             <ion-label position="stacked">API Key</ion-label>
-            <ion-input 
-              [(ngModel)]="firebaseApiKey" 
-              [type]="showFirebaseConfig ? 'text' : 'password'"
-              placeholder="AIza..."
-              class="api-key-input">
+            <ion-input [(ngModel)]="firebaseApiKey" [type]="showFirebaseConfig ? 'text' : 'password'"
+              placeholder="AIza..." class="api-key-input">
             </ion-input>
-            <ion-button 
-              fill="clear" 
-              slot="end" 
-              (click)="toggleFirebaseConfigVisibility()">
+            <ion-button fill="clear" slot="end" (click)="toggleFirebaseConfigVisibility()">
               <ion-icon [name]="showFirebaseConfig ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
             </ion-button>
           </ion-item>
-          
+
           <ion-item>
             <ion-label position="stacked">Auth Domain</ion-label>
-            <ion-input 
-              [(ngModel)]="firebaseAuthDomain" 
-              [type]="showFirebaseConfig ? 'text' : 'password'"
+            <ion-input [(ngModel)]="firebaseAuthDomain" [type]="showFirebaseConfig ? 'text' : 'password'"
               placeholder="votre-projet.firebaseapp.com">
             </ion-input>
           </ion-item>
-          
+
           <ion-item>
             <ion-label position="stacked">Project ID</ion-label>
-            <ion-input 
-              [(ngModel)]="firebaseProjectId" 
-              [type]="showFirebaseConfig ? 'text' : 'password'"
+            <ion-input [(ngModel)]="firebaseProjectId" [type]="showFirebaseConfig ? 'text' : 'password'"
               placeholder="votre-projet-id">
             </ion-input>
           </ion-item>
-          
+
           <ion-item>
             <ion-label position="stacked">Storage Bucket</ion-label>
-            <ion-input 
-              [(ngModel)]="firebaseStorageBucket" 
-              [type]="showFirebaseConfig ? 'text' : 'password'"
+            <ion-input [(ngModel)]="firebaseStorageBucket" [type]="showFirebaseConfig ? 'text' : 'password'"
               placeholder="votre-projet.appspot.com">
             </ion-input>
           </ion-item>
-          
+
           <ion-item>
             <ion-label position="stacked">Messaging Sender ID</ion-label>
-            <ion-input 
-              [(ngModel)]="firebaseMessagingSenderId" 
-              [type]="showFirebaseConfig ? 'text' : 'password'"
+            <ion-input [(ngModel)]="firebaseMessagingSenderId" [type]="showFirebaseConfig ? 'text' : 'password'"
               placeholder="123456789">
             </ion-input>
           </ion-item>
-          
+
           <ion-item>
             <ion-label position="stacked">App ID</ion-label>
-            <ion-input 
-              [(ngModel)]="firebaseAppId" 
-              [type]="showFirebaseConfig ? 'text' : 'password'"
+            <ion-input [(ngModel)]="firebaseAppId" [type]="showFirebaseConfig ? 'text' : 'password'"
               placeholder="1:123456789:web:abcdef">
             </ion-input>
           </ion-item>
-          
+
           <ion-item>
             <ion-label position="stacked">UID Firebase personnalisé (optionnel)</ion-label>
-            <ion-input 
-              [(ngModel)]="firebaseCustomUid" 
-              [type]="showFirebaseConfig ? 'text' : 'password'"
+            <ion-input [(ngModel)]="firebaseCustomUid" [type]="showFirebaseConfig ? 'text' : 'password'"
               placeholder="Laissez vide pour UID automatique">
             </ion-input>
           </ion-item>
-          
+
           <ion-text color="medium" class="ion-padding-top">
             <p><small>Votre configuration Firebase est stockée localement sur votre appareil.</small></p>
-            <p><small><strong>UID personnalisé :</strong> Utilisez le même UID sur tous vos appareils pour synchroniser les données. Laissez vide pour un UID automatique unique par appareil.</small></p>
+            <p><small><strong>UID personnalisé :</strong> Utilisez le même UID sur tous vos appareils pour synchroniser
+                les données. Laissez vide pour un UID automatique unique par appareil.</small></p>
           </ion-text>
-          
+
           <ion-button fill="clear" color="primary" size="small" (click)="showFirebaseInfo()" class="ion-margin-top">
             <ion-icon name="information-circle-outline" slot="start"></ion-icon>
             Comment obtenir ma configuration Firebase ?
           </ion-button>
-          
-          <ion-button 
-            expand="block" 
-            color="success" 
-            fill="outline"
-            (click)="testFirebaseConnection()"
+
+          <ion-button expand="block" color="success" fill="outline" (click)="testFirebaseConnection()"
             class="ion-margin-top">
             <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
             Tester la connexion Firebase
           </ion-button>
-          
-          <ion-button 
-            expand="block" 
-            color="primary" 
-            fill="outline"
-            (click)="migrateDataToFirebase()"
+
+          <ion-button expand="block" color="primary" fill="outline" (click)="migrateDataToFirebase()"
             class="ion-margin-top">
             <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
             Migrer mes données vers Firebase
           </ion-button>
-          
-          <ion-button 
-            expand="block" 
-            color="medium" 
-            fill="clear"
-            (click)="showMigrationInfo()"
-            class="ion-margin-top">
+
+          <ion-button expand="block" color="medium" fill="clear" (click)="showMigrationInfo()" class="ion-margin-top">
             <ion-icon name="information-circle-outline" slot="start"></ion-icon>
             À propos de la migration
           </ion-button>
@@ -245,14 +203,13 @@
       <ion-icon name="school-outline"></ion-icon>
       Exercices et Apprentissage
     </h2>
-    
+
     <ion-card>
       <ion-card-header (click)="toggleSection('wordAssociations')" style="cursor: pointer;">
         <ion-card-title class="preference-header">
           <ion-icon name="game-controller-outline" class="header-icon"></ion-icon>
           <span class="header-text">Nombre d'associations de mots</span>
-          <ion-icon 
-            [name]="expandedSections['wordAssociations'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          <ion-icon [name]="expandedSections['wordAssociations'] ? 'chevron-up-outline' : 'chevron-down-outline'"
             class="header-chevron">
           </ion-icon>
         </ion-card-title>
@@ -261,19 +218,14 @@
         <ion-text color="medium">
           <p>Choisissez le nombre de paires de mots générées lors du démarrage d'une session d'apprentissage.</p>
         </ion-text>
-        
+
         <ion-item>
           <ion-label position="stacked">Nombre d'associations</ion-label>
-          <ion-input 
-            [(ngModel)]="wordAssociationsCount" 
-            type="number" 
-            min="1" 
-            max="100"
-            placeholder="Ex: 12"
+          <ion-input [(ngModel)]="wordAssociationsCount" type="number" min="1" max="100" placeholder="Ex: 12"
             class="associations-input">
           </ion-input>
         </ion-item>
-        
+
         <ion-text color="medium" class="ion-padding-top">
           <p><small>Saisissez le nombre exact d'associations souhaitées (1-100).</small></p>
         </ion-text>
@@ -285,8 +237,7 @@
         <ion-card-title class="preference-header">
           <ion-icon name="mic-outline" class="header-icon"></ion-icon>
           <span class="header-text">Longueur des compréhensions orales</span>
-          <ion-icon 
-            [name]="expandedSections['oralComprehension'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          <ion-icon [name]="expandedSections['oralComprehension'] ? 'chevron-up-outline' : 'chevron-down-outline'"
             class="header-chevron">
           </ion-icon>
         </ion-card-title>
@@ -295,21 +246,17 @@
         <ion-text color="medium">
           <p>Définissez la longueur des textes générés pour les exercices de compréhension orale.</p>
         </ion-text>
-        
+
         <ion-item>
           <ion-label position="stacked">Nombre de mots</ion-label>
-          <ion-input 
-            [(ngModel)]="oralComprehensionLength" 
-            type="number" 
-            min="50" 
-            max="500"
-            placeholder="Ex: 150"
+          <ion-input [(ngModel)]="oralComprehensionLength" type="number" min="50" max="500" placeholder="Ex: 150"
             class="length-input">
           </ion-input>
         </ion-item>
-        
+
         <ion-text color="medium" class="ion-padding-top">
-          <p><small>Choisissez entre 50 et 500 mots pour adapter la durée d'écoute à votre niveau (50-500 mots).</small></p>
+          <p><small>Choisissez entre 50 et 500 mots pour adapter la durée d'écoute à votre niveau (50-500 mots).</small>
+          </p>
         </ion-text>
       </ion-card-content>
     </ion-card>
@@ -319,49 +266,38 @@
         <ion-card-title class="preference-header">
           <ion-icon name="bulb-outline" class="header-icon"></ion-icon>
           <span class="header-text">Contextes personnalisés pour la compréhension quotidienne</span>
-          <ion-icon 
-            [name]="expandedSections['dailyThemes'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          <ion-icon [name]="expandedSections['dailyThemes'] ? 'chevron-up-outline' : 'chevron-down-outline'"
             class="header-chevron">
           </ion-icon>
         </ion-card-title>
       </ion-card-header>
       <ion-card-content *ngIf="expandedSections['dailyThemes']">
         <ion-text color="medium">
-          <p>Ajoutez des contextes ou scénarios pour guider la génération de la compréhension quotidienne. Un contexte sera sélectionné aléatoirement chaque jour.</p>
+          <p>Ajoutez des contextes ou scénarios pour guider la génération de la compréhension quotidienne. Un contexte
+            sera sélectionné aléatoirement chaque jour.</p>
         </ion-text>
-        
+
         <div *ngFor="let theme of dailyComprehensionThemes; let i = index; trackBy: trackByIndex" class="theme-item">
           <ion-item>
-            <ion-textarea 
-              [value]="dailyComprehensionThemes[i]"
-              (ionInput)="updateDailyTheme(i, $event)"
+            <ion-textarea [value]="dailyComprehensionThemes[i]" (ionInput)="updateDailyTheme(i, $event)"
               placeholder="Ex: le texte doit être autour de deux personnes qui se disputent dans leur voiture sur un rond-point..."
-              rows="2"
-              class="theme-textarea">
+              rows="2" class="theme-textarea">
             </ion-textarea>
-            <ion-button 
-              fill="clear" 
-              color="danger" 
-              slot="end" 
-              (click)="removeDailyTheme(i)"
+            <ion-button fill="clear" color="danger" slot="end" (click)="removeDailyTheme(i)"
               *ngIf="dailyComprehensionThemes.length > 1">
               <ion-icon name="trash-outline"></ion-icon>
             </ion-button>
           </ion-item>
         </div>
-        
-        <ion-button 
-          expand="block" 
-          fill="outline" 
-          color="primary" 
-          (click)="addDailyTheme()"
-          class="ion-margin-top">
+
+        <ion-button expand="block" fill="outline" color="primary" (click)="addDailyTheme()" class="ion-margin-top">
           <ion-icon name="add-outline" slot="start"></ion-icon>
           Ajouter un contexte
         </ion-button>
-        
+
         <ion-text color="medium" class="ion-padding-top">
-          <p><small>Les contextes sont sauvegardés automatiquement. Si aucun contexte n'est défini, le texte sera généré sans consigne particulière.</small></p>
+          <p><small>Les contextes sont sauvegardés automatiquement. Si aucun contexte n'est défini, le texte sera généré
+              sans consigne particulière.</small></p>
         </ion-text>
       </ion-card-content>
     </ion-card>
@@ -371,31 +307,85 @@
         <ion-card-title class="preference-header">
           <ion-icon name="book-outline" class="header-icon"></ion-icon>
           <span class="header-text">Révision du dictionnaire personnel</span>
-          <ion-icon 
-            [name]="expandedSections['personalDictionary'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          <ion-icon [name]="expandedSections['personalDictionary'] ? 'chevron-up-outline' : 'chevron-down-outline'"
             class="header-chevron">
           </ion-icon>
         </ion-card-title>
       </ion-card-header>
       <ion-card-content *ngIf="expandedSections['personalDictionary']">
         <ion-text color="medium">
-          <p>Définissez le nombre de mots sélectionnés aléatoirement lors de la révision de votre dictionnaire personnel.</p>
+          <p>Définissez le nombre de mots sélectionnés aléatoirement lors de la révision de votre dictionnaire
+            personnel.</p>
         </ion-text>
-        
+
         <ion-item>
           <ion-label position="stacked">Nombre de mots par session</ion-label>
-          <ion-input 
-            [(ngModel)]="personalDictionaryWordsCount" 
-            type="number" 
-            min="3" 
-            max="20"
-            placeholder="Ex: 8"
+          <ion-input [(ngModel)]="personalDictionaryWordsCount" type="number" min="3" max="20" placeholder="Ex: 8"
             class="personal-dictionary-input">
           </ion-input>
         </ion-item>
-        
+
         <ion-text color="medium" class="ion-padding-top">
-          <p><small>Choisissez entre 3 et 20 mots pour adapter la durée de la session à votre disponibilité (3-20 mots).</small></p>
+          <p><small>Choisissez entre 3 et 20 mots pour adapter la durée de la session à votre disponibilité (3-20
+              mots).</small></p>
+        </ion-text>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header (click)="toggleSection('pom')" style="cursor: pointer;">
+        <ion-card-title class="preference-header">
+          <ion-icon name="time-outline" class="header-icon"></ion-icon>
+          <span class="header-text">Révision Espacée (POM)</span>
+          <ion-icon [name]="expandedSections['pom'] ? 'chevron-up-outline' : 'chevron-down-outline'"
+            class="header-chevron">
+          </ion-icon>
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content *ngIf="expandedSections['pom']">
+        <ion-text color="medium">
+          <p>Ajustez le facteur de multiplication pour l'espacement des révisions. Plus le facteur est élevé, plus les
+            révisions s'espacent rapidement.</p>
+        </ion-text>
+
+        <ion-item>
+          <ion-label position="stacked">Facteur d'espacement : {{ pomReviewFactor }}x</ion-label>
+          <ion-range [(ngModel)]="pomReviewFactor" min="1.2" max="3" step="0.1" snaps="true" pin="true">
+            <ion-icon slot="start" size="small" name="walk-outline"></ion-icon>
+            <ion-icon slot="end" size="small" name="rocket-outline"></ion-icon>
+          </ion-range>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Durée initiale POM (secondes)</ion-label>
+          <ion-input [(ngModel)]="pomInitialIntervalSeconds" type="number" min="10" placeholder="Ex: 43200 (12h)">
+          </ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Délai pour cliquer sur la notification (minutes)</ion-label>
+          <ion-input [(ngModel)]="pomNotificationGraceMinutes" type="number" min="1" max="240"
+            placeholder="Ex: 10">
+          </ion-input>
+        </ion-item>
+        <ion-text color="medium" class="ion-padding-top">
+          <p><small>Au-delà de ce délai, la session POM est replanifiée automatiquement.</small></p>
+        </ion-text>
+
+        <ion-button expand="block" fill="outline" color="secondary" (click)="testPomNotification()"
+          class="ion-margin-top">
+          <ion-icon name="notifications-outline" slot="start"></ion-icon>
+          Tester une notification POM (2s)
+        </ion-button>
+
+        <ion-button expand="block" fill="outline" color="warning" (click)="completeDuePoms()" class="ion-margin-top">
+          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+          Achever tous les POMs dus
+        </ion-button>
+
+        <ion-text color="medium" class="ion-padding-top">
+          <p><small>Un facteur de 2.0 (par défaut) double l'intervalle à chaque réussite (1j, 2j, 4j...). <br> Un
+              facteur plus bas (ex: 1.5) donnera des révisions plus fréquentes (1j, 1.5j, 2.25j...).</small></p>
         </ion-text>
       </ion-card-content>
     </ion-card>
@@ -407,14 +397,14 @@
       <ion-icon name="notifications-outline"></ion-icon>
       Notifications
     </h2>
-    
+
     <ion-card>
       <ion-card-header (click)="toggleSection('comprehensionNotification')" style="cursor: pointer;">
         <ion-card-title class="preference-header">
           <ion-icon name="ear-outline" class="header-icon"></ion-icon>
           <span class="header-text">Notification compréhension orale</span>
-          <ion-icon 
-            [name]="expandedSections['comprehensionNotification'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          <ion-icon
+            [name]="expandedSections['comprehensionNotification'] ? 'chevron-up-outline' : 'chevron-down-outline'"
             class="header-chevron">
           </ion-icon>
         </ion-card-title>
@@ -426,26 +416,27 @@
 
         <ion-item>
           <ion-label>Activer</ion-label>
-          <ion-toggle [(ngModel)]="comprehensionNotificationsEnabled" (ionChange)="onComprehensionNotificationToggleChange()"></ion-toggle>
+          <ion-toggle [(ngModel)]="comprehensionNotificationsEnabled"
+            (ionChange)="onComprehensionNotificationToggleChange()"></ion-toggle>
         </ion-item>
 
         <ion-item *ngIf="comprehensionNotificationsEnabled">
           <ion-label position="stacked">Heure</ion-label>
-          <ion-input type="time" [(ngModel)]="comprehensionNotificationTime" (ionChange)="onComprehensionNotificationTimeChange()"></ion-input>
+          <ion-input type="time" [(ngModel)]="comprehensionNotificationTime"
+            (ionChange)="onComprehensionNotificationTimeChange()"></ion-input>
         </ion-item>
 
         <ion-item>
           <ion-label position="stacked">Prompt personnalisé pour la génération</ion-label>
-          <ion-textarea 
-            [(ngModel)]="comprehensionNotificationCustomPrompt" 
+          <ion-textarea [(ngModel)]="comprehensionNotificationCustomPrompt"
             placeholder="Ex: le texte généré doit correspondre à un fait scientifique anecdotique, fascinant, révolutionnaire, méconnu, qu'il s'agisse de sciences naturelles ou humaines, de découvertes, etc. qui surprend et fascine à la fois"
-            rows="4"
-            class="custom-prompt-textarea">
+            rows="4" class="custom-prompt-textarea">
           </ion-textarea>
         </ion-item>
 
         <ion-text color="medium" class="ion-padding-top">
-          <p><small>Ce prompt sera intégré dans la génération du texte de compréhension orale quotidienne pour guider le contenu généré.</small></p>
+          <p><small>Ce prompt sera intégré dans la génération du texte de compréhension orale quotidienne pour guider le
+              contenu généré.</small></p>
         </ion-text>
       </ion-card-content>
     </ion-card>
@@ -455,8 +446,7 @@
         <ion-card-title class="preference-header">
           <ion-icon name="notifications-outline" class="header-icon"></ion-icon>
           <span class="header-text">Notifications quotidiennes</span>
-          <ion-icon 
-            [name]="expandedSections['notifications'] ? 'chevron-up-outline' : 'chevron-down-outline'" 
+          <ion-icon [name]="expandedSections['notifications'] ? 'chevron-up-outline' : 'chevron-down-outline'"
             class="header-chevron">
           </ion-icon>
         </ion-card-title>
@@ -465,57 +455,43 @@
         <ion-text color="medium">
           <p>Recevez une notification quotidienne pour vous rappeler de pratiquer votre italien.</p>
         </ion-text>
-        
+
         <ion-item>
           <ion-label>Activer les notifications quotidiennes</ion-label>
-          <ion-toggle 
-            [(ngModel)]="notificationsEnabled" 
-            (ionChange)="onNotificationToggleChange()">
+          <ion-toggle [(ngModel)]="notificationsEnabled" (ionChange)="onNotificationToggleChange()">
           </ion-toggle>
         </ion-item>
-        
+
         <ion-item *ngIf="notificationsEnabled">
           <ion-label position="stacked">Heure de la notification</ion-label>
-          <ion-input 
-            [(ngModel)]="notificationTime" 
-            type="time"
-            (ionChange)="onNotificationTimeChange()">
+          <ion-input [(ngModel)]="notificationTime" type="time" (ionChange)="onNotificationTimeChange()">
           </ion-input>
         </ion-item>
-        
+
         <ion-item *ngIf="notificationsEnabled">
           <ion-label position="stacked">Message de la notification</ion-label>
-          <ion-textarea 
-            [(ngModel)]="notificationMessage" 
-            placeholder="Il est temps de pratiquer votre italien ! 🇮🇹"
-            rows="2"
-            (ionChange)="onNotificationMessageChange()">
+          <ion-textarea [(ngModel)]="notificationMessage" placeholder="Il est temps de pratiquer votre italien ! 🇮🇹"
+            rows="2" (ionChange)="onNotificationMessageChange()">
           </ion-textarea>
         </ion-item>
-        
-        <ion-button 
-          *ngIf="notificationsEnabled"
-          expand="block" 
-          color="success" 
-          (click)="sendTestNotification()"
+
+        <ion-button *ngIf="notificationsEnabled" expand="block" color="success" (click)="sendTestNotification()"
           class="ion-margin-top">
           <ion-icon name="send-outline" slot="start"></ion-icon>
           Envoyer une notification de test
         </ion-button>
-        
-        <ion-button 
-          expand="block" 
-          color="warning" 
-          fill="outline"
-          (click)="checkNotificationPermissions()"
+
+        <ion-button expand="block" color="warning" fill="outline" (click)="checkNotificationPermissions()"
           class="ion-margin-top">
           <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
           Vérifier les permissions
         </ion-button>
-        
+
         <ion-text color="medium" class="ion-padding-top">
-          <p><small>La notification sera envoyée quotidiennement à l'heure choisie pour vous rappeler de pratiquer.</small></p>
-          <p><small><strong>Note :</strong> Sur Android 12+, vous devez autoriser les "Alarmes et rappels" dans les paramètres système pour que les notifications exactes fonctionnent.</small></p>
+          <p><small>La notification sera envoyée quotidiennement à l'heure choisie pour vous rappeler de
+              pratiquer.</small></p>
+          <p><small><strong>Note :</strong> Sur Android 12+, vous devez autoriser les "Alarmes et rappels" dans les
+              paramètres système pour que les notifications exactes fonctionnent.</small></p>
         </ion-text>
       </ion-card-content>
     </ion-card>
@@ -527,31 +503,19 @@
       <ion-icon name="server-outline"></ion-icon>
       Données et Maintenance
     </h2>
-    
+
     <div class="ion-padding-top">
-      <ion-button 
-        expand="block" 
-        color="primary" 
-        (click)="savePreferences()"
-        class="ion-margin-bottom">
+      <ion-button expand="block" color="primary" (click)="savePreferences()" class="ion-margin-bottom">
         <ion-icon name="save-outline" slot="start"></ion-icon>
         Sauvegarder
       </ion-button>
-      
-      <ion-button 
-        expand="block" 
-        color="medium" 
-        fill="outline"
-        (click)="resetPreferences()">
+
+      <ion-button expand="block" color="medium" fill="outline" (click)="resetPreferences()">
         <ion-icon name="refresh-outline" slot="start"></ion-icon>
         Réinitialiser
       </ion-button>
 
-      <ion-button 
-        expand="block" 
-        color="danger" 
-        fill="outline"
-        (click)="clearVocabulary()">
+      <ion-button expand="block" color="danger" fill="outline" (click)="clearVocabulary()">
         <ion-icon name="trash-outline" slot="start"></ion-icon>
         Effacer le vocabulaire
       </ion-button>

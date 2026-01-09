@@ -87,6 +87,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/atoms-showcase/atoms-showcase.component').then(m => m.AtomsShowcaseComponent)
   },
   {
+    path: 'poms',
+    loadComponent: () => import('./components/pom-list/pom-list.component').then(m => m.PomListComponent)
+  },
+  {
     path: '**',
     redirectTo: '/home'
   }

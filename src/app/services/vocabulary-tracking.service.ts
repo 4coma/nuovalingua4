@@ -12,7 +12,7 @@ export interface WordMastery {
   timesReviewed: number;
   timesCorrect: number;
   context?: string;
-  
+
   // Propriétés SM-2 (optionnelles pour compatibilité avec les données existantes)
   eFactor?: number;        // Facteur d'efficacité (défaut: 2.5)
   interval?: number;       // Intervalle en jours (défaut: 0)
@@ -26,9 +26,9 @@ export interface WordMastery {
 export class VocabularyTrackingService {
   private readonly STORAGE_KEY = 'vocabulary_mastery';
   private readonly MAX_TRACKED_WORDS = 100;
-  
+
   constructor(private storageService: StorageService) { }
-  
+
   /**
    * Récupère tous les mots suivis
    */
@@ -41,15 +41,15 @@ export class VocabularyTrackingService {
       return [];
     }
   }
-  
+
   /**
    * Récupère les mots suivis filtrés par catégorie et sujet
    */
   getTrackedWordsByCategory(category: string, topic: string): WordMastery[] {
     try {
       const allWords = this.getAllTrackedWords();
-      return allWords.filter(word => 
-        word.category === category && 
+      return allWords.filter(word =>
+        word.category === category &&
         (topic ? word.topic === topic : true)
       );
     } catch (error) {
@@ -57,39 +57,39 @@ export class VocabularyTrackingService {
       return [];
     }
   }
-  
+
   /**
    * Ajoute ou met à jour un mot après une session
    */
-  trackWord(word: string, translation: string, category: string, topic: string, 
-            isCorrect: boolean, context?: string): void {
+  trackWord(word: string, translation: string, category: string, topic: string,
+    isCorrect: boolean, context?: string): void {
     try {
       if (!word || !translation || !category) {
         console.warn('Données incomplètes pour le suivi de mot');
         return;
       }
-      
+
       const allWords = this.getAllTrackedWords();
-      
+
       // Générer un ID unique pour le mot
       const wordId = this.generateWordId(word, translation);
-      
+
       // Vérifier si le mot existe déjà
       const existingWordIndex = allWords.findIndex(w => w.id === wordId);
-      
+
       if (existingWordIndex >= 0) {
         // Mettre à jour le mot existant
         const existingWord = allWords[existingWordIndex];
         existingWord.lastReviewed = Date.now();
         existingWord.timesReviewed++;
-        
+
         if (isCorrect) {
           existingWord.timesCorrect++;
         }
-        
+
         // Calculer le nouveau niveau de maîtrise (simple pour l'instant)
         existingWord.masteryLevel = Math.round((existingWord.timesCorrect / existingWord.timesReviewed) * 100);
-        
+
         allWords[existingWordIndex] = existingWord;
       } else {
         // Ajouter un nouveau mot
@@ -110,23 +110,23 @@ export class VocabularyTrackingService {
           repetitions: 0,
           nextReview: Date.now() + (24 * 60 * 60 * 1000) // Révision dans 1 jour
         };
-        
+
         allWords.push(newWord);
       }
-      
+
       // Trier par date de révision (du plus récent au plus ancien)
       allWords.sort((a, b) => b.lastReviewed - a.lastReviewed);
-      
+
       // Limiter à MAX_TRACKED_WORDS
       const limitedWords = allWords.slice(0, this.MAX_TRACKED_WORDS);
-      
+
       // Sauvegarder dans le stockage
       this.storageService.set(this.STORAGE_KEY, limitedWords);
     } catch (error) {
       console.error('Erreur lors du suivi d\'un mot:', error);
     }
   }
-  
+
   /**
    * Génère un ID unique pour un mot basé sur le mot et sa traduction
    */
@@ -173,23 +173,40 @@ export class VocabularyTrackingService {
       return false;
     }
   }
-  
+
+  /**
+   * Supprime un mot du suivi
+   */
+  deleteTrackedWord(wordId: string): void {
+    try {
+      let words = this.getAllTrackedWords();
+      const initialLength = words.length;
+      words = words.filter(w => w.id !== wordId);
+
+      if (words.length < initialLength) {
+        this.saveAllWords(words);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression du mot:', error);
+    }
+  }
+
   /**
    * Sauvegarde tous les mots (utilisé pour les mises à jour SM-2)
    */
   saveAllWords(words: WordMastery[]): void {
     try {
-      
+
       // Trier par date de révision (du plus récent au plus ancien)
       words.sort((a, b) => b.lastReviewed - a.lastReviewed);
-      
+
       // Limiter à MAX_TRACKED_WORDS
       const limitedWords = words.slice(0, this.MAX_TRACKED_WORDS);
-      
+
       // Sauvegarder dans le stockage
       this.storageService.set(this.STORAGE_KEY, limitedWords);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des mots:', error);
     }
   }
-} 
+}

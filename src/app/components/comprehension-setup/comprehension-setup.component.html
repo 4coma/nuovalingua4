@@ -5,9 +5,9 @@
         <ion-icon name="headset-outline" class="title-icon"></ion-icon>
         Compréhension
       </h2>
-      
+
       <p class="page-description">
-        Entrez une consigne pour générer une session de compréhension orale personnalisée. 
+        Entrez une consigne pour générer une session de compréhension orale personnalisée.
         Vous pourrez ensuite lire ou écouter le texte généré.
       </p>
 
@@ -15,22 +15,15 @@
       <div class="prompt-section">
         <ion-item class="prompt-item">
           <ion-label position="stacked">Consigne pour la génération</ion-label>
-          <ion-textarea
-            [(ngModel)]="customPrompt"
+          <ion-textarea [(ngModel)]="customPrompt"
             placeholder="Ex: Un dialogue dans un restaurant italien, une conversation sur le voyage en Italie..."
-            rows="4"
-            [disabled]="isLoading"
-            class="prompt-textarea">
+            rows="4" [disabled]="isLoading" class="prompt-textarea">
           </ion-textarea>
         </ion-item>
 
         <!-- Bouton de génération -->
-        <ion-button
-          expand="block"
-          color="primary"
-          (click)="generateComprehension()"
-          [disabled]="isLoading || !customPrompt?.trim()"
-          class="generate-button">
+        <ion-button expand="block" color="primary" (click)="generateComprehension()"
+          [disabled]="isLoading || !customPrompt.trim()" class="generate-button">
           <ion-icon name="play-outline" slot="start"></ion-icon>
           <span *ngIf="!isLoading">Générer la compréhension</span>
           <span *ngIf="isLoading">Génération en cours...</span>
@@ -43,22 +36,14 @@
           <ion-icon name="time-outline"></ion-icon>
           Consignes précédentes
         </h3>
-        
+
         <ion-list class="saved-prompts-list">
-          <ion-item
-            *ngFor="let prompt of savedPrompts"
-            class="saved-prompt-item"
-            (click)="usePrompt(prompt.prompt)">
+          <ion-item *ngFor="let prompt of savedPrompts" class="saved-prompt-item" (click)="usePrompt(prompt.prompt)">
             <ion-label>
               <p class="prompt-text">{{ prompt.prompt }}</p>
               <span class="prompt-date">{{ formatDate(prompt.date) }}</span>
             </ion-label>
-            <ion-button
-              slot="end"
-              fill="clear"
-              size="small"
-              color="danger"
-              (click)="deletePrompt(prompt.id, $event)"
+            <ion-button slot="end" fill="clear" size="small" color="danger" (click)="deletePrompt(prompt.id, $event)"
               class="delete-button">
               <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
             </ion-button>
@@ -73,12 +58,7 @@
       </div>
 
       <!-- Bouton retour -->
-      <ion-button
-        routerLink="/home"
-        color="medium"
-        fill="outline"
-        expand="block"
-        [disabled]="isLoading"
+      <ion-button routerLink="/home" color="medium" fill="outline" expand="block" [disabled]="isLoading"
         class="back-button">
         <ion-icon name="arrow-back" slot="start"></ion-icon>
         Retour à l'accueil
@@ -86,4 +66,3 @@
     </app-card>
   </div>
 </ion-content>
-
