@@ -69,8 +69,14 @@
                 <div class="node-items">
                   <span *ngFor="let item of level.sections.domaines" class="node-tag clickable"
                     (click)="$event.stopPropagation(); confirmStartLevel(level, item)"
-                    [style.--item-progress]="item.progress + '%'" [class.done]="item.progress === 100">
+                    [style.--item-progress]="item.progress + '%'" [class.done]="item.progress === 100"
+                    [class.has-pom]="item.pomStatus"
+                    [class.pom-active]="item.pomStatus === 'active'"
+                    [class.pom-completed]="item.pomStatus === 'completed'"
+                    [class.pom-archived]="item.pomStatus === 'archived'">
                     {{ item.label }}
+                    <span *ngIf="item.pomStatus" class="pom-chip"
+                      [class.completed]="item.pomStatus === 'completed'">POM</span>
                     <ion-icon [name]="item.id ? 'layers-outline' : 'sparkles-outline'" class="source-icon"></ion-icon>
                   </span>
                 </div>
@@ -88,8 +94,14 @@
                 <div class="node-items">
                   <span *ngFor="let item of level.sections.lexical" class="node-tag clickable"
                     (click)="$event.stopPropagation(); confirmStartLevel(level, item)"
-                    [style.--item-progress]="item.progress + '%'" [class.done]="item.progress === 100">
+                    [style.--item-progress]="item.progress + '%'" [class.done]="item.progress === 100"
+                    [class.has-pom]="item.pomStatus"
+                    [class.pom-active]="item.pomStatus === 'active'"
+                    [class.pom-completed]="item.pomStatus === 'completed'"
+                    [class.pom-archived]="item.pomStatus === 'archived'">
                     {{ item.label }}
+                    <span *ngIf="item.pomStatus" class="pom-chip"
+                      [class.completed]="item.pomStatus === 'completed'">POM</span>
                     <ion-icon [name]="item.id ? 'layers-outline' : 'sparkles-outline'" class="source-icon"></ion-icon>
                   </span>
                 </div>
@@ -107,8 +119,14 @@
                 <div class="node-items">
                   <span *ngFor="let item of level.sections.verbs" class="node-tag clickable"
                     (click)="$event.stopPropagation(); confirmStartLevel(level, item)"
-                    [style.--item-progress]="item.progress + '%'" [class.done]="item.progress === 100">
+                    [style.--item-progress]="item.progress + '%'" [class.done]="item.progress === 100"
+                    [class.has-pom]="item.pomStatus"
+                    [class.pom-active]="item.pomStatus === 'active'"
+                    [class.pom-completed]="item.pomStatus === 'completed'"
+                    [class.pom-archived]="item.pomStatus === 'archived'">
                     {{ item.label }}
+                    <span *ngIf="item.pomStatus" class="pom-chip"
+                      [class.completed]="item.pomStatus === 'completed'">POM</span>
                     <ion-icon [name]="item.id ? 'layers-outline' : 'sparkles-outline'" class="source-icon"></ion-icon>
                   </span>
                 </div>

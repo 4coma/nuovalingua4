@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
@@ -6,7 +6,6 @@ import { PomService } from '../../services/pom.service';
 import { StorageService } from '../../services/storage.service';
 import { Pom } from '../../models/pom';
 import { VocabularyTrackingService } from '../../services/vocabulary-tracking.service';
-import { COURSE_DATA } from '../../data/course-data';
 import { PersonalDictionaryService, DictionaryWord } from '../../services/personal-dictionary.service';
 
 interface PomWordDisplay {
@@ -23,13 +22,16 @@ interface PomWordDisplay {
     standalone: true,
     imports: [CommonModule, IonicModule, RouterModule]
 })
-export class PomListComponent implements OnInit {
+export class PomListComponent implements OnInit, OnDestroy {
     poms: Pom[] = [];
     expandedWordsPomId: string | null = null;
     expandedSchedulePomId: string | null = null;
     pomWordsMap: { [pomId: string]: PomWordDisplay[] } = {}; // Map pomId -> list of words
     currentFactor: number = 2;
     highlightPomId: string | null = null;
+    dueNotifications: Pom[] = [];
+    private nowMs: number = Date.now();
+    private countdownIntervalId: number | null = null;
 
     constructor(
         private pomService: PomService,
@@ -46,12 +48,37 @@ export class PomListComponent implements OnInit {
         this.loadPoms();
         this.loadFactor();
         this.applyPomFocusFromQuery();
+        this.startCountdownTimer();
     }
 
     ionViewWillEnter() {
         this.loadPoms();
         this.loadFactor();
         this.applyPomFocusFromQuery();
+        this.startCountdownTimer();
+    }
+
+    ionViewDidLeave() {
+        this.stopCountdownTimer();
+    }
+
+    ngOnDestroy() {
+        this.stopCountdownTimer();
+    }
+
+    private startCountdownTimer() {
+        if (this.countdownIntervalId !== null) return;
+        this.updateDueNotifications();
+        this.countdownIntervalId = window.setInterval(() => {
+            this.nowMs = Date.now();
+            this.updateDueNotifications();
+        }, 1000);
+    }
+
+    private stopCountdownTimer() {
+        if (this.countdownIntervalId === null) return;
+        clearInterval(this.countdownIntervalId);
+        this.countdownIntervalId = null;
     }
 
     private applyPomFocusFromQuery() {
@@ -81,6 +108,7 @@ export class PomListComponent implements OnInit {
 
     loadPoms() {
         this.poms = this.pomService.getAllPoms().sort((a, b) => a.nextReviewDate - b.nextReviewDate);
+        this.updateDueNotifications();
     }
 
     toggleWords(pomId: string) {
@@ -168,6 +196,7 @@ export class PomListComponent implements OnInit {
         }
 
         this.pomWordsMap[pomId] = [...(this.pomWordsMap[pomId] || [])];
+        this.loadPoms();
     }
 
     getReviewDateLabel(timestamp: number): string {
@@ -195,28 +224,19 @@ export class PomListComponent implements OnInit {
     }
 
     getPomTitle(pom: Pom): string {
-        if (pom.title && pom.title.trim()) {
-            return pom.title.trim();
-        }
-        if (pom.lessonId) {
-            // Chercher le titre de la leçon dans COURSE_DATA
-            for (const levelId in COURSE_DATA) {
-                const level = COURSE_DATA[levelId];
-                const allLessons = [
-                    ...(level.domaines || []),
-                    ...(level.lexical || []),
-                    ...(level.verbs || [])
-                ];
-                const lesson = allLessons.find(l => l.id === pom.lessonId);
-                if (lesson) {
-                    return lesson.title;
-                }
-            }
-        }
-        return `Révision libre (${this.formatDateTime(pom.createdAt)})`;
+        return this.pomService.getPomDisplayTitle(pom);
     }
 
     async startReview(pom: Pom) {
+        if (pom.status !== 'active') {
+            const toast = await this.toastController.create({
+                message: 'Ce POM est déjà maîtrisé.',
+                duration: 2000,
+                color: 'success'
+            });
+            await toast.present();
+            return;
+        }
         // Logic similar to AppComponent.startPomReviewSession
         // We can probably navigate to a route or call a service method if we refactored it.
         // For now, let's replicate the logic or trigger the notification action manually? 
@@ -246,12 +266,13 @@ export class PomListComponent implements OnInit {
         localStorage.setItem('wordPairs', JSON.stringify(pomWords));
         localStorage.setItem('isPomReview', 'true');
         localStorage.setItem('pomId', pom.id);
+        this.pomService.setPomReviewSessionMeta(pom.id);
 
         // Clear other flags
         localStorage.setItem('isPersonalDictionaryRevision', 'false');
         localStorage.setItem('fullRevisionActive', 'false');
 
-        this.router.navigate(['/word-pairs-game']);
+        this.router.navigate(['/word-pairs-game'], { queryParams: { pomStart: Date.now() } });
     }
 
     formatDateTime(timestamp: number): string {
@@ -355,7 +376,7 @@ export class PomListComponent implements OnInit {
 
     getProjectedSchedule(pom: Pom): { interval: number, date: number, passed: boolean, isNext: boolean, isOverdue: boolean }[] {
         const schedule: { interval: number, date: number, passed: boolean, isNext: boolean, isOverdue: boolean }[] = [];
-        const now = Date.now();
+        const now = this.nowMs;
         const storedGrace = this.storageService.get('pomNotificationGraceMinutes');
         const graceMinutes = storedGrace ? parseInt(storedGrace) : 10;
         const graceMs = Number.isFinite(graceMinutes) ? graceMinutes * 60 * 1000 : 10 * 60 * 1000;
@@ -419,5 +440,40 @@ export class PomListComponent implements OnInit {
         }
 
         return schedule;
+    }
+
+    isPomInGraceWindow(pom: Pom): boolean {
+        if (pom.status !== 'active') return false;
+        const graceMinutes = this.getGraceMinutes();
+        const graceMs = graceMinutes * 60 * 1000;
+        return this.nowMs >= pom.nextReviewDate && this.nowMs <= pom.nextReviewDate + graceMs;
+    }
+
+    getGraceRemainingLabel(pom: Pom): string {
+        const graceMinutes = this.getGraceMinutes();
+        const graceMs = graceMinutes * 60 * 1000;
+        const remainingMs = pom.nextReviewDate + graceMs - this.nowMs;
+        if (remainingMs <= 0) return '0:00';
+        const totalSeconds = Math.floor(remainingMs / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    getGraceWindowEnd(pom: Pom): number {
+        const graceMinutes = this.getGraceMinutes();
+        return pom.nextReviewDate + graceMinutes * 60 * 1000;
+    }
+
+    private getGraceMinutes(): number {
+        const storedGrace = this.storageService.get('pomNotificationGraceMinutes');
+        const parsed = storedGrace ? parseInt(storedGrace) : 10;
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : 10;
+    }
+
+    private updateDueNotifications() {
+        this.dueNotifications = this.poms
+            .filter(pom => pom.status === 'active' && this.isPomInGraceWindow(pom))
+            .sort((a, b) => a.nextReviewDate - b.nextReviewDate);
     }
 }

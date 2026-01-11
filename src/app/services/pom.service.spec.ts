@@ -4,12 +4,15 @@ import { StorageService } from './storage.service';
 import { NotificationService } from './notification.service';
 import { VocabularyTrackingService } from './vocabulary-tracking.service';
 import { Pom } from '../models/pom';
+import { PersonalDictionaryService } from './personal-dictionary.service';
+import { of } from 'rxjs';
 
 describe('PomService', () => {
     let service: PomService;
     let storageServiceSpy: jasmine.SpyObj<StorageService>;
     let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
     let vocabularyTrackingServiceSpy: jasmine.SpyObj<VocabularyTrackingService>;
+    let personalDictionaryServiceSpy: jasmine.SpyObj<PersonalDictionaryService>;
 
     const mockPoms: Pom[] = [
         {
@@ -25,15 +28,19 @@ describe('PomService', () => {
 
     beforeEach(() => {
         const storageSpy = jasmine.createSpyObj('StorageService', ['get', 'set']);
-        const notificationSpy = jasmine.createSpyObj('NotificationService', ['schedulePomNotification']);
+        const notificationSpy = jasmine.createSpyObj('NotificationService', ['schedulePomNotification', 'cancelPomNotification']);
         const trackingSpy = jasmine.createSpyObj('VocabularyTrackingService', ['generateWordId', 'getAllTrackedWords']);
+        const dictionarySpy = jasmine.createSpyObj('PersonalDictionaryService', ['getAllWords'], {
+            dictionaryWords$: of([])
+        });
 
         TestBed.configureTestingModule({
             providers: [
                 PomService,
                 { provide: StorageService, useValue: storageSpy },
                 { provide: NotificationService, useValue: notificationSpy },
-                { provide: VocabularyTrackingService, useValue: trackingSpy }
+                { provide: VocabularyTrackingService, useValue: trackingSpy },
+                { provide: PersonalDictionaryService, useValue: dictionarySpy }
             ]
         });
 
@@ -41,10 +48,12 @@ describe('PomService', () => {
         storageServiceSpy = TestBed.inject(StorageService) as jasmine.SpyObj<StorageService>;
         notificationServiceSpy = TestBed.inject(NotificationService) as jasmine.SpyObj<NotificationService>;
         vocabularyTrackingServiceSpy = TestBed.inject(VocabularyTrackingService) as jasmine.SpyObj<VocabularyTrackingService>;
+        personalDictionaryServiceSpy = TestBed.inject(PersonalDictionaryService) as jasmine.SpyObj<PersonalDictionaryService>;
 
         // Default mock returns
         storageServiceSpy.get.and.returnValue([]);
         vocabularyTrackingServiceSpy.generateWordId.and.callFake((w, t) => `${w}_${t}`);
+        personalDictionaryServiceSpy.getAllWords.and.returnValue([]);
     });
 
     it('should be created', () => {

@@ -315,6 +315,9 @@
   position: relative;
   overflow: hidden;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 
   // The progress underline effect
   background-image: linear-gradient(to right, var(--ion-color-success) 0%, var(--ion-color-success) 100%);
@@ -337,6 +340,44 @@
     border-color: var(--ion-color-success);
     color: var(--ion-color-success);
     background-color: rgba(var(--ion-color-success-rgb), 0.05);
+  }
+
+  &.has-pom {
+    border-color: rgba(var(--ion-color-tertiary-rgb), 0.6);
+    background-color: rgba(var(--ion-color-tertiary-rgb), 0.08);
+    color: var(--color-text-primary);
+  }
+
+  &.pom-active {
+    box-shadow: 0 0 0 1px rgba(var(--ion-color-tertiary-rgb), 0.15);
+  }
+
+  &.pom-completed {
+    border-color: var(--ion-color-success);
+    background-color: rgba(var(--ion-color-success-rgb), 0.12);
+    color: var(--ion-color-success);
+  }
+
+  &.pom-archived {
+    border-color: rgba(var(--ion-color-medium-rgb), 0.8);
+    background-color: rgba(var(--ion-color-medium-rgb), 0.12);
+    color: var(--ion-color-medium);
+  }
+
+  .pom-chip {
+    font-size: 0.6rem;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: rgba(var(--ion-color-tertiary-rgb), 0.18);
+    color: var(--ion-color-tertiary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.1;
+
+    &.completed {
+      background: rgba(var(--ion-color-success-rgb), 0.2);
+      color: var(--ion-color-success);
+    }
   }
 
   .source-icon {
@@ -399,6 +440,31 @@
     &.done {
       background-color: rgba(45, 211, 111, 0.15);
       color: var(--ion-color-success);
+    }
+
+    &.has-pom {
+      background-color: rgba(var(--ion-color-tertiary-rgb), 0.15);
+      color: #e6e6e6;
+    }
+
+    &.pom-completed {
+      background-color: rgba(45, 211, 111, 0.2);
+      color: var(--ion-color-success);
+    }
+
+    &.pom-archived {
+      background-color: rgba(255, 255, 255, 0.08);
+      color: #b5b5b5;
+    }
+
+    .pom-chip {
+      background: rgba(var(--ion-color-tertiary-rgb), 0.25);
+      color: var(--ion-color-tertiary);
+
+      &.completed {
+        background: rgba(45, 211, 111, 0.3);
+        color: var(--ion-color-success);
+      }
     }
   }
 

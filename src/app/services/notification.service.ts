@@ -177,12 +177,13 @@ export class NotificationService {
   /**
    * Programme une notification pour un POM
    */
-  async schedulePomNotification(pomId: string, date: Date, message: string): Promise<void> {
+  async schedulePomNotification(pomId: string, date: Date, message: string, title?: string): Promise<void> {
     try {
       const platform = Capacitor.getPlatform();
+      const notificationTitle = title || 'Révision Espacée (POM)';
       console.log(
         `[NOTIF DEBUG] schedulePomNotification platform=${platform} pomId=${pomId} ` +
-        `date=${date.toISOString()} message="${message}"`
+        `date=${date.toISOString()} title="${notificationTitle}" message="${message}"`
       );
       if (platform === 'web') {
         // Fallback pour le navigateur sur PC
@@ -193,7 +194,7 @@ export class NotificationService {
         if (delay <= 0) {
           console.log('[NOTIF DEBUG] web schedule immediate notify');
           if (this.shouldShowPomNotification(pomId, date.getTime())) {
-            this.showBrowserNotification('Révision Espacée (POM)', message, pomId);
+            this.showBrowserNotification(notificationTitle, message, pomId);
           } else {
             console.log('[NOTIF DEBUG] web schedule skipped (state changed)');
           }
@@ -203,7 +204,7 @@ export class NotificationService {
           // mais c'est suffisant pour le test de quelques minutes demandé.
           const timeoutId = setTimeout(() => {
             if (this.shouldShowPomNotification(pomId, date.getTime())) {
-              this.showBrowserNotification('Révision Espacée (POM)', message, pomId);
+              this.showBrowserNotification(notificationTitle, message, pomId);
             } else {
               console.log('[NOTIF DEBUG] web schedule skipped (state changed)');
             }
@@ -220,7 +221,7 @@ export class NotificationService {
         notifications: [
           {
             id: notificationId,
-            title: 'Révision Espacée (POM)',
+            title: notificationTitle,
             body: message,
             schedule: { at: date },
             sound: 'default',
@@ -236,6 +237,22 @@ export class NotificationService {
       console.log(`[NOTIF DEBUG] native schedule done id=${notificationId} pomId=${pomId}`);
     } catch (error) {
       console.error('Erreur lors de la programmation de la notification POM:', error);
+    }
+  }
+
+  /**
+   * Annule une notification POM
+   */
+  async cancelPomNotification(pomId: string): Promise<void> {
+    try {
+      if (Capacitor.getPlatform() === 'web') {
+        return;
+      }
+      const notificationId = this.hashCode(pomId);
+      await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
+      console.log(`[NOTIF DEBUG] native cancel pomId=${pomId} id=${notificationId}`);
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation de la notification POM:', error);
     }
   }
 

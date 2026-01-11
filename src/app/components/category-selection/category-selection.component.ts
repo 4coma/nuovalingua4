@@ -15,6 +15,7 @@ export interface ProgressItem {
   id?: string; // ID pour mapper vers le contenu statique
   label: string;
   progress: number;
+  pomStatus?: 'active' | 'completed' | 'archived';
 }
 
 export interface Level {
@@ -463,6 +464,29 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
    * Calcule la progression réelle de chaque leçon et niveau via le PomService
    */
   refreshProgress() {
+    const poms = this.pomService.getAllPoms();
+    const activeLessons = new Set<string>();
+    const completedLessons = new Set<string>();
+    const archivedLessons = new Set<string>();
+
+    poms.forEach(pom => {
+      if (!pom.lessonId) return;
+      if (pom.status === 'active') {
+        activeLessons.add(pom.lessonId);
+      } else if (pom.status === 'completed') {
+        completedLessons.add(pom.lessonId);
+      } else {
+        archivedLessons.add(pom.lessonId);
+      }
+    });
+
+    const getPomStatus = (lessonId: string): 'active' | 'completed' | 'archived' | undefined => {
+      if (activeLessons.has(lessonId)) return 'active';
+      if (completedLessons.has(lessonId)) return 'completed';
+      if (archivedLessons.has(lessonId)) return 'archived';
+      return undefined;
+    };
+
     this.levels.forEach(level => {
       let levelTotalProgress = 0;
       let totalItemsWithId = 0;
@@ -474,6 +498,7 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
         items.forEach(item => {
           if (item.id) {
             item.progress = this.pomService.getLessonProgress(item.id);
+            item.pomStatus = getPomStatus(item.id);
             sectionProgressSum += item.progress;
             totalItemsWithId++;
           }
@@ -550,6 +575,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
 
       localStorage.removeItem('isPomReview');
       localStorage.removeItem('pomId');
+      localStorage.removeItem('pomReviewCounts');
+      localStorage.removeItem('pomReviewDueAt');
+      localStorage.removeItem('pomReviewWindowEnd');
 
       this.router.navigate(['/word-pairs-game']);
     } else {
@@ -608,6 +636,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
           // Nettoyer les flags POM pour éviter les conflits
           localStorage.removeItem('isPomReview');
           localStorage.removeItem('pomId');
+          localStorage.removeItem('pomReviewCounts');
+          localStorage.removeItem('pomReviewDueAt');
+          localStorage.removeItem('pomReviewWindowEnd');
 
           this.isLoading = false;
 
@@ -687,6 +718,11 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
           }));
 
           localStorage.removeItem('lessonId');
+          localStorage.removeItem('isPomReview');
+          localStorage.removeItem('pomId');
+          localStorage.removeItem('pomReviewCounts');
+          localStorage.removeItem('pomReviewDueAt');
+          localStorage.removeItem('pomReviewWindowEnd');
           this.isLoading = false;
           setTimeout(() => {
             this.router.navigate(['/word-pairs-game']);
@@ -754,6 +790,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     localStorage.removeItem('lessonId');
     localStorage.removeItem('isPomReview');
     localStorage.removeItem('pomId');
+    localStorage.removeItem('pomReviewCounts');
+    localStorage.removeItem('pomReviewDueAt');
+    localStorage.removeItem('pomReviewWindowEnd');
 
     this.router.navigate(['/word-pairs-game']);
   }
@@ -785,6 +824,9 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
     localStorage.removeItem('lessonId');
     localStorage.removeItem('isPomReview');
     localStorage.removeItem('pomId');
+    localStorage.removeItem('pomReviewCounts');
+    localStorage.removeItem('pomReviewDueAt');
+    localStorage.removeItem('pomReviewWindowEnd');
 
     this.llmService.generateCustomWordPairs(customPrompt, this.translationDirection)
       .subscribe({

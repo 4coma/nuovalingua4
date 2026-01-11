@@ -67,6 +67,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   fullRevisionSessionId: string | null = null;
   isPomReview: boolean = false; // Indique si c'est une révision POM
   pomId: string | null = null;
+  pomReviewCounts: boolean = false;
+  pomReviewWindowEnd: number | null = null;
   lessonId: string | null = null; // ID de la leçon statique associée
 
   // Filtrage par thèmes
@@ -213,6 +215,17 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     }
   }
 
+  private parseStoredNumber(value: string | null): number | null {
+    if (value === null) return null;
+    try {
+      const parsed = JSON.parse(value);
+      return typeof parsed === 'number' ? parsed : parseInt(value, 10);
+    } catch {
+      const parsed = parseInt(value, 10);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+  }
+
   /**
    * Charge les données de la session depuis le localStorage
    */
@@ -225,6 +238,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     const revisedWordsJson = localStorage.getItem('revisedWords');
     const isPomReview = localStorage.getItem('isPomReview');
     const pomId = localStorage.getItem('pomId');
+    const pomReviewCounts = localStorage.getItem('pomReviewCounts');
+    const pomReviewWindowEnd = localStorage.getItem('pomReviewWindowEnd');
 
 
     if (wordPairsJson && sessionInfoJson) {
@@ -236,6 +251,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         this.fullRevisionSessionId = fullRevisionSessionId;
         this.isPomReview = this.parseStoredBoolean(isPomReview);
         this.pomId = this.parseStoredString(pomId);
+        this.pomReviewCounts = this.parseStoredBoolean(pomReviewCounts);
+        this.pomReviewWindowEnd = this.parseStoredNumber(pomReviewWindowEnd);
+        if (this.isPomReview && this.sessionInfo?.category !== 'Révision Espacée (POM)') {
+          this.isPomReview = false;
+        }
         if (this.sessionInfo?.category === 'Leçon') {
           this.lessonId = localStorage.getItem('lessonId');
         } else {
@@ -243,11 +263,29 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           localStorage.removeItem('lessonId');
         }
 
+        if (!this.isPomReview) {
+          this.pomId = null;
+          this.pomReviewCounts = false;
+          this.pomReviewWindowEnd = null;
+          localStorage.removeItem('pomId');
+          localStorage.removeItem('pomReviewCounts');
+          localStorage.removeItem('pomReviewDueAt');
+          localStorage.removeItem('pomReviewWindowEnd');
+        }
+
         if (this.isFullRevisionSession && !this.fullRevisionService.getSession()) {
           console.warn('🔍 [WordPairsGame] Indicateur de révision complète présent sans session active. Nettoyage.');
           this.isFullRevisionSession = false;
           localStorage.removeItem('fullRevisionActive');
           localStorage.removeItem('fullRevisionSessionId');
+        }
+
+        if (this.isPomReview && this.pomId && this.pomReviewWindowEnd === null) {
+          const meta = this.pomService.setPomReviewSessionMeta(this.pomId);
+          if (meta) {
+            this.pomReviewCounts = meta.counts;
+            this.pomReviewWindowEnd = meta.windowEnd;
+          }
         }
 
         // Si c'est une révision du dictionnaire personnel, charger le nombre de paires configuré
@@ -926,9 +964,13 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     // Gestion des POMs
     console.log(`[CORE DEBUG] Handling POM completion: isPomReview=${this.isPomReview}, pomId=${this.pomId}`);
     if (this.isPomReview && this.pomId) {
-      console.log(`[CORE DEBUG] Triggering processPomReview for ${this.pomId}`);
-      await this.pomService.processPomReview(this.pomId);
-      await this.showToast('Session POM terminée et mise à jour !');
+      if (this.pomReviewCounts) {
+        console.log(`[CORE DEBUG] Triggering processPomReview for ${this.pomId}`);
+        await this.pomService.processPomReview(this.pomId);
+        await this.showToast('Session POM terminée et mise à jour !');
+      } else {
+        await this.showToast('Révision libre : le POM n\'a pas été mis à jour.');
+      }
       this.router.navigate(['/poms'], { queryParams: { pomId: this.pomId } });
     } else {
       // Essayer de créer un POM pour cette session
@@ -967,8 +1009,12 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
           text: 'Compléter',
           handler: async () => {
             console.log(`[CORE DEBUG] Test completion triggered for POM ${this.pomId}`);
-            await this.pomService.processPomReview(this.pomId!);
-            await this.showToast('Révision POM complétée !');
+            if (this.pomReviewCounts) {
+              await this.pomService.processPomReview(this.pomId!);
+              await this.showToast('Révision POM complétée !');
+            } else {
+              await this.showToast('Révision libre : le POM n\'a pas été mis à jour.');
+            }
             this.router.navigate(['/poms'], { queryParams: { pomId: this.pomId } });
           }
         }

@@ -5,9 +5,34 @@
     <p class="sub-text">Terminez des sessions d'association pour en créer !</p>
   </div>
 
+  <div *ngIf="dueNotifications.length > 0" class="pom-notifications">
+    <div class="pom-notifications-header">
+      <ion-icon name="notifications-outline"></ion-icon>
+      <h5>Notifications de révision</h5>
+      <ion-badge color="warning">{{ dueNotifications.length }}</ion-badge>
+    </div>
+    <ion-card *ngFor="let pom of dueNotifications" class="pom-notification-card">
+      <ion-card-header>
+        <ion-card-subtitle>À faire avant {{ formatDateTime(getGraceWindowEnd(pom)) }}</ion-card-subtitle>
+        <ion-card-title>{{ getPomTitle(pom) }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="pom-notification-row">
+          <ion-note>Temps restant : {{ getGraceRemainingLabel(pom) }}</ion-note>
+          <ion-button color="success" size="small" (click)="startReview(pom)">
+            Démarrer
+            <ion-icon name="play-outline" slot="end"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
   <ion-list *ngIf="poms.length > 0">
     <ion-card *ngFor="let pom of poms" class="pom-card"
-      [class.pom-highlight]="pom.id === highlightPomId" [attr.id]="'pom-card-' + pom.id">
+      [class.pom-highlight]="pom.id === highlightPomId"
+      [class.pom-mastered]="pom.status === 'completed'"
+      [attr.id]="'pom-card-' + pom.id">
       <ion-card-header>
         <div class="header-row">
           <ion-card-subtitle>
@@ -51,11 +76,17 @@
               slot="end"></ion-icon>
           </ion-button>
 
-          <ion-button color="primary" size="small" (click)="startReview(pom)">
+          <ion-button [color]="isPomInGraceWindow(pom) ? 'success' : 'primary'" size="small"
+            [class.pom-play-due]="isPomInGraceWindow(pom)"
+            [disabled]="pom.status !== 'active'"
+            (click)="startReview(pom)">
             Réviser
             <ion-icon name="play-outline" slot="end"></ion-icon>
           </ion-button>
         </div>
+        <ion-note *ngIf="isPomInGraceWindow(pom)" class="pom-grace-note">
+          ⏱ Temps restant : {{ getGraceRemainingLabel(pom) }}
+        </ion-note>
 
         <div *ngIf="expandedSchedulePomId === pom.id" class="expand-section">
           <div class="schedule-container">

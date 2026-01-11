@@ -176,12 +176,13 @@ export class AppComponent {
       this.storageService.set('wordPairs', pomWords);
       this.storageService.set('isPomReview', true);
       this.storageService.set('pomId', pomId);
+      this.pomService.setPomReviewSessionMeta(pomId);
 
       // Clear other flags
       this.storageService.set('isPersonalDictionaryRevision', false);
       this.storageService.set('fullRevisionActive', false);
 
-      this.router.navigate(['/word-pairs-game']);
+      this.router.navigate(['/word-pairs-game'], { queryParams: { pomStart: Date.now() } });
     } catch (error) {
       console.error('Erreur lors du démarrage de la révision POM:', error);
     }
@@ -477,6 +478,9 @@ export class AppComponent {
       // Nettoyer les flags POM pour éviter les conflits
       localStorage.removeItem('isPomReview');
       localStorage.removeItem('pomId');
+      localStorage.removeItem('pomReviewCounts');
+      localStorage.removeItem('pomReviewDueAt');
+      localStorage.removeItem('pomReviewWindowEnd');
 
 
       // Naviguer vers l'exercice d'association

@@ -5,6 +5,7 @@ import { VocabularyTrackingService } from './vocabulary-tracking.service';
 import { Pom } from '../models/pom';
 import { WordPair } from './llm.service';
 import { PersonalDictionaryService, DictionaryWord } from './personal-dictionary.service';
+import { COURSE_DATA } from '../data/course-data';
 import { Capacitor } from '@capacitor/core';
 
 @Injectable({
@@ -15,13 +16,20 @@ export class PomService {
     private readonly MAX_REVIEWS_YEAR = 365; // Environ un an
     private readonly NOTIFICATION_GRACE_KEY = 'pomNotificationGraceMinutes';
     private readonly DEFAULT_NOTIFICATION_GRACE_MINUTES = 10;
+    private readonly POM_REVIEW_COUNTS_KEY = 'pomReviewCounts';
+    private readonly POM_REVIEW_DUE_AT_KEY = 'pomReviewDueAt';
+    private readonly POM_REVIEW_WINDOW_END_KEY = 'pomReviewWindowEnd';
 
     constructor(
         private storageService: StorageService,
         private notificationService: NotificationService,
         private vocabularyTrackingService: VocabularyTrackingService,
         private personalDictionaryService: PersonalDictionaryService
-    ) { }
+    ) {
+        this.personalDictionaryService.dictionaryWords$.subscribe(words => {
+            this.updateMasteredPoms(words);
+        });
+    }
 
     /**
      * Récupère tous les POMs
@@ -50,6 +58,90 @@ export class PomService {
             return this.DEFAULT_NOTIFICATION_GRACE_MINUTES;
         }
         return parsed;
+    }
+
+    private buildKnownWordIdSet(dictionaryWords?: DictionaryWord[]): Set<string> {
+        const knownIds = new Set<string>();
+        const words = dictionaryWords || this.personalDictionaryService.getAllWords();
+        for (const dw of words) {
+            if (!dw.isKnown) continue;
+            const dwId = this.vocabularyTrackingService.generateWordId(
+                dw.sourceLang === 'it' ? dw.sourceWord : dw.targetWord,
+                dw.sourceLang === 'it' ? dw.targetWord : dw.sourceWord
+            );
+            knownIds.add(dwId);
+        }
+        return knownIds;
+    }
+
+    private areAllPomWordsKnown(pom: Pom, knownIds: Set<string>): boolean {
+        if (!pom.wordIds.length) return false;
+        return pom.wordIds.every(wordId => knownIds.has(wordId));
+    }
+
+    updateMasteredPoms(dictionaryWords?: DictionaryWord[]): void {
+        const poms = this.getAllPoms();
+        if (poms.length === 0) return;
+
+        const knownIds = this.buildKnownWordIdSet(dictionaryWords);
+        let hasChanges = false;
+
+        for (const pom of poms) {
+            if (pom.status !== 'active') continue;
+            if (!this.areAllPomWordsKnown(pom, knownIds)) continue;
+
+            pom.status = 'completed';
+            hasChanges = true;
+            void this.notificationService.cancelPomNotification(pom.id);
+        }
+
+        if (hasChanges) {
+            this.saveAllPoms(poms);
+        }
+    }
+
+    getPomDisplayTitle(pom: Pom): string {
+        if (pom.title && pom.title.trim()) {
+            return pom.title.trim();
+        }
+        if (pom.lessonId) {
+            for (const levelId in COURSE_DATA) {
+                const level = COURSE_DATA[levelId];
+                const allLessons = [
+                    ...(level.domaines || []),
+                    ...(level.lexical || []),
+                    ...(level.verbs || [])
+                ];
+                const lesson = allLessons.find(l => l.id === pom.lessonId);
+                if (lesson) {
+                    return lesson.title;
+                }
+            }
+        }
+        const createdAt = new Date(pom.createdAt);
+        const dateLabel = `${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        })}`;
+        return `Révision libre (${dateLabel})`;
+    }
+
+    setPomReviewSessionMeta(pomId: string, now: number = Date.now()): { counts: boolean; dueAt: number; windowEnd: number } | null {
+        const pom = this.getPomById(pomId);
+        if (!pom) return null;
+
+        const graceMinutes = this.getNotificationGraceMinutes();
+        const graceMs = graceMinutes * 60 * 1000;
+        const dueAt = pom.nextReviewDate;
+        const windowEnd = dueAt + graceMs;
+        const counts = now >= dueAt && now <= windowEnd;
+
+        this.storageService.set(this.POM_REVIEW_COUNTS_KEY, counts);
+        this.storageService.set(this.POM_REVIEW_DUE_AT_KEY, dueAt);
+        this.storageService.set(this.POM_REVIEW_WINDOW_END_KEY, windowEnd);
+
+        return { counts, dueAt, windowEnd };
     }
 
     /**
@@ -111,12 +203,19 @@ export class PomService {
             reviewCount: 0
         };
 
+        const knownIds = this.buildKnownWordIdSet();
+        if (this.areAllPomWordsKnown(newPom, knownIds)) {
+            newPom.status = 'completed';
+        }
+
         poms.push(newPom);
         this.saveAllPoms(poms);
         console.log(`[POM DEBUG] createPom newPomId=${newPom.id} wordCount=${newPom.wordIds.length}`);
 
-        // Planifier la notification
-        await this.schedulePomNotification(newPom);
+        if (newPom.status === 'active') {
+            // Planifier la notification
+            await this.schedulePomNotification(newPom);
+        }
 
         return newPom;
     }
@@ -125,35 +224,13 @@ export class PomService {
      * Récupère les POMs dus pour révision
      */
     getDuePoms(): Pom[] {
+        this.updateMasteredPoms();
         const now = Date.now();
         const poms = this.getAllPoms();
 
-        return poms.filter(pom => {
-            if (pom.status !== 'active' || pom.nextReviewDate > now) {
-                return false;
-            }
-
-            // Vérifier si tous les mots du POM sont désormais marqués comme "connus"
-            const dictionaryWords = this.personalDictionaryService.getAllWords();
-            const activeWordIds = pom.wordIds.filter(wordId => {
-                const dictWord = dictionaryWords.find(dw => {
-                    const dwId = this.vocabularyTrackingService.generateWordId(
-                        dw.sourceLang === 'it' ? dw.sourceWord : dw.targetWord,
-                        dw.sourceLang === 'it' ? dw.targetWord : dw.sourceWord
-                    );
-                    return dwId === wordId;
-                });
-                return !dictWord?.isKnown;
-            });
-
-            if (activeWordIds.length === 0) {
-                // Tous les mots sont connus, on complète le POM automatiquement
-                this.completePom(pom.id);
-                return false;
-            }
-
-            return true;
-        });
+        return poms.filter(pom =>
+            pom.status === 'active' && pom.nextReviewDate <= now
+        );
     }
 
     /**
@@ -165,6 +242,7 @@ export class PomService {
         if (index !== -1) {
             poms[index].status = 'completed';
             this.saveAllPoms(poms);
+            void this.notificationService.cancelPomNotification(pomId);
         }
     }
 
@@ -233,6 +311,10 @@ export class PomService {
      * Planifie une notification pour un POM
      */
     private async schedulePomNotification(pom: Pom): Promise<void> {
+        if (pom.status !== 'active') {
+            console.log(`[POM DEBUG] schedulePomNotification skipped pomId=${pom.id} status=${pom.status}`);
+            return;
+        }
         const date = new Date(pom.nextReviewDate);
         const now = Date.now();
         const scheduledDate = date.getTime() < now ? new Date(now + 60000) : date;
@@ -244,13 +326,17 @@ export class PomService {
             `scheduled=${scheduledDate.toISOString()} delayMs=${delayMs}`
         );
 
+        const deadline = new Date(pom.nextReviewDate + graceMinutes * 60 * 1000);
+        const deadlineLabel = deadline.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const message = `Révision POM disponible ! (${pom.wordIds.length} mots). ` +
-            `Vous avez ${graceMinutes} ${graceLabel} pour effectuer la révision.`;
+            `À faire avant ${deadlineLabel}.`;
+        const title = `Révision POM - ${this.getPomDisplayTitle(pom)}`;
 
         await this.notificationService.schedulePomNotification(
             pom.id,
             scheduledDate,
-            message
+            message,
+            title
         );
         console.log(`[POM DEBUG] schedulePomNotification done pomId=${pom.id}`);
 
@@ -362,13 +448,23 @@ export class PomService {
      * Utile au démarrage de l'app sur Web
      */
     async reScheduleAllNotifications(): Promise<void> {
+        this.updateMasteredPoms();
         const poms = this.getAllPoms();
         const activePoms = poms.filter(p => p.status === 'active');
+        const platform = Capacitor.getPlatform();
+        const isWeb = platform === 'web';
 
         for (const pom of activePoms) {
             const graceMinutes = this.getNotificationGraceMinutes();
             const graceMs = graceMinutes * 60 * 1000;
             const now = Date.now();
+
+            if (!isWeb) {
+                if (now > pom.nextReviewDate + graceMs) {
+                    await this.handleMissedPom(pom.id, pom.nextReviewDate, pom.reviewCount, 'startup');
+                }
+                continue;
+            }
 
             if (now > pom.nextReviewDate + graceMs) {
                 await this.handleMissedPom(pom.id, pom.nextReviewDate, pom.reviewCount, 'startup');
@@ -472,11 +568,19 @@ export class PomService {
         pom.reviewCount = 0;
         pom.status = 'active';
 
+        const knownIds = this.buildKnownWordIdSet();
+        if (this.areAllPomWordsKnown(pom, knownIds)) {
+            pom.status = 'completed';
+        }
+
         poms[index] = pom;
         this.saveAllPoms(poms);
-
-        // Reprogrammer la notification
-        await this.schedulePomNotification(pom);
+        if (pom.status === 'active') {
+            // Reprogrammer la notification
+            await this.schedulePomNotification(pom);
+        } else {
+            void this.notificationService.cancelPomNotification(pomId);
+        }
     }
 
     /**
