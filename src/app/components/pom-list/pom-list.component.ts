@@ -54,7 +54,11 @@ export class PomListComponent implements OnInit, OnDestroy {
     ionViewWillEnter() {
         this.loadPoms();
         this.loadFactor();
-        this.applyPomFocusFromQuery();
+        // Ne scroll que si on a un pomId dans les query params (venant d'une notification)
+        const pomId = this.route.snapshot.queryParamMap.get('pomId');
+        if (pomId) {
+            this.applyPomFocusFromQuery();
+        }
         this.startCountdownTimer();
     }
 
@@ -92,6 +96,12 @@ export class PomListComponent implements OnInit, OnDestroy {
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
+            // Nettoyer les query params après le scroll
+            this.router.navigate([], {
+                relativeTo: this.route,
+                queryParams: {},
+                replaceUrl: true
+            });
         }, 100);
 
         setTimeout(() => {
@@ -116,8 +126,9 @@ export class PomListComponent implements OnInit, OnDestroy {
             this.expandedWordsPomId = null;
         } else {
             this.expandedWordsPomId = pomId;
-            // Close schedule if open to avoid clutter? Or keep both? User asked for separate, implies independence.
-            // Let's keep them independent.
+            if (this.expandedSchedulePomId === pomId) {
+                this.expandedSchedulePomId = null;
+            }
             if (!this.pomWordsMap[pomId]) {
                 this.loadPomWords(pomId);
             }
@@ -129,6 +140,9 @@ export class PomListComponent implements OnInit, OnDestroy {
             this.expandedSchedulePomId = null;
         } else {
             this.expandedSchedulePomId = pomId;
+            if (this.expandedWordsPomId === pomId) {
+                this.expandedWordsPomId = null;
+            }
         }
     }
 
@@ -167,19 +181,25 @@ export class PomListComponent implements OnInit, OnDestroy {
 
     togglePomWordKnownStatus(pomId: string, word: PomWordDisplay) {
         const dictionaryWords = this.personalDictionaryService.getAllWords();
+
+        // Trouver le mot en comparant les textes normalisés plutôt que les IDs
+        const itNormalized = word.it.toLowerCase().trim();
+        const frNormalized = word.fr.toLowerCase().trim();
+
         const matchingWord = dictionaryWords.find(dw => {
-            const dwId = this.vocabularyTrackingService.generateWordId(
-                dw.sourceLang === 'it' ? dw.sourceWord : dw.targetWord,
-                dw.sourceLang === 'it' ? dw.targetWord : dw.sourceWord
-            );
-            return dwId === word.id;
+            const dwIt = (dw.sourceLang === 'it' ? dw.sourceWord : dw.targetWord).toLowerCase().trim();
+            const dwFr = (dw.sourceLang === 'it' ? dw.targetWord : dw.sourceWord).toLowerCase().trim();
+            return (dwIt === itNormalized && dwFr === frNormalized);
         });
 
         if (matchingWord) {
+            console.log('[PomList] Mot trouvé dans le dictionnaire, id:', matchingWord.id, 'actuellement connu:', matchingWord.isKnown);
             const nextKnown = !matchingWord.isKnown;
             this.personalDictionaryService.setWordKnownStatus(matchingWord.id, nextKnown);
             word.isKnown = nextKnown;
+            console.log('[PomList] Statut mis à jour:', nextKnown);
         } else {
+            console.log('[PomList] Mot non trouvé dans le dictionnaire, ajout comme connu');
             const newWord: DictionaryWord = {
                 id: '',
                 sourceWord: word.it,
@@ -195,8 +215,8 @@ export class PomListComponent implements OnInit, OnDestroy {
             word.isKnown = true;
         }
 
+        // Forcer la mise à jour de l'affichage
         this.pomWordsMap[pomId] = [...(this.pomWordsMap[pomId] || [])];
-        this.loadPoms();
     }
 
     getReviewDateLabel(timestamp: number): string {
@@ -247,12 +267,16 @@ export class PomListComponent implements OnInit, OnDestroy {
 
         const pomWords = this.pomService.getPomWords(pom.id);
         if (pomWords.length === 0) {
+            const completed = this.pomService.completePomIfNoReviewableWords(pom.id);
             const toast = await this.toastController.create({
-                message: 'Erreur: Aucun mot trouvé pour ce POM.',
-                duration: 2000,
-                color: 'danger'
+                message: completed
+                    ? 'Ce POM n\'a plus de mots à réviser.'
+                    : 'Erreur: Aucun mot trouvé pour ce POM.',
+                duration: 2500,
+                color: completed ? 'warning' : 'danger'
             });
             await toast.present();
+            this.loadPoms();
             return;
         }
 

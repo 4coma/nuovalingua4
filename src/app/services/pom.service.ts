@@ -19,6 +19,9 @@ export class PomService {
     private readonly POM_REVIEW_COUNTS_KEY = 'pomReviewCounts';
     private readonly POM_REVIEW_DUE_AT_KEY = 'pomReviewDueAt';
     private readonly POM_REVIEW_WINDOW_END_KEY = 'pomReviewWindowEnd';
+    private readonly NIGHT_START_HOUR = 21;
+    private readonly NIGHT_END_HOUR = 9;
+    private readonly NIGHT_END_MINUTE = 30;
 
     constructor(
         private storageService: StorageService,
@@ -58,6 +61,34 @@ export class PomService {
             return this.DEFAULT_NOTIFICATION_GRACE_MINUTES;
         }
         return parsed;
+    }
+
+    private adjustReviewDateForNight(dateMs: number): number {
+        const date = new Date(dateMs);
+        const hour = date.getHours();
+        const minute = date.getMinutes();
+        const isNight = hour >= this.NIGHT_START_HOUR ||
+            hour < this.NIGHT_END_HOUR ||
+            (hour === this.NIGHT_END_HOUR && minute < this.NIGHT_END_MINUTE);
+
+        if (!isNight) return dateMs;
+
+        const adjusted = new Date(date);
+        if (hour >= this.NIGHT_START_HOUR) {
+            adjusted.setDate(adjusted.getDate() + 1);
+        }
+        adjusted.setHours(this.NIGHT_END_HOUR, this.NIGHT_END_MINUTE, 0, 0);
+        return adjusted.getTime();
+    }
+
+    private applyNightShiftIfNeeded(pom: Pom): boolean {
+        const adjusted = this.adjustReviewDateForNight(pom.nextReviewDate);
+        if (adjusted === pom.nextReviewDate) return false;
+        const before = new Date(pom.nextReviewDate).toISOString();
+        const after = new Date(adjusted).toISOString();
+        pom.nextReviewDate = adjusted;
+        console.log(`[POM DEBUG] Night shift pomId=${pom.id} from=${before} to=${after}`);
+        return true;
     }
 
     private buildKnownWordIdSet(dictionaryWords?: DictionaryWord[]): Set<string> {
@@ -185,7 +216,7 @@ export class PomService {
 
         // Convertir en jours pour la compatibilité avec intervalDays
         const initialIntervalDays = initialIntervalSeconds / (24 * 60 * 60);
-        const nextReview = now + (initialIntervalSeconds * 1000);
+        const nextReview = this.adjustReviewDateForNight(now + (initialIntervalSeconds * 1000));
 
         // Récupérer le facteur global
         const storedFactor = this.storageService.get('pomReviewFactor');
@@ -284,7 +315,7 @@ export class PomService {
         }
 
         const now = Date.now();
-        const nextReview = now + (newInterval * 24 * 60 * 60 * 1000);
+        const nextReview = this.adjustReviewDateForNight(now + (newInterval * 24 * 60 * 60 * 1000));
 
         console.log(`[CORE DEBUG] Calculated newInterval: ${newInterval} days, nextReview: ${new Date(nextReview).toISOString()}`);
 
@@ -408,7 +439,7 @@ export class PomService {
 
         const now = Date.now();
         const rescheduleAt = missedDate > now ? missedDate : now;
-        pom.nextReviewDate = rescheduleAt;
+        pom.nextReviewDate = this.adjustReviewDateForNight(rescheduleAt);
 
         poms[index] = pom;
         this.saveAllPoms(poms);
@@ -453,8 +484,22 @@ export class PomService {
         const activePoms = poms.filter(p => p.status === 'active');
         const platform = Capacitor.getPlatform();
         const isWeb = platform === 'web';
+        const shiftedPomIds = new Set<string>();
 
         for (const pom of activePoms) {
+            if (this.applyNightShiftIfNeeded(pom)) {
+                shiftedPomIds.add(pom.id);
+            }
+        }
+
+        if (shiftedPomIds.size > 0) {
+            this.saveAllPoms(poms);
+        }
+
+        for (const pom of activePoms) {
+            if (this.completePomIfNoReviewableWords(pom.id)) {
+                continue;
+            }
             const graceMinutes = this.getNotificationGraceMinutes();
             const graceMs = graceMinutes * 60 * 1000;
             const now = Date.now();
@@ -462,6 +507,9 @@ export class PomService {
             if (!isWeb) {
                 if (now > pom.nextReviewDate + graceMs) {
                     await this.handleMissedPom(pom.id, pom.nextReviewDate, pom.reviewCount, 'startup');
+                }
+                if (shiftedPomIds.has(pom.id) && now <= pom.nextReviewDate + graceMs) {
+                    await this.schedulePomNotification(pom);
                 }
                 continue;
             }
@@ -515,6 +563,31 @@ export class PomService {
         return pomWords;
     }
 
+    completePomIfNoReviewableWords(pomId: string): boolean {
+        const pom = this.getPomById(pomId);
+        if (!pom) return false;
+
+        const pomWords = this.getPomWords(pomId);
+        if (pomWords.length > 0) return false;
+
+        if (pom.status !== 'completed') {
+            const knownIds = this.buildKnownWordIdSet();
+            const reason = this.areAllPomWordsKnown(pom, knownIds) ? 'all_known' : 'missing_words';
+            const poms = this.getAllPoms();
+            const index = poms.findIndex(p => p.id === pomId);
+            if (index === -1) return false;
+
+            poms[index] = { ...poms[index], status: 'completed' };
+            this.saveAllPoms(poms);
+            console.log(`[POM DEBUG] Completed empty POM pomId=${pomId} reason=${reason}`);
+        } else {
+            console.log(`[POM DEBUG] Empty POM already completed pomId=${pomId}`);
+        }
+
+        void this.notificationService.cancelPomNotification(pomId);
+        return true;
+    }
+
     /**
      * Calcule la progression d'une leçon basée sur les révisions POM effectués.
      */
@@ -563,7 +636,7 @@ export class PomService {
         const initialIntervalDays = initialIntervalSeconds / (24 * 60 * 60);
 
         pom.createdAt = now; // On réinitialise aussi la date de création
-        pom.nextReviewDate = now + (initialIntervalSeconds * 1000);
+        pom.nextReviewDate = this.adjustReviewDateForNight(now + (initialIntervalSeconds * 1000));
         pom.intervalDays = initialIntervalDays;
         pom.reviewCount = 0;
         pom.status = 'active';

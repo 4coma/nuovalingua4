@@ -91,25 +91,25 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       progress: 0,
       sections: {
         domaines: [
-          { label: 'La maison', progress: 0 },
-          { label: 'Les objets usuels', progress: 0 },
-          { label: 'Les besoins primaires', progress: 0 },
-          { label: 'Les habitudes journalières', progress: 0 }
+          { id: 'lvl2-dom-house', label: 'La maison', progress: 0 },
+          { id: 'lvl2-dom-objects', label: 'Les objets usuels', progress: 0 },
+          { id: 'lvl2-dom-needs', label: 'Les besoins primaires', progress: 0 },
+          { id: 'lvl2-dom-habits', label: 'Les habitudes journalières', progress: 0 }
         ],
         domainesProgress: 75,
         lexical: [
-          { label: 'Objets du quotidien', progress: 0 },
-          { label: 'Alimentation et boisson', progress: 0 },
-          { label: 'Corps humain (base)', progress: 0 },
-          { label: 'Moments de la journée', progress: 0 },
-          { label: 'Quantités simples', progress: 0 }
+          { id: 'lvl2-lex-daily-objects', label: 'Objets du quotidien', progress: 0 },
+          { id: 'lvl2-lex-food', label: 'Alimentation et boisson', progress: 0 },
+          { id: 'lvl2-lex-body', label: 'Corps humain (base)', progress: 0 },
+          { id: 'lvl2-lex-time', label: 'Moments de la journée', progress: 0 },
+          { id: 'lvl2-lex-quantities', label: 'Quantités simples', progress: 0 }
         ],
         lexicalProgress: 69,
         verbs: [
-          { label: 'Verbes d’action courants au présent', progress: 0 },
-          { label: 'Verbes réguliers au présent', progress: 0 },
-          { label: 'Introduction aux verbes pronominaux (présent)', progress: 0 },
-          { label: 'Présent de l’habitude', progress: 0 }
+          { id: 'lvl2-verb-actions', label: 'Verbes d’action courants au présent', progress: 0 },
+          { id: 'lvl2-verb-regular', label: 'Verbes réguliers au présent', progress: 0 },
+          { id: 'lvl2-verb-reflexive', label: 'Introduction aux verbes pronominaux (présent)', progress: 0 },
+          { id: 'lvl2-verb-habitual', label: 'Présent de l’habitude', progress: 0 }
         ],
         verbsProgress: 75
       },
@@ -122,25 +122,25 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       progress: 0,
       sections: {
         domaines: [
-          { label: 'Déplacements', progress: 0 },
-          { label: 'Orientation', progress: 0 },
-          { label: 'Interaction de base', progress: 0 },
-          { label: 'Services et commerces', progress: 0 }
+          { id: 'lvl3-dom-movement', label: 'Déplacements', progress: 0 },
+          { id: 'lvl3-dom-orientation', label: 'Orientation', progress: 0 },
+          { id: 'lvl3-dom-interaction', label: 'Interaction de base', progress: 0 },
+          { id: 'lvl3-dom-services', label: 'Services et commerces', progress: 0 }
         ],
-        domainesProgress: 30,
+        domainesProgress: 0,
         lexical: [
-          { label: 'Lieux de la vie sociale', progress: 0 },
-          { label: 'Transports', progress: 0 },
-          { label: 'Directions et positions', progress: 0 },
-          { label: 'Politesse et interaction', progress: 0 },
-          { label: 'Questions essentielles', progress: 0 }
+          { id: 'lvl3-lex-places', label: 'Lieux de la vie sociale', progress: 0 },
+          { id: 'lvl3-lex-transport', label: 'Transports', progress: 0 },
+          { id: 'lvl3-lex-directions', label: 'Directions et positions', progress: 0 },
+          { id: 'lvl3-lex-politeness', label: 'Politesse et interaction', progress: 0 },
+          { id: 'lvl3-lex-questions', label: 'Questions essentielles', progress: 0 }
         ],
-        lexicalProgress: 30,
+        lexicalProgress: 0,
         verbs: [
-          { label: 'Verbes de mouvement au présent', progress: 0 },
-          { label: 'Pouvoir / vouloir / devoir au présent', progress: 0 },
-          { label: 'Construction interrogative', progress: 0 },
-          { label: 'Impératif simple (instructions)', progress: 0 }
+          { id: 'lvl3-verb-movement', label: 'Verbes de mouvement au présent', progress: 0 },
+          { id: 'lvl3-verb-modals', label: 'Pouvoir / vouloir / devoir au présent', progress: 0 },
+          { id: 'lvl3-verb-interrogative', label: 'Construction interrogative', progress: 0 },
+          { id: 'lvl3-verb-imperative', label: 'Impératif simple (instructions)', progress: 0 }
         ],
         verbsProgress: 25
       },

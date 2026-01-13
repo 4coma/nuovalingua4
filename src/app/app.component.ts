@@ -159,9 +159,42 @@ export class AppComponent {
     if (!pomId) return;
 
     try {
+      const pom = this.pomService.getPomById(pomId);
+      if (!pom) {
+        const toast = await this.toastController.create({
+          message: 'POM introuvable ou supprimé.',
+          duration: 2500,
+          position: 'bottom',
+          color: 'warning'
+        });
+        await toast.present();
+        return;
+      }
+
+      if (pom.status !== 'active') {
+        const toast = await this.toastController.create({
+          message: 'Ce POM est déjà maîtrisé.',
+          duration: 2500,
+          position: 'bottom',
+          color: 'warning'
+        });
+        await toast.present();
+        return;
+      }
+
       const pomWords = this.pomService.getPomWords(pomId);
       if (pomWords.length === 0) {
-        console.warn('Aucun mot trouvé pour le POM:', pomId);
+        const completed = this.pomService.completePomIfNoReviewableWords(pomId);
+        const toast = await this.toastController.create({
+          message: completed
+            ? 'Ce POM n\'a plus de mots à réviser.'
+            : 'Aucun mot trouvé pour ce POM.',
+          duration: 2500,
+          position: 'bottom',
+          color: 'warning'
+        });
+        await toast.present();
+        this.router.navigate(['/poms']);
         return;
       }
 

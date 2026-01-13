@@ -61,6 +61,16 @@
   }
 }
 
+@media (prefers-color-scheme: dark) {
+  .pom-notifications {
+    .pom-notifications-header {
+      h5 {
+        color: var(--ion-color-light);
+      }
+    }
+  }
+}
+
 .info-row {
   display: flex;
   justify-content: space-between;

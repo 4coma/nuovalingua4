@@ -343,13 +343,13 @@
   }
 
   &.has-pom {
-    border-color: rgba(var(--ion-color-tertiary-rgb), 0.6);
-    background-color: rgba(var(--ion-color-tertiary-rgb), 0.08);
+    border-color: rgba(var(--ion-color-primary-rgb), 0.6);
+    background-color: rgba(var(--ion-color-primary-rgb), 0.08);
     color: var(--color-text-primary);
   }
 
   &.pom-active {
-    box-shadow: 0 0 0 1px rgba(var(--ion-color-tertiary-rgb), 0.15);
+    box-shadow: 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.15);
   }
 
   &.pom-completed {
@@ -368,8 +368,8 @@
     font-size: 0.6rem;
     padding: 1px 5px;
     border-radius: 999px;
-    background: rgba(var(--ion-color-tertiary-rgb), 0.18);
-    color: var(--ion-color-tertiary);
+    background: rgba(var(--ion-color-primary-rgb), 0.18);
+    color: var(--ion-color-primary);
     letter-spacing: 0.04em;
     text-transform: uppercase;
     line-height: 1.1;
@@ -443,7 +443,7 @@
     }
 
     &.has-pom {
-      background-color: rgba(var(--ion-color-tertiary-rgb), 0.15);
+      background-color: rgba(var(--ion-color-primary-rgb), 0.15);
       color: #e6e6e6;
     }
 
@@ -458,8 +458,8 @@
     }
 
     .pom-chip {
-      background: rgba(var(--ion-color-tertiary-rgb), 0.25);
-      color: var(--ion-color-tertiary);
+      background: rgba(var(--ion-color-primary-rgb), 0.25);
+      color: var(--ion-color-primary);
 
       &.completed {
         background: rgba(45, 211, 111, 0.3);

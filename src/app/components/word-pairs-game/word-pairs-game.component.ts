@@ -799,6 +799,12 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     this.router.navigate(['/vocabulary']);
   }
 
+  goToPoms() {
+    this.saveRevisionDelays();
+    // Ne pas envoyer de pomId pour éviter le scroll automatique
+    this.router.navigate(['/poms']);
+  }
+
   /**
    * Lance la conversation guidée dans le cadre d'une révision complète
    */
@@ -971,7 +977,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       } else {
         await this.showToast('Révision libre : le POM n\'a pas été mis à jour.');
       }
-      this.router.navigate(['/poms'], { queryParams: { pomId: this.pomId } });
     } else {
       // Essayer de créer un POM pour cette session
       const words = this.wordPairs.map(wp => ({ word: wp.it, translation: wp.fr }));
@@ -1015,7 +1020,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
             } else {
               await this.showToast('Révision libre : le POM n\'a pas été mis à jour.');
             }
-            this.router.navigate(['/poms'], { queryParams: { pomId: this.pomId } });
           }
         }
       ]
