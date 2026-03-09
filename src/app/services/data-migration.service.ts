@@ -25,6 +25,27 @@ export class DataMigrationService {
   ) {}
 
   /**
+   * Récupère une valeur locale en privilégiant la clé scopée utilisateur
+   * puis fallback sur la clé legacy globale pour compatibilité.
+   */
+  private getScopedLocalStorage(baseKey: string): string | null {
+    const uid = this.firebaseSync.getCurrentUser()?.uid;
+    if (uid) {
+      const scopedValue = localStorage.getItem(`${baseKey}__${uid}`);
+      if (scopedValue !== null) {
+        return scopedValue;
+      }
+    } else {
+      const guestValue = localStorage.getItem(`${baseKey}__guest`);
+      if (guestValue !== null) {
+        return guestValue;
+      }
+    }
+
+    return localStorage.getItem(baseKey);
+  }
+
+  /**
    * Migre toutes les données locales vers Firebase
    */
   async migrateAllDataToFirebase(): Promise<void> {
@@ -73,7 +94,7 @@ export class DataMigrationService {
    */
   private getPersonalDictionary(): DictionaryWord[] {
     try {
-      const storedWords = localStorage.getItem('personalDictionary');
+      const storedWords = this.getScopedLocalStorage('personalDictionary');
       
       if (storedWords) {
         const words = JSON.parse(storedWords);
@@ -91,7 +112,7 @@ export class DataMigrationService {
    */
   private getConversations(): any[] {
     try {
-      const storedConversations = localStorage.getItem('savedConversations');
+      const storedConversations = this.getScopedLocalStorage('savedConversations');
       if (!storedConversations) return [];
 
       const conversations = JSON.parse(storedConversations);
@@ -116,7 +137,7 @@ export class DataMigrationService {
    */
   private getSavedTexts(): SavedText[] {
     try {
-      const storedTexts = localStorage.getItem('savedTexts');
+      const storedTexts = this.getScopedLocalStorage('savedTexts');
       if (!storedTexts) return [];
 
       const texts = JSON.parse(storedTexts);

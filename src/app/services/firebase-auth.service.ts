@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { FirebaseSyncService } from './firebase-sync.service';
-import { StorageService } from './storage.service';
 
 export interface UserProfile {
   uid: string;
@@ -20,48 +19,26 @@ export class FirebaseAuthService {
   public user$ = this.userSubject.asObservable();
 
   constructor(
-    private firebaseSync: FirebaseSyncService,
-    private storageService: StorageService
+    private firebaseSync: FirebaseSyncService
   ) {
-    // Écouter les changements d'état de synchronisation Firebase
-    this.firebaseSync.syncStatus$.subscribe(status => {
-      if (status.isConnected) {
-        this.updateUserProfile();
-      } else {
+    // Écouter l'état d'authentification Firebase réel
+    this.firebaseSync.authUser$.subscribe(user => {
+      if (!user) {
         this.userSubject.next(null);
+        return;
       }
+
+      const userProfile: UserProfile = {
+        uid: user.uid,
+        displayName: user.displayName || undefined,
+        email: user.email || undefined,
+        isAnonymous: user.isAnonymous,
+        createdAt: user.metadata.creationTime ? new Date(user.metadata.creationTime) : new Date(),
+        lastLogin: user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : new Date()
+      };
+
+      this.userSubject.next(userProfile);
     });
-  }
-
-  /**
-   * Met à jour le profil utilisateur
-   */
-  private updateUserProfile(): void {
-    // Vérifier s'il y a un UID personnalisé configuré
-    const customUid = this.storageService.get('firebaseCustomUid');
-    
-    let uid: string;
-    let displayName: string;
-    
-    if (customUid && customUid.trim()) {
-      // Utiliser l'UID personnalisé
-      uid = customUid.trim();
-      displayName = `Utilisateur personnalisé (${uid.substring(0, 8)}...)`;
-    } else {
-      // Utiliser l'UID anonyme par défaut
-      uid = 'anonymous-user';
-      displayName = 'Utilisateur anonyme';
-    }
-
-    const userProfile: UserProfile = {
-      uid: uid,
-      displayName: displayName,
-      isAnonymous: !customUid || !customUid.trim(),
-      createdAt: new Date(),
-      lastLogin: new Date()
-    };
-
-    this.userSubject.next(userProfile);
   }
 
   /**

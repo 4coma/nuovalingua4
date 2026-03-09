@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { IonicModule, ModalController, Platform, MenuController, ActionSheetController, AlertController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { LlmService } from './services/llm.service';
 import { VocabularyExercise, ComprehensionText, VocabularyItem } from './models/vocabulary';
+import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { StatusBar } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
@@ -18,6 +19,7 @@ import { TextPreviewModalComponent } from './components/text-preview-modal/text-
 import { AddWordComponent } from './components/add-word/add-word.component';
 import { NewWordsModalComponent } from './components/new-words-modal/new-words-modal.component';
 import { PomService } from './services/pom.service';
+import { FirebaseSyncService } from './services/firebase-sync.service';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -36,7 +38,7 @@ enum AppState {
     CommonModule
   ]
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   currentState = AppState.CATEGORY_SELECTION;
 
   // Store the current exercises
@@ -62,6 +64,7 @@ export class AppComponent {
     '/saved-conversations': 'Mes conversations',
     '/saved-texts': 'Textes sauvegardés',
     '/poms': 'Mes POMs',
+    '/auth': 'Connexion / Inscription',
     '/preferences': 'Préférences'
   };
 
@@ -72,6 +75,10 @@ export class AppComponent {
     '/questions',
     '/personal-dictionary'
   ];
+
+  // État d'authentification Firebase pour l'affichage dans le menu
+  isFirebaseAuthenticated: boolean = false;
+  private firebaseAuthSubscription: Subscription | null = null;
 
   constructor(
     private llmService: LlmService,
@@ -86,10 +93,28 @@ export class AppComponent {
     private textGeneratorService: TextGeneratorService,
     private actionSheetController: ActionSheetController,
     private alertController: AlertController,
-    private pomService: PomService
+    private pomService: PomService,
+    private firebaseSync: FirebaseSyncService
   ) {
     this.setupRouteListener();
+    this.setupFirebaseAuthListener();
     this.initializeApp();
+  }
+
+  ngOnDestroy() {
+    if (this.firebaseAuthSubscription) {
+      this.firebaseAuthSubscription.unsubscribe();
+      this.firebaseAuthSubscription = null;
+    }
+  }
+
+  /**
+   * Écoute l'état d'authentification Firebase pour mettre à jour le menu
+   */
+  private setupFirebaseAuthListener() {
+    this.firebaseAuthSubscription = this.firebaseSync.authUser$.subscribe(user => {
+      this.isFirebaseAuthenticated = !!user;
+    });
   }
 
   // ... (existing methods)
@@ -119,24 +144,11 @@ export class AppComponent {
       }
     });
 
-    // Écouter les notifications reçues (quand l'app est fermée)
+    // Écouter les notifications reçues (quand l'app est ouverte au premier plan)
     LocalNotifications.addListener('localNotificationReceived', (notification) => {
-
-      const extra = notification.extra;
-
-      if (extra && extra.action === 'start_revision') {
-        this.startPersonalDictionaryRevision({
-          newWordIds: extra.newWordIds
-        });
-      }
-
-      if (extra && extra.action === 'start_comprehension') {
-        this.startDailyComprehension();
-      }
-
-      if (extra && extra.action === 'start_pom_review') {
-        this.startPomReviewSession(extra.pomId);
-      }
+      console.log('[AppComponent] Notification reçue au premier plan:', notification.id);
+      // On ne déclenche pas d'action automatique à la réception pour ne pas interrompre l'utilisateur
+      // L'utilisateur doit cliquer sur la notification (via le listener localNotificationActionPerformed)
     });
 
     // Écouter les notifications Web (Toasts/Browser)
@@ -345,6 +357,41 @@ export class AppComponent {
       await this.menuController.open();
     } catch (error) {
       console.error('Error forcing menu open:', error);
+    }
+  }
+
+  /**
+   * Redirige vers l'écran de connexion/inscription Firebase
+   */
+  async goToFirebaseAuthFromMenu() {
+    await this.closeMenu();
+    await this.router.navigate(['/auth']);
+  }
+
+  /**
+   * Déconnecte l'utilisateur Firebase depuis le menu latéral
+   */
+  async logoutFirebaseFromMenu() {
+    try {
+      await this.firebaseSync.logout();
+      const toast = await this.toastController.create({
+        message: 'Déconnexion Firebase effectuée.',
+        duration: 2000,
+        position: 'bottom',
+        color: 'success'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion Firebase:', error);
+      const toast = await this.toastController.create({
+        message: 'Impossible de se déconnecter.',
+        duration: 2500,
+        position: 'bottom',
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      await this.closeMenu();
     }
   }
 

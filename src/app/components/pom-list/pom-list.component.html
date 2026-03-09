@@ -5,6 +5,34 @@
     <p class="sub-text">Terminez des sessions d'association pour en créer !</p>
   </div>
 
+  <!-- Résumé des POMs à venir -->
+  <ion-card *ngIf="poms.length > 0" class="summary-card">
+    <ion-card-header class="summary-header">
+      <ion-card-subtitle>Prochaines révisions</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="stats-timeline">
+        <div *ngFor="let stat of upcomingStats" class="stat-item" [class.has-count]="stat.count > 0">
+          <div class="stat-icon-wrapper" [class.bg-color-danger]="stat.color === 'danger'"
+            [class.bg-color-warning]="stat.color === 'warning'" [class.bg-color-primary]="stat.color === 'primary'"
+            [class.bg-color-secondary]="stat.color === 'secondary'">
+            <ion-icon [name]="stat.icon"></ion-icon>
+            <ion-badge *ngIf="stat.count > 0" [color]="stat.color" class="stat-badge">{{ stat.count }}</ion-badge>
+          </div>
+          <span class="stat-label">{{ stat.label }}</span>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Filtres et options -->
+  <div *ngIf="poms.length > 0" class="list-options">
+    <ion-item lines="none" class="toggle-item">
+      <ion-label>Afficher les POMs terminés</ion-label>
+      <ion-toggle [checked]="showCompletedPoms" (ionChange)="toggleShowCompleted()"></ion-toggle>
+    </ion-item>
+  </div>
+
   <div *ngIf="dueNotifications.length > 0" class="pom-notifications">
     <div class="pom-notifications-header">
       <ion-icon name="notifications-outline"></ion-icon>
@@ -29,10 +57,8 @@
   </div>
 
   <ion-list *ngIf="poms.length > 0">
-    <ion-card *ngFor="let pom of poms" class="pom-card"
-      [class.pom-highlight]="pom.id === highlightPomId"
-      [class.pom-mastered]="pom.status === 'completed'"
-      [attr.id]="'pom-card-' + pom.id">
+    <ion-card *ngFor="let pom of filteredPoms" class="pom-card" [class.pom-highlight]="pom.id === highlightPomId"
+      [class.pom-mastered]="pom.status === 'completed'" [attr.id]="'pom-card-' + pom.id">
       <ion-card-header>
         <div class="header-row">
           <ion-card-subtitle>
@@ -77,8 +103,7 @@
           </ion-button>
 
           <ion-button [color]="isPomInGraceWindow(pom) ? 'success' : 'primary'" size="small"
-            [class.pom-play-due]="isPomInGraceWindow(pom)"
-            [disabled]="pom.status !== 'active'"
+            [class.pom-play-due]="isPomInGraceWindow(pom)" [disabled]="pom.status !== 'active'"
             (click)="startReview(pom)">
             Réviser
             <ion-icon name="play-outline" slot="end"></ion-icon>

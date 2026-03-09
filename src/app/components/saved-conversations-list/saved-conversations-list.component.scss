@@ -1,0 +1,156 @@
+/**
+ * Saved Conversations - Design System Moderne
+ * Harmonisé avec les autres écrans de l'application
+ */
+
+ion-content {
+  --background: linear-gradient(180deg, var(--color-background) 0%, var(--color-surface) 100%);
+}
+
+.container {
+  padding: var(--ds-space-md);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.header-section {
+  margin-bottom: var(--ds-space-md);
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-xxs);
+    margin: 0 0 var(--ds-space-xxs) 0;
+    font-size: var(--ds-font-size-h2);
+    font-weight: var(--ds-font-weight-medium);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
+
+    ion-icon {
+      color: var(--ion-color-primary);
+      font-size: 1.2em;
+    }
+  }
+
+  p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-family: var(--ds-font-family-sans);
+    line-height: var(--ds-line-height-normal);
+  }
+}
+
+.conversation-list {
+  background: transparent;
+  padding: 0;
+}
+
+.conversation-item {
+  --padding-start: var(--ds-space-sm);
+  --padding-end: var(--ds-space-sm);
+  --padding-top: var(--ds-space-sm);
+  --padding-bottom: var(--ds-space-sm);
+  --inner-padding-end: var(--ds-space-xs);
+  --background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  margin-bottom: var(--ds-space-xxs);
+  transition: var(--ds-transition-base);
+
+  &:hover {
+    --background: var(--color-surface-subtle);
+    transform: translateY(-1px);
+    box-shadow: var(--ds-shadow-sm);
+  }
+
+  h2 {
+    margin: 0 0 var(--ds-space-3xs) 0;
+    font-size: var(--ds-font-size-body-lg);
+    font-weight: var(--ds-font-weight-medium);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
+  }
+
+  .situation {
+    margin: 0 0 var(--ds-space-3xs) 0;
+    color: var(--color-text-secondary);
+    font-size: var(--ds-font-size-body-sm);
+    line-height: var(--ds-line-height-normal);
+    font-family: var(--ds-font-family-sans);
+  }
+
+  .meta {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-text-muted);
+    font-size: var(--ds-font-size-caption);
+    font-family: var(--ds-font-family-sans);
+  }
+}
+
+.conversation-avatar {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  color: var(--ion-color-primary);
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.empty-state-card {
+  margin: 0;
+  border-radius: var(--ds-radius-lg);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.empty-state {
+  padding: var(--ds-space-lg) var(--ds-space-md);
+  text-align: center;
+
+  .empty-icon-wrap {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto var(--ds-space-md);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--ion-color-primary-rgb), 0.12);
+
+    ion-icon {
+      color: var(--ion-color-primary);
+      font-size: 32px;
+    }
+  }
+
+  h3 {
+    margin: 0 0 var(--ds-space-xxs) 0;
+    font-size: var(--ds-font-size-h3);
+    font-weight: var(--ds-font-weight-medium);
+    color: var(--color-text-primary);
+    font-family: var(--ds-font-family-sans);
+  }
+
+  p {
+    margin: 0 0 var(--ds-space-md) 0;
+    color: var(--color-text-secondary);
+    font-family: var(--ds-font-family-sans);
+    line-height: var(--ds-line-height-relaxed);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-content {
+    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  }
+}

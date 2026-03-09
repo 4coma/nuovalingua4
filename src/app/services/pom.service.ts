@@ -15,7 +15,7 @@ export class PomService {
     private readonly STORAGE_KEY = 'poms';
     private readonly MAX_REVIEWS_YEAR = 365; // Environ un an
     private readonly NOTIFICATION_GRACE_KEY = 'pomNotificationGraceMinutes';
-    private readonly DEFAULT_NOTIFICATION_GRACE_MINUTES = 10;
+    private readonly DEFAULT_NOTIFICATION_GRACE_MINUTES = 10; // stocké en minutes
     private readonly POM_REVIEW_COUNTS_KEY = 'pomReviewCounts';
     private readonly POM_REVIEW_DUE_AT_KEY = 'pomReviewDueAt';
     private readonly POM_REVIEW_WINDOW_END_KEY = 'pomReviewWindowEnd';
@@ -56,7 +56,8 @@ export class PomService {
 
     private getNotificationGraceMinutes(): number {
         const stored = this.storageService.get(this.NOTIFICATION_GRACE_KEY);
-        const parsed = typeof stored === 'number' ? stored : parseInt(stored, 10);
+        const parsed = typeof stored === 'number' ? stored : parseFloat(stored);
+        // La valeur est désormais sauvegardée en minutes, mais peut provenir d'anciens entiers ; accepter float
         if (!Number.isFinite(parsed) || parsed <= 0) {
             return this.DEFAULT_NOTIFICATION_GRACE_MINUTES;
         }

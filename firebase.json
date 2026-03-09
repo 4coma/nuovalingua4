@@ -15,6 +15,9 @@
       "source": "functions"
     }
   ],
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "emulators": {
     "functions": {
       "port": 5001
@@ -69,6 +72,21 @@
               "value": "application/vnd.android.package-archive"
             }
           ]
+        }
+      ]
+    },
+    {
+      "target": "nuovalingua-app",
+      "public": "www",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
         }
       ]
     }

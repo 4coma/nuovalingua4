@@ -6,9 +6,23 @@ import { FirebaseSyncService, Conversation } from './firebase-sync.service';
   providedIn: 'root'
 })
 export class SavedConversationsService {
-  private storageKey = 'savedConversations';
+  private readonly legacyStorageKey = 'savedConversations';
+  private readonly scopedStoragePrefix = 'savedConversations__';
+  private currentUserId: string | null = null;
 
   constructor(private firebaseSync: FirebaseSyncService) {
+    this.currentUserId = this.firebaseSync.getCurrentUser()?.uid || null;
+
+    this.firebaseSync.authUser$.subscribe(user => {
+      const newUserId = user?.uid || null;
+      const didUserChange = newUserId !== this.currentUserId;
+      this.currentUserId = newUserId;
+
+      if (didUserChange && this.firebaseSync.isFirebaseEnabled() && this.currentUserId) {
+        this.syncFromFirebase();
+      }
+    });
+
     // S'abonner aux changements de statut de synchronisation Firebase
     this.firebaseSync.syncStatus$.subscribe(status => {
       if (status.isConnected) {
@@ -17,8 +31,30 @@ export class SavedConversationsService {
     });
   }
 
+  private getActiveStorageKey(): string {
+    if (this.currentUserId) {
+      return `${this.scopedStoragePrefix}${this.currentUserId}`;
+    }
+    return `${this.scopedStoragePrefix}guest`;
+  }
+
+  private ensureLegacyGuestMigration(): void {
+    if (this.currentUserId) {
+      return;
+    }
+    const guestKey = this.getActiveStorageKey();
+    if (localStorage.getItem(guestKey) !== null) {
+      return;
+    }
+    const legacyData = localStorage.getItem(this.legacyStorageKey);
+    if (legacyData !== null) {
+      localStorage.setItem(guestKey, legacyData);
+    }
+  }
+
   getAllConversations(): DiscussionSession[] {
-    const stored = localStorage.getItem(this.storageKey);
+    this.ensureLegacyGuestMigration();
+    const stored = localStorage.getItem(this.getActiveStorageKey());
     if (stored) {
       try {
         const conversations = JSON.parse(stored);
@@ -40,7 +76,7 @@ export class SavedConversationsService {
     } else {
       all.push(session);
     }
-    localStorage.setItem(this.storageKey, JSON.stringify(all));
+    localStorage.setItem(this.getActiveStorageKey(), JSON.stringify(all));
     
     // Synchroniser avec Firebase si activé
     this.syncToFirebase();
@@ -48,7 +84,7 @@ export class SavedConversationsService {
 
   removeConversation(sessionId: string): void {
     const all = this.getAllConversations().filter(s => s.id !== sessionId);
-    localStorage.setItem(this.storageKey, JSON.stringify(all));
+    localStorage.setItem(this.getActiveStorageKey(), JSON.stringify(all));
     
     // Synchroniser avec Firebase si activé
     this.syncToFirebase();
@@ -115,7 +151,7 @@ export class SavedConversationsService {
         const mergedConversations = this.mergeConversations(localConversations, firebaseConversations);
         
         // Sauvegarder localement
-        localStorage.setItem(this.storageKey, JSON.stringify(mergedConversations));
+        localStorage.setItem(this.getActiveStorageKey(), JSON.stringify(mergedConversations));
         
       }
     } catch (error) {

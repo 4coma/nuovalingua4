@@ -71,6 +71,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/preferences/preferences.component').then(m => m.PreferencesComponent)
   },
   {
+    path: 'auth',
+    loadComponent: () => import('./components/auth/auth.component').then(m => m.AuthComponent)
+  },
+  {
     path: 'discussion-context-selection',
     loadComponent: () => import('./components/discussion-context-selection/discussion-context-selection.component').then(m => m.DiscussionContextSelectionComponent)
   },

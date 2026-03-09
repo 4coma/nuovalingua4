@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { StorageService } from '../../services/storage.service';
 import { VocabularyTrackingService, WordMastery } from '../../services/vocabulary-tracking.service';
 import { NotificationService } from '../../services/notification.service';
@@ -20,7 +21,7 @@ import { PomService } from '../../services/pom.service';
     FormsModule
   ]
 })
-export class PreferencesComponent implements OnInit {
+export class PreferencesComponent implements OnInit, OnDestroy {
   // Titre de la page pour le header global
   pageTitle: string = 'Préférences';
 
@@ -41,8 +42,13 @@ export class PreferencesComponent implements OnInit {
   firebaseStorageBucket: string = '';
   firebaseMessagingSenderId: string = '';
   firebaseAppId: string = '';
-  firebaseCustomUid: string = '';
   showFirebaseConfig: boolean = false;
+  firebaseAuthEmail: string = '';
+  firebaseAuthPassword: string = '';
+  firebaseUserUid: string = '';
+  firebaseUserEmail: string = '';
+  firebaseUserIsAnonymous: boolean = false;
+  firebaseConfigSource: 'embedded' | 'legacy' | 'none' = 'none';
 
   // Propriétés pour les notifications
   notificationsEnabled: boolean = false;
@@ -58,7 +64,8 @@ export class PreferencesComponent implements OnInit {
   // Paramètres avancés
   pomReviewFactor: number = 2;
   pomInitialIntervalSeconds: number = 43200; // 12 heures par défaut
-  pomNotificationGraceMinutes: number = 10; // Délai pour démarrer une révision POM
+  // Délai pour démarrer une révision POM (stocké en minutes, affiché en heures)
+  pomNotificationGraceHours: number = 10 / 60;
 
   // État d'expansion des sections (toutes fermées par défaut pour montrer les chevrons)
   expandedSections: { [key: string]: boolean } = {
@@ -73,6 +80,7 @@ export class PreferencesComponent implements OnInit {
     notifications: false,
     pom: false
   };
+  private firebaseAuthSubscription: Subscription | null = null;
 
   constructor(
     private storageService: StorageService,
@@ -87,6 +95,21 @@ export class PreferencesComponent implements OnInit {
 
   ngOnInit() {
     this.loadPreferences();
+    this.firebaseAuthSubscription = this.firebaseSync.authUser$.subscribe(user => {
+      this.firebaseUserUid = user?.uid || '';
+      this.firebaseUserEmail = user?.email || '';
+      this.firebaseUserIsAnonymous = !!user?.isAnonymous;
+      this.firebaseEnabled = this.firebaseSync.isFirebaseConfigured();
+      this.firebaseProjectId = this.firebaseSync.getConfiguredProjectId();
+      this.firebaseConfigSource = this.firebaseSync.getConfigSource();
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.firebaseAuthSubscription) {
+      this.firebaseAuthSubscription.unsubscribe();
+      this.firebaseAuthSubscription = null;
+    }
   }
 
   /**
@@ -124,15 +147,10 @@ export class PreferencesComponent implements OnInit {
       this.personalDictionaryWordsCount = parseInt(savedPersonalDictionaryCount);
     }
 
-    // Charger la configuration Firebase
-    this.firebaseEnabled = this.storageService.get('firebaseEnabled') === 'true';
-    this.firebaseApiKey = this.storageService.get('firebaseApiKey') || '';
-    this.firebaseAuthDomain = this.storageService.get('firebaseAuthDomain') || '';
-    this.firebaseProjectId = this.storageService.get('firebaseProjectId') || '';
-    this.firebaseStorageBucket = this.storageService.get('firebaseStorageBucket') || '';
-    this.firebaseMessagingSenderId = this.storageService.get('firebaseMessagingSenderId') || '';
-    this.firebaseAppId = this.storageService.get('firebaseAppId') || '';
-    this.firebaseCustomUid = this.storageService.get('firebaseCustomUid') || '';
+    // Charger l'état de configuration Firebase (embarqué ou fallback legacy)
+    this.firebaseEnabled = this.firebaseSync.isFirebaseConfigured();
+    this.firebaseProjectId = this.firebaseSync.getConfiguredProjectId();
+    this.firebaseConfigSource = this.firebaseSync.getConfigSource();
 
     // Charger les paramètres de notification
     const notificationSettings = this.notificationService.getSettings();
@@ -173,9 +191,9 @@ export class PreferencesComponent implements OnInit {
 
     const savedPomGrace = this.storageService.get('pomNotificationGraceMinutes');
     if (savedPomGrace) {
-      const parsed = parseInt(savedPomGrace);
-      if (!Number.isNaN(parsed) && parsed > 0) {
-        this.pomNotificationGraceMinutes = parsed;
+      const parsedMinutes = parseFloat(savedPomGrace);
+      if (!Number.isNaN(parsedMinutes) && parsedMinutes > 0) {
+        this.pomNotificationGraceHours = parsedMinutes / 60;
       }
     }
   }
@@ -204,8 +222,9 @@ export class PreferencesComponent implements OnInit {
       return;
     }
 
-    if (this.pomNotificationGraceMinutes < 1 || this.pomNotificationGraceMinutes > 240) {
-      this.showToast('Le délai POM doit être entre 1 et 240 minutes.');
+    const pomNotificationGraceMinutes = this.pomNotificationGraceHours * 60;
+    if (pomNotificationGraceMinutes < 1 || pomNotificationGraceMinutes > 240) {
+      this.showToast('Le délai POM doit être entre 0,02 et 4 heures (1 à 240 minutes).');
       return;
     }
 
@@ -223,34 +242,7 @@ export class PreferencesComponent implements OnInit {
       this.storageService.remove('userGoogleTtsApiKey');
     }
 
-    // Sauvegarder la configuration Firebase
-    this.storageService.set('firebaseEnabled', this.firebaseEnabled.toString());
-    if (this.firebaseEnabled) {
-      // Valider que tous les champs Firebase sont remplis
-      if (!this.firebaseApiKey.trim() || !this.firebaseAuthDomain.trim() ||
-        !this.firebaseProjectId.trim() || !this.firebaseStorageBucket.trim() ||
-        !this.firebaseMessagingSenderId.trim() || !this.firebaseAppId.trim()) {
-        this.showToast('Tous les champs de configuration Firebase doivent être remplis.');
-        return;
-      }
-
-      this.storageService.set('firebaseApiKey', this.firebaseApiKey.trim());
-      this.storageService.set('firebaseAuthDomain', this.firebaseAuthDomain.trim());
-      this.storageService.set('firebaseProjectId', this.firebaseProjectId.trim());
-      this.storageService.set('firebaseStorageBucket', this.firebaseStorageBucket.trim());
-      this.storageService.set('firebaseMessagingSenderId', this.firebaseMessagingSenderId.trim());
-      this.storageService.set('firebaseAppId', this.firebaseAppId.trim());
-      this.storageService.set('firebaseCustomUid', this.firebaseCustomUid.trim());
-    } else {
-      // Supprimer la configuration Firebase si désactivée
-      this.storageService.remove('firebaseApiKey');
-      this.storageService.remove('firebaseAuthDomain');
-      this.storageService.remove('firebaseProjectId');
-      this.storageService.remove('firebaseStorageBucket');
-      this.storageService.remove('firebaseMessagingSenderId');
-      this.storageService.remove('firebaseAppId');
-      this.storageService.remove('firebaseCustomUid');
-    }
+    // Firebase est désormais géré par la configuration embarquée de l'application.
 
     // Sauvegarder le nombre d'associations
     this.storageService.set('wordAssociationsCount', this.wordAssociationsCount);
@@ -279,8 +271,8 @@ export class PreferencesComponent implements OnInit {
     // Sauvegarder l'intervalle initial POM
     this.storageService.set('pomInitialIntervalSeconds', this.pomInitialIntervalSeconds.toString());
 
-    // Sauvegarder le délai POM
-    this.storageService.set('pomNotificationGraceMinutes', this.pomNotificationGraceMinutes.toString());
+    // Sauvegarder le délai POM (converti en minutes pour compatibilité)
+    this.storageService.set('pomNotificationGraceMinutes', Math.round(pomNotificationGraceMinutes).toString());
 
     this.showToast('Préférences sauvegardées avec succès !');
   }
@@ -294,7 +286,7 @@ export class PreferencesComponent implements OnInit {
     this.wordAssociationsCount = 10;
     this.oralComprehensionLength = 150;
     this.personalDictionaryWordsCount = 8; // Réinitialiser le nombre de mots pour la révision du dictionnaire personnel
-    this.pomNotificationGraceMinutes = 10;
+    this.pomNotificationGraceHours = 10 / 60;
     this.storageService.remove('userOpenaiApiKey');
     this.storageService.remove('userGoogleTtsApiKey');
     this.storageService.remove('wordAssociationsCount');
@@ -539,6 +531,120 @@ export class PreferencesComponent implements OnInit {
   }
 
   /**
+   * Vérifie si la configuration Firebase est complète
+   */
+  private isFirebaseConfigComplete(): boolean {
+    return this.firebaseSync.isFirebaseConfigured();
+  }
+
+  /**
+   * Sauvegarde la config Firebase et réinitialise le client
+   */
+  private async ensureFirebaseReadyForAuth(): Promise<boolean> {
+    if (!this.isFirebaseConfigComplete()) {
+      this.showToast('Configuration Firebase manquante dans cette application.');
+      return false;
+    }
+
+    await this.firebaseSync.reinitialize();
+    return true;
+  }
+
+  /**
+   * Formate les erreurs Firebase Auth pour l'utilisateur
+   */
+  private getFirebaseAuthErrorMessage(error: unknown): string {
+    const message = (error as any)?.message || '';
+    if (message.includes('auth/invalid-email')) return 'Adresse email invalide.';
+    if (message.includes('auth/missing-password')) return 'Mot de passe manquant.';
+    if (message.includes('auth/weak-password')) return 'Mot de passe trop faible (6 caractères minimum).';
+    if (message.includes('auth/email-already-in-use')) return 'Cet email est déjà utilisé.';
+    if (message.includes('auth/invalid-credential')) return 'Identifiants invalides.';
+    if (message.includes('auth/user-not-found')) return 'Aucun compte trouvé pour cet email.';
+    if (message.includes('auth/wrong-password')) return 'Mot de passe incorrect.';
+    if (message.includes('auth/operation-not-allowed')) return 'Méthode de connexion non activée dans Firebase Auth.';
+    return `Erreur d'authentification: ${(error as Error)?.message || 'inconnue'}`;
+  }
+
+  /**
+   * Crée un compte Firebase (email + mot de passe)
+   */
+  async registerFirebaseAccount() {
+    if (!await this.ensureFirebaseReadyForAuth()) return;
+
+    const email = this.firebaseAuthEmail.trim().toLowerCase();
+    const password = this.firebaseAuthPassword;
+    if (!email || !password) {
+      this.showToast('Email et mot de passe requis.');
+      return;
+    }
+    if (password.length < 6) {
+      this.showToast('Le mot de passe doit contenir au moins 6 caractères.');
+      return;
+    }
+
+    try {
+      await this.firebaseSync.registerWithEmailPassword(email, password);
+      this.firebaseAuthPassword = '';
+      this.showToast('✅ Compte créé et connecté.');
+    } catch (error) {
+      console.error('Erreur création compte Firebase:', error);
+      this.showToast(this.getFirebaseAuthErrorMessage(error));
+    }
+  }
+
+  /**
+   * Connexion Firebase (email + mot de passe)
+   */
+  async loginFirebaseAccount() {
+    if (!await this.ensureFirebaseReadyForAuth()) return;
+
+    const email = this.firebaseAuthEmail.trim().toLowerCase();
+    const password = this.firebaseAuthPassword;
+    if (!email || !password) {
+      this.showToast('Email et mot de passe requis.');
+      return;
+    }
+
+    try {
+      await this.firebaseSync.loginWithEmailPassword(email, password);
+      this.firebaseAuthPassword = '';
+      this.showToast('✅ Connexion réussie.');
+    } catch (error) {
+      console.error('Erreur connexion Firebase:', error);
+      this.showToast(this.getFirebaseAuthErrorMessage(error));
+    }
+  }
+
+  /**
+   * Connexion anonyme Firebase (authentifié sans email)
+   */
+  async loginFirebaseAnonymously() {
+    if (!await this.ensureFirebaseReadyForAuth()) return;
+
+    try {
+      await this.firebaseSync.loginAnonymously();
+      this.showToast('✅ Session anonyme ouverte.');
+    } catch (error) {
+      console.error('Erreur connexion anonyme Firebase:', error);
+      this.showToast(this.getFirebaseAuthErrorMessage(error));
+    }
+  }
+
+  /**
+   * Déconnexion Firebase
+   */
+  async logoutFirebase() {
+    try {
+      await this.firebaseSync.logout();
+      this.showToast('Déconnecté de Firebase.');
+    } catch (error) {
+      console.error('Erreur déconnexion Firebase:', error);
+      this.showToast('Erreur lors de la déconnexion Firebase.');
+    }
+  }
+
+  /**
    * Affiche les informations sur Firebase
    */
   async showFirebaseInfo() {
@@ -546,6 +652,7 @@ export class PreferencesComponent implements OnInit {
       header: 'Configuration Firebase',
       message: `
         <p>Firebase permet de synchroniser vos données (dictionnaire personnel, statistiques) entre vos appareils.</p>
+        <p><strong>Important :</strong> les données sont liées à l'utilisateur Firebase authentifié (UID).</p>
         <p><strong>Avantages :</strong></p>
         <ul>
           <li>• Sauvegarde automatique dans le cloud</li>
@@ -560,6 +667,7 @@ export class PreferencesComponent implements OnInit {
           <li>3. Allez dans "Paramètres du projet" → "Vos applications"</li>
           <li>4. Ajoutez une application Web</li>
           <li>5. Copiez la configuration Firebase</li>
+          <li>6. Activez l'authentification Email/Mot de passe (ou Anonyme) dans Authentication</li>
         </ol>
         <p><strong>Sécurité :</strong> Vos données sont stockées de manière sécurisée et privée.</p>
       `,
@@ -572,29 +680,13 @@ export class PreferencesComponent implements OnInit {
    * Teste la connexion Firebase
    */
   async testFirebaseConnection() {
-    if (!this.firebaseEnabled) {
-      this.showToast('Firebase n\'est pas activé.');
-      return;
-    }
-
-    if (!this.firebaseApiKey.trim() || !this.firebaseProjectId.trim()) {
-      this.showToast('Configuration Firebase incomplète.');
-      return;
-    }
+    if (!await this.ensureFirebaseReadyForAuth()) return;
 
     try {
-      // Sauvegarder temporairement la configuration pour le test
-      this.storageService.set('firebaseEnabled', 'true');
-      this.storageService.set('firebaseApiKey', this.firebaseApiKey.trim());
-      this.storageService.set('firebaseAuthDomain', this.firebaseAuthDomain.trim());
-      this.storageService.set('firebaseProjectId', this.firebaseProjectId.trim());
-      this.storageService.set('firebaseStorageBucket', this.firebaseStorageBucket.trim());
-      this.storageService.set('firebaseMessagingSenderId', this.firebaseMessagingSenderId.trim());
-      this.storageService.set('firebaseAppId', this.firebaseAppId.trim());
-      this.storageService.set('firebaseCustomUid', this.firebaseCustomUid.trim());
-
-      // Réinitialiser Firebase avec la nouvelle configuration
-      await this.firebaseSync.reinitialize();
+      if (!this.firebaseSync.getCurrentUser()) {
+        this.showToast('Connectez-vous d\'abord à Firebase (email/mot de passe ou anonyme).');
+        return;
+      }
 
       // Tester la connexion
       const isConnected = await this.firebaseSync.testConnection();
@@ -614,8 +706,13 @@ export class PreferencesComponent implements OnInit {
    * Migre les données locales vers Firebase
    */
   async migrateDataToFirebase() {
-    if (!this.firebaseEnabled) {
-      this.showToast('Firebase n\'est pas activé.');
+    if (!this.firebaseSync.isFirebaseConfigured()) {
+      this.showToast('Firebase n\'est pas configuré dans cette application.');
+      return;
+    }
+
+    if (!this.firebaseSync.getCurrentUser()) {
+      this.showToast('Connectez-vous à Firebase avant de migrer vos données.');
       return;
     }
 
@@ -760,5 +857,9 @@ Note : Vos données locales seront conservées.`,
     }
 
     this.showToast(`${duePoms.length} POM(s) traité(s) avec succès !`);
+  }
+
+  goToAuth() {
+    window.location.href = '/auth';
   }
 }

@@ -7,7 +7,17 @@ export const environment = {
   openaiApiKey: 'REMOVED_API_KEY', // À remplir avec votre clé API OpenAI
   openaiModel: 'gpt-4.1-nano', // ou 'gpt-3.5-turbo' selon le modèle souhaité
   openaiApiUrl: 'https://api.openai.com/v1/chat/completions',
-  llmApiUrl: 'https://api.openai.com/v1/chat/completions' // Même URL que openaiApiUrl en développement
+  llmApiUrl: 'https://api.openai.com/v1/chat/completions', // Même URL que openaiApiUrl en développement
+  // Configuration Firebase Web embarquée dans l'app (ne pas demander à l'utilisateur final).
+  // Remplir ces valeurs avec le SDK config de l'app Web Firebase.
+  firebaseConfig: {
+    apiKey: 'AIzaSyDrtmweVit3A3Xk_BHsZTnLa7odKFzecbw',
+    authDomain: 'nuovalingua-b0aa0.firebaseapp.com',
+    projectId: 'nuovalingua-b0aa0',
+    storageBucket: 'nuovalingua-b0aa0.firebasestorage.app',
+    messagingSenderId: '45630107899',
+    appId: '1:45630107899:web:a55328a09b3d377dfc405e'
+  }
 };
 
 /*

@@ -110,6 +110,39 @@
   --padding-bottom: var(--ds-space-sm);
 }
 
+.modern-menu-content::part(scroll) {
+  display: flex;
+  flex-direction: column;
+}
+
+.modern-menu-shell {
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modern-menu-list-main {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.modern-menu-auth-zone {
+  margin-top: auto;
+  padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + var(--ds-space-xs));
+}
+
+.modern-menu-auth-separator {
+  height: 1px;
+  margin: var(--ds-space-xs) var(--ds-space-md);
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(var(--ion-color-primary-rgb), 0.22) 15%,
+      rgba(var(--ion-color-primary-rgb), 0.22) 85%,
+      transparent 100%);
+}
+
 .modern-menu-list {
   padding: 0;
   background: transparent;

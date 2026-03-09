@@ -30,6 +30,8 @@ export class PomListComponent implements OnInit, OnDestroy {
     currentFactor: number = 2;
     highlightPomId: string | null = null;
     dueNotifications: Pom[] = [];
+    showCompletedPoms: boolean = false;
+    upcomingStats: { label: string, count: number, icon: string, color: string }[] = [];
     private nowMs: number = Date.now();
     private countdownIntervalId: number | null = null;
 
@@ -45,6 +47,7 @@ export class PomListComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit() {
+        this.loadSettings();
         this.loadPoms();
         this.loadFactor();
         this.applyPomFocusFromQuery();
@@ -85,6 +88,23 @@ export class PomListComponent implements OnInit, OnDestroy {
         this.countdownIntervalId = null;
     }
 
+    private loadSettings() {
+        const stored = this.storageService.get('pomShowCompletedPoms');
+        this.showCompletedPoms = stored === null ? false : stored;
+    }
+
+    toggleShowCompleted() {
+        this.showCompletedPoms = !this.showCompletedPoms;
+        this.storageService.set('pomShowCompletedPoms', this.showCompletedPoms);
+    }
+
+    get filteredPoms(): Pom[] {
+        if (this.showCompletedPoms) {
+            return this.poms;
+        }
+        return this.poms.filter(pom => pom.status === 'active');
+    }
+
     private applyPomFocusFromQuery() {
         const pomId = this.route.snapshot.queryParamMap.get('pomId');
         if (!pomId) return;
@@ -119,6 +139,28 @@ export class PomListComponent implements OnInit, OnDestroy {
     loadPoms() {
         this.poms = this.pomService.getAllPoms().sort((a, b) => a.nextReviewDate - b.nextReviewDate);
         this.updateDueNotifications();
+        this.calculateUpcomingStats();
+    }
+
+    private calculateUpcomingStats() {
+        const now = Date.now();
+        const oneDay = 24 * 60 * 60 * 1000;
+        const threeDays = 3 * oneDay;
+        const sevenDays = 7 * oneDay;
+
+        const activePoms = this.poms.filter(p => p.status === 'active');
+
+        const dueNow = activePoms.filter(p => p.nextReviewDate <= now).length;
+        const dueNext24h = activePoms.filter(p => p.nextReviewDate > now && p.nextReviewDate <= now + oneDay).length;
+        const dueNext3Days = activePoms.filter(p => p.nextReviewDate > now + oneDay && p.nextReviewDate <= now + threeDays).length;
+        const dueNext7Days = activePoms.filter(p => p.nextReviewDate > now + threeDays && p.nextReviewDate <= now + sevenDays).length;
+
+        this.upcomingStats = [
+            { label: 'Dûs', count: dueNow, icon: 'alert-circle', color: 'danger' },
+            { label: '24h', count: dueNext24h, icon: 'time', color: 'warning' },
+            { label: '3j', count: dueNext3Days, icon: 'calendar', color: 'primary' },
+            { label: '7j', count: dueNext7Days, icon: 'calendar-number', color: 'secondary' }
+        ];
     }
 
     toggleWords(pomId: string) {

@@ -230,6 +230,18 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
    * Charge les données de la session depuis le localStorage
    */
   loadSessionData() {
+    console.log('[CORE DEBUG] loadSessionData() called. resetting game state.');
+
+    // Reset game state for fresh load (especially important if component is reused)
+    this.gameComplete = false;
+    this.currentPairsSet = 1;
+    this.matchedPairs = 0;
+    this.attempts = 0;
+    this.selectedPair = null;
+    this.selectedWordId = null;
+    this.failedWords = [];
+    this.hasFailedWords = false;
+
     const wordPairsJson = localStorage.getItem('wordPairs');
     const sessionInfoJson = localStorage.getItem('sessionInfo');
     const isPersonalRevision = localStorage.getItem('isPersonalDictionaryRevision');
@@ -996,37 +1008,6 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
   /**
    * Complète instantanément la révision POM (mode test uniquement)
    */
-  async completeReviewInstantly() {
-    if (!this.isPomReview || !this.pomId) {
-      await this.showToast('Cette fonction est uniquement disponible pour les révisions POM');
-      return;
-    }
-
-    const alert = await this.alertController.create({
-      header: 'Compléter la révision (Test)',
-      message: 'Voulez-vous marquer cette révision POM comme complétée instantanément ?',
-      buttons: [
-        {
-          text: 'Annuler',
-          role: 'cancel'
-        },
-        {
-          text: 'Compléter',
-          handler: async () => {
-            console.log(`[CORE DEBUG] Test completion triggered for POM ${this.pomId}`);
-            if (this.pomReviewCounts) {
-              await this.pomService.processPomReview(this.pomId!);
-              await this.showToast('Révision POM complétée !');
-            } else {
-              await this.showToast('Révision libre : le POM n\'a pas été mis à jour.');
-            }
-          }
-        }
-      ]
-    });
-    await alert.present();
-  }
-
   /**
    * Génère un texte de compréhension écrite
    */

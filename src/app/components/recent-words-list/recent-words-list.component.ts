@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { VocabularyTrackingService, WordMastery } from '../../services/vocabulary-tracking.service';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { FirebaseSyncService } from '../../services/firebase-sync.service';
 
 @Component({
   selector: 'app-recent-words-list',
@@ -17,7 +19,7 @@ import { FormsModule } from '@angular/forms';
     FormsModule
   ]
 })
-export class RecentWordsListComponent implements OnInit {
+export class RecentWordsListComponent implements OnInit, OnDestroy {
   pageTitle: string = 'Mots récemment vus';
   
   recentWords: WordMastery[] = [];
@@ -31,11 +33,25 @@ export class RecentWordsListComponent implements OnInit {
   // Catégories et sujets uniques
   categories: string[] = [];
   topics: { [category: string]: string[] } = {};
+  private authSubscription: Subscription | null = null;
 
-  constructor(private vocabularyTrackingService: VocabularyTrackingService) { }
+  constructor(
+    private vocabularyTrackingService: VocabularyTrackingService,
+    private firebaseSync: FirebaseSyncService
+  ) { }
 
   ngOnInit() {
     this.loadRecentWords();
+    this.authSubscription = this.firebaseSync.authUser$.subscribe(() => {
+      this.loadRecentWords();
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+      this.authSubscription = null;
+    }
   }
 
   /**

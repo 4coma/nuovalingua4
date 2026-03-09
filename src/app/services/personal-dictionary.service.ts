@@ -40,7 +40,9 @@ export interface TranslationResponse {
   providedIn: 'root'
 })
 export class PersonalDictionaryService {
-  private storageKey = 'personalDictionary';
+  private readonly legacyStorageKey = 'personalDictionary';
+  private readonly scopedStoragePrefix = 'personalDictionary__';
+  private currentUserId: string | null = null;
   private apiUrl = environment.openaiApiUrl;
   private apiKey = environment.openaiApiKey;
   private model = environment.openaiModel;
@@ -65,9 +67,27 @@ export class PersonalDictionaryService {
     private storageService: StorageService,
     private firebaseSync: FirebaseSyncService
   ) {
+    this.currentUserId = this.firebaseSync.getCurrentUser()?.uid || null;
+
     // Initialiser le BehaviorSubject avec les mots existants
     this.initializeDictionarySubject();
     this.repairDuplicateIds();
+
+    // Recharger les données quand l'utilisateur connecté change
+    this.firebaseSync.authUser$.subscribe(user => {
+      const newUserId = user?.uid || null;
+      const didUserChange = newUserId !== this.currentUserId;
+      this.currentUserId = newUserId;
+
+      if (didUserChange) {
+        this.initializeDictionarySubject();
+        this.repairDuplicateIds();
+
+        if (this.firebaseSync.isFirebaseEnabled() && this.currentUserId) {
+          this.syncFromFirebase();
+        }
+      }
+    });
 
     // Écouter les changements de statut Firebase
     this.firebaseSync.syncStatus$.subscribe(status => {
@@ -75,6 +95,42 @@ export class PersonalDictionaryService {
         this.syncFromFirebase();
       }
     });
+  }
+
+  /**
+   * Retourne la clé de stockage locale active pour l'utilisateur courant
+   */
+  private getActiveStorageKey(): string {
+    if (this.currentUserId) {
+      return `${this.scopedStoragePrefix}${this.currentUserId}`;
+    }
+    return `${this.scopedStoragePrefix}guest`;
+  }
+
+  /**
+   * Fallback legacy: migrer l'ancienne clé globale vers la clé guest une seule fois
+   */
+  private ensureLegacyGuestMigration(): void {
+    if (this.currentUserId) {
+      return;
+    }
+
+    const guestKey = this.getActiveStorageKey();
+    if (localStorage.getItem(guestKey) !== null) {
+      return;
+    }
+
+    const legacyData = localStorage.getItem(this.legacyStorageKey);
+    if (legacyData !== null) {
+      localStorage.setItem(guestKey, legacyData);
+    }
+  }
+
+  /**
+   * Sauvegarde une liste de mots dans la clé active
+   */
+  private saveWords(words: DictionaryWord[]): void {
+    localStorage.setItem(this.getActiveStorageKey(), JSON.stringify(words));
   }
 
   /**
@@ -95,7 +151,7 @@ export class PersonalDictionaryService {
 
     if (hasChanges) {
       console.log('🔍 [PersonalDictionary] IDs en double réparés');
-      localStorage.setItem(this.storageKey, JSON.stringify(words));
+      this.saveWords(words);
       this.dictionaryWordsSubject.next([...words]);
     }
   }
@@ -112,7 +168,8 @@ export class PersonalDictionaryService {
    * Récupère tous les mots du dictionnaire personnel
    */
   getAllWords(): DictionaryWord[] {
-    const storedWords = localStorage.getItem(this.storageKey);
+    this.ensureLegacyGuestMigration();
+    const storedWords = localStorage.getItem(this.getActiveStorageKey());
     if (storedWords) {
       try {
         return JSON.parse(storedWords);
@@ -150,7 +207,7 @@ export class PersonalDictionaryService {
 
     // Ajouter le mot et sauvegarder
     words.push(word);
-    localStorage.setItem(this.storageKey, JSON.stringify(words));
+    this.saveWords(words);
 
 
     // Émettre la mise à jour via une copie propre
@@ -176,7 +233,7 @@ export class PersonalDictionaryService {
     const filteredWords = words.filter(w => w.id !== wordId);
 
     if (filteredWords.length < words.length) {
-      localStorage.setItem(this.storageKey, JSON.stringify(filteredWords));
+      this.saveWords(filteredWords);
       // Émettre la mise à jour via une copie propre
       this.dictionaryWordsSubject.next([...filteredWords]);
 
@@ -205,7 +262,7 @@ export class PersonalDictionaryService {
       words[wordIndex] = updatedWord;
 
       // Sauvegarder dans le localStorage
-      localStorage.setItem(this.storageKey, JSON.stringify(words));
+      this.saveWords(words);
 
       // Émettre la mise à jour via le BehaviorSubject
       this.dictionaryWordsSubject.next(words);
@@ -232,7 +289,7 @@ export class PersonalDictionaryService {
 
     if (wordIndex !== -1) {
       words[wordIndex].minRevisionDate = minRevisionDate;
-      localStorage.setItem(this.storageKey, JSON.stringify(words));
+      this.saveWords(words);
       return true;
     }
 
@@ -250,7 +307,7 @@ export class PersonalDictionaryService {
     if (wordIndex !== -1) {
       const word = words[wordIndex];
       word.isKnown = isKnown;
-      localStorage.setItem(this.storageKey, JSON.stringify(words));
+      this.saveWords(words);
 
       // Mettre à jour également le tracking de vocabulaire global
       if (isKnown) {
@@ -759,7 +816,7 @@ export class PersonalDictionaryService {
 
     // Sauvegarder tous les nouveaux mots
     if (addedCount > 0) {
-      localStorage.setItem(this.storageKey, JSON.stringify(newWords));
+      this.saveWords(newWords);
 
       // Émettre la mise à jour via le BehaviorSubject
       this.dictionaryWordsSubject.next(newWords);
@@ -807,9 +864,12 @@ export class PersonalDictionaryService {
         const mergedWords = this.mergeWords(localWords, firebaseWords);
 
         // Sauvegarder localement
-        localStorage.setItem(this.storageKey, JSON.stringify(mergedWords));
+        this.saveWords(mergedWords);
         this.dictionaryWordsSubject.next(mergedWords);
 
+      } else {
+        // Utilisateur connecté sans données cloud: garder uniquement son stockage local scoped.
+        this.dictionaryWordsSubject.next(this.getAllWords());
       }
     } catch (error) {
       console.error('🔍 [PersonalDictionary] Erreur de synchronisation depuis Firebase:', error);

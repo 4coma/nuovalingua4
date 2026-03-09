@@ -7,6 +7,9 @@
       "hosting": {
         "nuovalingua-web": [
           "nuovalingua-web"
+        ],
+        "nuovalingua-app": [
+          "nuovalingua-app"
         ]
       }
     },
@@ -14,6 +17,9 @@
       "hosting": {
         "nuovalingua-web": [
           "nuovalingua-web"
+        ],
+        "nuovalingua-app": [
+          "nuovalingua-app"
         ]
       }
     }

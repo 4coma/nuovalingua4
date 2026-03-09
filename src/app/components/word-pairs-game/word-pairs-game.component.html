@@ -65,14 +65,6 @@
       <ion-progress-bar [value]="matchedPairs / (currentPairs.length / 2)"></ion-progress-bar>
     </div>
 
-    <!-- Bouton de test pour compléter instantanément (uniquement pour les révisions POM) -->
-    <div *ngIf="isPomReview && !gameComplete" class="test-button-container ion-text-center ion-margin-top">
-      <ion-button color="warning" fill="outline" size="small" (click)="completeReviewInstantly()">
-        <ion-icon name="flash-outline" slot="start"></ion-icon>
-        Compléter (Test)
-      </ion-button>
-    </div>
-
     <div class="game-complete" *ngIf="gameComplete">
       <p>Vous avez terminé l'exercice d'association !</p>
       <ion-badge color="success">

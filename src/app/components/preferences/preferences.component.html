@@ -103,96 +103,61 @@
       </ion-card-header>
       <ion-card-content *ngIf="expandedSections['firebase']">
         <ion-text color="medium">
-          <p>Configurez Firebase pour synchroniser vos données (dictionnaire personnel, statistiques) entre vos
-            appareils.</p>
+          <p>Firebase est configuré au niveau de l'application. Vos données sont liées à votre compte utilisateur
+            authentifié (UID).</p>
         </ion-text>
 
-        <ion-item>
-          <ion-label>Activer la synchronisation Firebase</ion-label>
-          <ion-toggle [(ngModel)]="firebaseEnabled"></ion-toggle>
+        <ion-item lines="none" class="ion-margin-top">
+          <ion-label>
+            <h3>Projet Firebase</h3>
+            <p *ngIf="firebaseEnabled">
+              {{ firebaseProjectId || 'inconnu' }}
+              <span *ngIf="firebaseConfigSource !== 'none'">({{ firebaseConfigSource }})</span>
+            </p>
+            <p *ngIf="!firebaseEnabled">Non configuré dans cette build</p>
+          </ion-label>
         </ion-item>
 
-        <div *ngIf="firebaseEnabled">
-          <ion-item>
-            <ion-label position="stacked">API Key</ion-label>
-            <ion-input [(ngModel)]="firebaseApiKey" [type]="showFirebaseConfig ? 'text' : 'password'"
-              placeholder="AIza..." class="api-key-input">
-            </ion-input>
-            <ion-button fill="clear" slot="end" (click)="toggleFirebaseConfigVisibility()">
-              <ion-icon [name]="showFirebaseConfig ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-            </ion-button>
-          </ion-item>
+        <ion-item lines="none" class="ion-margin-top">
+          <ion-label>
+            <h3>État d'authentification</h3>
+            <p *ngIf="firebaseUserUid">
+              Connecté
+              <span *ngIf="firebaseUserEmail">: {{ firebaseUserEmail }}</span>
+              <span *ngIf="!firebaseUserEmail && firebaseUserIsAnonymous">(session anonyme)</span>
+            </p>
+            <p *ngIf="firebaseUserUid"><small>UID: {{ firebaseUserUid }}</small></p>
+            <p *ngIf="!firebaseUserUid">Non connecté</p>
+          </ion-label>
+        </ion-item>
 
-          <ion-item>
-            <ion-label position="stacked">Auth Domain</ion-label>
-            <ion-input [(ngModel)]="firebaseAuthDomain" [type]="showFirebaseConfig ? 'text' : 'password'"
-              placeholder="votre-projet.firebaseapp.com">
-            </ion-input>
-          </ion-item>
+        <ion-button expand="block" color="primary" fill="solid" (click)="goToAuth()" class="ion-margin-top">
+          <ion-icon name="log-in-outline" slot="start"></ion-icon>
+          Ouvrir l'écran Connexion / Inscription
+        </ion-button>
 
-          <ion-item>
-            <ion-label position="stacked">Project ID</ion-label>
-            <ion-input [(ngModel)]="firebaseProjectId" [type]="showFirebaseConfig ? 'text' : 'password'"
-              placeholder="votre-projet-id">
-            </ion-input>
-          </ion-item>
+        <ion-button *ngIf="firebaseUserUid" expand="block" color="danger" fill="outline" (click)="logoutFirebase()"
+          class="ion-margin-top">
+          <ion-icon name="log-out-outline" slot="start"></ion-icon>
+          Se déconnecter
+        </ion-button>
 
-          <ion-item>
-            <ion-label position="stacked">Storage Bucket</ion-label>
-            <ion-input [(ngModel)]="firebaseStorageBucket" [type]="showFirebaseConfig ? 'text' : 'password'"
-              placeholder="votre-projet.appspot.com">
-            </ion-input>
-          </ion-item>
+        <ion-button expand="block" color="success" fill="outline" (click)="testFirebaseConnection()"
+          class="ion-margin-top">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Tester la connexion Firebase
+        </ion-button>
 
-          <ion-item>
-            <ion-label position="stacked">Messaging Sender ID</ion-label>
-            <ion-input [(ngModel)]="firebaseMessagingSenderId" [type]="showFirebaseConfig ? 'text' : 'password'"
-              placeholder="123456789">
-            </ion-input>
-          </ion-item>
+        <ion-button expand="block" color="primary" fill="outline" (click)="migrateDataToFirebase()"
+          class="ion-margin-top">
+          <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+          Migrer mes données vers Firebase
+        </ion-button>
 
-          <ion-item>
-            <ion-label position="stacked">App ID</ion-label>
-            <ion-input [(ngModel)]="firebaseAppId" [type]="showFirebaseConfig ? 'text' : 'password'"
-              placeholder="1:123456789:web:abcdef">
-            </ion-input>
-          </ion-item>
-
-          <ion-item>
-            <ion-label position="stacked">UID Firebase personnalisé (optionnel)</ion-label>
-            <ion-input [(ngModel)]="firebaseCustomUid" [type]="showFirebaseConfig ? 'text' : 'password'"
-              placeholder="Laissez vide pour UID automatique">
-            </ion-input>
-          </ion-item>
-
-          <ion-text color="medium" class="ion-padding-top">
-            <p><small>Votre configuration Firebase est stockée localement sur votre appareil.</small></p>
-            <p><small><strong>UID personnalisé :</strong> Utilisez le même UID sur tous vos appareils pour synchroniser
-                les données. Laissez vide pour un UID automatique unique par appareil.</small></p>
-          </ion-text>
-
-          <ion-button fill="clear" color="primary" size="small" (click)="showFirebaseInfo()" class="ion-margin-top">
-            <ion-icon name="information-circle-outline" slot="start"></ion-icon>
-            Comment obtenir ma configuration Firebase ?
-          </ion-button>
-
-          <ion-button expand="block" color="success" fill="outline" (click)="testFirebaseConnection()"
-            class="ion-margin-top">
-            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-            Tester la connexion Firebase
-          </ion-button>
-
-          <ion-button expand="block" color="primary" fill="outline" (click)="migrateDataToFirebase()"
-            class="ion-margin-top">
-            <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
-            Migrer mes données vers Firebase
-          </ion-button>
-
-          <ion-button expand="block" color="medium" fill="clear" (click)="showMigrationInfo()" class="ion-margin-top">
-            <ion-icon name="information-circle-outline" slot="start"></ion-icon>
-            À propos de la migration
-          </ion-button>
-        </div>
+        <ion-button expand="block" color="medium" fill="clear" (click)="showMigrationInfo()" class="ion-margin-top">
+          <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+          À propos de la migration
+        </ion-button>
       </ion-card-content>
     </ion-card>
   </div>
@@ -363,13 +328,13 @@
         </ion-item>
 
         <ion-item>
-          <ion-label position="stacked">Délai pour cliquer sur la notification (minutes)</ion-label>
-          <ion-input [(ngModel)]="pomNotificationGraceMinutes" type="number" min="1" max="240"
-            placeholder="Ex: 10">
+          <ion-label position="stacked">Délai pour cliquer sur la notification (heures)</ion-label>
+          <ion-input [(ngModel)]="pomNotificationGraceHours" type="number" min="0.02" max="4" step="0.05"
+            placeholder="Ex: 0.5 (30 min)">
           </ion-input>
         </ion-item>
         <ion-text color="medium" class="ion-padding-top">
-          <p><small>Au-delà de ce délai, la session POM est replanifiée automatiquement.</small></p>
+          <p><small>Au-delà de ce délai, la session POM est replanifiée automatiquement (plage 0,02 à 4 h).</small></p>
         </ion-text>
 
         <ion-button expand="block" fill="outline" color="secondary" (click)="testPomNotification()"

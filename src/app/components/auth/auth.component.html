@@ -1,0 +1,89 @@
+<ion-content class="ion-padding auth-content">
+  <div class="auth-container">
+    <ion-card class="auth-card">
+      <ion-card-header>
+        <ion-card-title>Connexion / Inscription</ion-card-title>
+        <ion-card-subtitle>Compte Firebase</ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="auth-warning" *ngIf="!firebaseConfigured">
+          <ion-icon name="warning-outline"></ion-icon>
+          <div>
+            <p><strong>Configuration Firebase manquante</strong></p>
+            <p>Cette version nécessite une configuration Firebase embarquée dans l'application.</p>
+          </div>
+        </div>
+
+        <ion-item lines="none" *ngIf="firebaseConfigured">
+          <ion-label>
+            <p><strong>Projet:</strong> {{ firebaseProjectId || 'inconnu' }}</p>
+            <p><small>Source config: {{ firebaseConfigSource }}</small></p>
+          </ion-label>
+        </ion-item>
+
+        <ion-button
+          *ngIf="!firebaseConfigured"
+          expand="block"
+          fill="outline"
+          color="primary"
+          (click)="navigateToPreferences()">
+          <ion-icon name="settings-outline" slot="start"></ion-icon>
+          Ouvrir les Préférences (admin)
+        </ion-button>
+
+        <div *ngIf="firebaseUserUid" class="auth-connected">
+          <ion-item lines="none">
+            <ion-label>
+              <h3>Vous êtes connecté</h3>
+              <p *ngIf="firebaseUserEmail">{{ firebaseUserEmail }}</p>
+              <p *ngIf="!firebaseUserEmail && firebaseUserIsAnonymous">Session anonyme</p>
+              <p><small>UID: {{ firebaseUserUid }}</small></p>
+            </ion-label>
+          </ion-item>
+
+          <ion-button expand="block" color="danger" fill="outline" (click)="logout()">
+            <ion-icon name="log-out-outline" slot="start"></ion-icon>
+            Se déconnecter
+          </ion-button>
+        </div>
+
+        <div *ngIf="!firebaseUserUid">
+          <ion-segment [value]="authMode" (ionChange)="onModeChange($event)" class="auth-segment">
+            <ion-segment-button value="login">
+              <ion-label>Connexion</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="register">
+              <ion-label>Inscription</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+
+          <ion-item>
+            <ion-label position="stacked">Email</ion-label>
+            <ion-input [(ngModel)]="email" type="email" placeholder="vous@exemple.com"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Mot de passe</ion-label>
+            <ion-input [(ngModel)]="password" type="password" placeholder="6 caractères minimum"></ion-input>
+          </ion-item>
+
+          <ion-item *ngIf="authMode === 'register'">
+            <ion-label position="stacked">Confirmer le mot de passe</ion-label>
+            <ion-input [(ngModel)]="confirmPassword" type="password" placeholder="Répétez le mot de passe"></ion-input>
+          </ion-item>
+
+          <ion-button expand="block" color="primary" class="ion-margin-top" (click)="submitAuth()">
+            <ion-icon [name]="authMode === 'register' ? 'person-add-outline' : 'log-in-outline'" slot="start"></ion-icon>
+            {{ authMode === 'register' ? 'Créer un compte' : 'Se connecter' }}
+          </ion-button>
+
+          <ion-button expand="block" fill="clear" color="medium" (click)="loginAnonymously()">
+            <ion-icon name="person-outline" slot="start"></ion-icon>
+            Continuer en anonyme
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from '../services/storage.service';
+import { FirebaseSyncService } from './firebase-sync.service';
 
 export interface WordMastery {
   id: string;
@@ -25,17 +26,58 @@ export interface WordMastery {
 })
 export class VocabularyTrackingService {
   private readonly STORAGE_KEY = 'vocabulary_mastery';
+  private readonly SCOPED_STORAGE_PREFIX = 'vocabulary_mastery__';
   private readonly MAX_TRACKED_WORDS = 100;
+  private currentUserId: string | null = null;
 
-  constructor(private storageService: StorageService) { }
+  constructor(
+    private storageService: StorageService,
+    private firebaseSync: FirebaseSyncService
+  ) {
+    this.currentUserId = this.firebaseSync.getCurrentUser()?.uid || null;
+    this.firebaseSync.authUser$.subscribe(user => {
+      this.currentUserId = user?.uid || null;
+    });
+  }
+
+  /**
+   * Retourne la clé de stockage active selon l'utilisateur connecté
+   */
+  private getActiveStorageKey(): string {
+    if (this.currentUserId) {
+      return `${this.SCOPED_STORAGE_PREFIX}${this.currentUserId}`;
+    }
+    return `${this.SCOPED_STORAGE_PREFIX}guest`;
+  }
+
+  /**
+   * Migration legacy: copie l'ancienne clé globale vers la clé guest (une seule fois)
+   */
+  private ensureLegacyGuestMigration(): void {
+    if (this.currentUserId) {
+      return;
+    }
+
+    const guestKey = this.getActiveStorageKey();
+    if (this.storageService.exists(guestKey)) {
+      return;
+    }
+
+    const legacyWords = this.storageService.get(this.STORAGE_KEY);
+    if (legacyWords && Array.isArray(legacyWords)) {
+      this.storageService.set(guestKey, legacyWords);
+    }
+  }
 
   /**
    * Récupère tous les mots suivis
    */
   getAllTrackedWords(): WordMastery[] {
     try {
-      const storedWords = this.storageService.get(this.STORAGE_KEY) || [];
-      return storedWords;
+      this.ensureLegacyGuestMigration();
+      const scopedKey = this.getActiveStorageKey();
+      const storedWords = this.storageService.get(scopedKey);
+      return Array.isArray(storedWords) ? storedWords : [];
     } catch (error) {
       console.error('Erreur lors de la récupération des mots suivis:', error);
       return [];
@@ -120,8 +162,8 @@ export class VocabularyTrackingService {
       // Limiter à MAX_TRACKED_WORDS
       const limitedWords = allWords.slice(0, this.MAX_TRACKED_WORDS);
 
-      // Sauvegarder dans le stockage
-      this.storageService.set(this.STORAGE_KEY, limitedWords);
+      // Sauvegarder dans le stockage scoped utilisateur
+      this.storageService.set(this.getActiveStorageKey(), limitedWords);
     } catch (error) {
       console.error('Erreur lors du suivi d\'un mot:', error);
     }
@@ -203,8 +245,8 @@ export class VocabularyTrackingService {
       // Limiter à MAX_TRACKED_WORDS
       const limitedWords = words.slice(0, this.MAX_TRACKED_WORDS);
 
-      // Sauvegarder dans le stockage
-      this.storageService.set(this.STORAGE_KEY, limitedWords);
+      // Sauvegarder dans le stockage scoped utilisateur
+      this.storageService.set(this.getActiveStorageKey(), limitedWords);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des mots:', error);
     }

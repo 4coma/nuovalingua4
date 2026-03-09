@@ -14,14 +14,14 @@ export class SpeechService {
   private apiKey = environment.openaiApiKey;
   private loading: HTMLIonLoadingElement | null = null;
   private audio: HTMLAudioElement | null = null;
-  
+
   // État de la lecture
   private _isPlaying: boolean = false;
   private _isPaused: boolean = false;
   private _duration: number = 0;
   private _currentTime: number = 0;
   private _playbackRate: number = 1.0;
-  
+
   // Observable pour suivre les changements d'état
   private audioStateSubject = new Subject<{
     isPlaying: boolean;
@@ -41,7 +41,7 @@ export class SpeechService {
     private toastCtrl: ToastController,
     private alertController: AlertController,
     private storageService: StorageService
-  ) {}
+  ) { }
 
   /**
    * Convertit le texte en fichier audio et initialise la lecture
@@ -56,14 +56,14 @@ export class SpeechService {
       this.showApiKeyAlert();
       return of('');
     }
-    
+
     // Suppression du loader global pour la génération d'audio
     // Le loader sera géré par le composant audio-player
-    
+
     const headers = new HttpHeaders()
       .set('Content-Type', 'application/json')
       .set('Authorization', `Bearer ${apiKeyToUse}`);
-    
+
     const data = {
       model: 'tts-1-hd',
       input: text,
@@ -72,30 +72,30 @@ export class SpeechService {
       speed: speed
     };
 
-    return this.http.post(this.apiUrl, data, { 
+    return this.http.post(this.apiUrl, data, {
       headers: headers,
       responseType: 'arraybuffer'
     }).pipe(
       map((response: ArrayBuffer) => {
         // Suppression de hideLoading() car il n'y a plus de loader global
-        
+
         // Convertir la réponse en blob et créer une URL
         const blob = new Blob([response], { type: 'audio/mpeg' });
         const audioUrl = URL.createObjectURL(blob);
         this.audioUrlSubject.next(audioUrl);
-        
+
         // Initialiser l'audio
         this.initAudio(audioUrl);
-        
+
         return audioUrl;
       }),
       catchError(error => {
         // Suppression de hideLoading() car il n'y a plus de loader global
         this.showErrorToast('Erreur lors de la génération de l\'audio');
-        
+
         // En cas d'erreur, utiliser l'API Web Speech comme fallback
         this.initWebSpeechAudio(text);
-        
+
         // Retourner une URL factice pour éviter les erreurs dans le composant
         const fallbackUrl = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT';
         return of(fallbackUrl);
@@ -113,11 +113,11 @@ export class SpeechService {
       this.audio.src = '';
       this.audio.load();
     }
-    
+
     // Créer un nouvel élément audio
     this.audio = new Audio(audioUrl);
     this.audio.playbackRate = this._playbackRate;
-    
+
     // Ajouter les écouteurs d'événements
     this.audio.addEventListener('loadedmetadata', () => {
       if (this.audio) {
@@ -125,33 +125,33 @@ export class SpeechService {
         this.updateAudioState();
       }
     });
-    
+
     this.audio.addEventListener('timeupdate', () => {
       if (this.audio) {
         this._currentTime = this.audio.currentTime;
         this.updateAudioState();
       }
     });
-    
+
     this.audio.addEventListener('ended', () => {
       this._isPlaying = false;
       this._isPaused = false;
       this.updateAudioState();
     });
-    
+
     this.audio.addEventListener('pause', () => {
       this._isPlaying = false;
       this._isPaused = true;
       this.updateAudioState();
     });
-    
+
     this.audio.addEventListener('play', () => {
       this._isPlaying = true;
       this._isPaused = false;
       this.updateAudioState();
     });
   }
-  
+
   /**
    * Initialiser l'audio avec Web Speech API (fallback)
    */
@@ -171,7 +171,7 @@ export class SpeechService {
     };
     window.speechSynthesis.speak(utterance);
   }
-  
+
   /**
    * Met à jour l'état de l'audio et notifie les abonnés
    */
@@ -299,7 +299,7 @@ export class SpeechService {
       this.updateAudioState();
     }
   }
-  
+
   /**
    * Obtient la vitesse de lecture actuelle
    */
@@ -317,7 +317,7 @@ export class SpeechService {
     });
     await this.loading.present();
   }
-  
+
   /**
    * Cache l'indicateur de chargement
    */
@@ -327,7 +327,7 @@ export class SpeechService {
       this.loading = null;
     }
   }
-  
+
   /**
    * Affiche un message d'erreur
    */

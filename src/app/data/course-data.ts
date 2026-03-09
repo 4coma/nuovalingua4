@@ -792,5 +792,611 @@ export const COURSE_DATA: StaticCourseData = {
                 ]
             }
         ]
+    },
+    4: {
+        domaines: [
+            {
+                id: 'lvl4-dom-family',
+                title: 'Vie familiale',
+                pairs: [
+                    { it: 'i genitori', fr: 'les parents', context: 'Famille proche' },
+                    { it: 'i fratelli', fr: 'les frères et sœurs', context: 'Fratrie' },
+                    { it: 'il cugino', fr: 'le cousin', context: 'Famille élargie' },
+                    { it: 'il suocero', fr: 'le beau-père', context: 'Belle-famille' },
+                    { it: 'la nuora', fr: 'la belle-fille', context: 'Belle-famille' },
+                    { it: 'convivere', fr: 'vivre ensemble', context: 'Vie commune' },
+                    { it: 'sposarsi', fr: 'se marier', context: 'Événement familial' },
+                    { it: 'separarsi', fr: 'se séparer', context: 'Événement familial' },
+                    { it: 'andare a trovare', fr: 'rendre visite', context: 'Visite' },
+                    { it: 'prendersi cura di', fr: 'prendre soin de', context: 'Soutien' },
+                    { it: 'litigare', fr: 'se disputer', context: 'Conflit' },
+                    { it: 'fare pace', fr: 'se réconcilier', context: 'Résolution' }
+                ]
+            },
+            {
+                id: 'lvl4-dom-friends',
+                title: 'Amitiés et rencontres',
+                pairs: [
+                    { it: 'un amico stretto', fr: 'un ami proche', context: 'Lien fort' },
+                    { it: 'una conoscenza', fr: 'une connaissance', context: 'Lien faible' },
+                    { it: 'fare nuove amicizie', fr: 'se faire de nouveaux amis', context: 'Rencontres' },
+                    { it: 'incontrarsi per un caffè', fr: 'se retrouver pour un café', context: 'Rendez-vous' },
+                    { it: 'organizzare una cena', fr: 'organiser un dîner', context: 'Invitation' },
+                    { it: 'festeggiare', fr: 'fêter', context: 'Événement festif' },
+                    { it: 'mantenere i contatti', fr: 'garder le contact', context: 'Relation' },
+                    { it: 'fare networking', fr: 'réseauter', context: 'Relation pro' },
+                    { it: 'rompere il ghiaccio', fr: 'briser la glace', context: 'Entrée en matière' },
+                    { it: 'mettersi d\'accordo', fr: 'se mettre d’accord', context: 'Coordination' }
+                ]
+            },
+            {
+                id: 'lvl4-dom-conflict',
+                title: 'Accords et désaccords',
+                pairs: [
+                    { it: 'sono d\'accordo', fr: 'je suis d\'accord', context: 'Accord' },
+                    { it: 'non sono d\'accordo', fr: 'je ne suis pas d\'accord', context: 'Désaccord' },
+                    { it: 'capisco il tuo punto', fr: 'je comprends ton point', context: 'Empathie' },
+                    { it: 'possiamo trovare un compromesso', fr: 'on peut trouver un compromis', context: 'Négociation' },
+                    { it: 'mi dispiace se ti ho ferito', fr: 'désolé si je t\'ai blessé', context: 'Excuse' },
+                    { it: 'non era mia intenzione', fr: 'ce n’était pas mon intention', context: 'Clarification' },
+                    { it: 'parliamone con calma', fr: 'parlons-en calmement', context: 'Apaisement' },
+                    { it: 'mettere i limiti', fr: 'poser des limites', context: 'Assertivité' },
+                    { it: 'rispettare le differenze', fr: 'respecter les différences', context: 'Tolérance' },
+                    { it: 'chiarire un malinteso', fr: 'clarifier un malentendu', context: 'Résolution' }
+                ]
+            },
+            {
+                id: 'lvl4-dom-events',
+                title: 'Vie sociale et sorties',
+                pairs: [
+                    { it: 'uscire la sera', fr: 'sortir le soir', context: 'Loisir' },
+                    { it: 'prenotare un tavolo', fr: 'réserver une table', context: 'Organisation' },
+                    { it: 'partecipare a un concerto', fr: 'assister à un concert', context: 'Culture' },
+                    { it: 'andare a una mostra', fr: 'aller à une exposition', context: 'Culture' },
+                    { it: 'fare volontariato', fr: 'faire du bénévolat', context: 'Engagement' },
+                    { it: 'un aperitivo', fr: 'un apéritif', context: 'Moment social' },
+                    { it: 'un brindisi', fr: 'un toast', context: 'Célébration' },
+                    { it: 'mettersi elegante', fr: 's\'habiller chic', context: 'Tenue' },
+                    { it: 'rientrare tardi', fr: 'rentrer tard', context: 'Organisation' },
+                    { it: 'accompagnare qualcuno', fr: 'accompagner quelqu’un', context: 'Soutien' }
+                ]
+            }
+        ],
+        lexical: [
+            {
+                id: 'lvl4-lex-emotions',
+                title: 'Émotions et sentiments',
+                pairs: [
+                    { it: 'entusiasta', fr: 'enthousiaste', context: 'Émotion positive' },
+                    { it: 'sollevato', fr: 'soulagé', context: 'Émotion positive' },
+                    { it: 'deluso', fr: 'déçu', context: 'Émotion négative' },
+                    { it: 'geloso', fr: 'jaloux', context: 'Relation' },
+                    { it: 'orgoglioso', fr: 'fier', context: 'Émotion' },
+                    { it: 'imbarazzato', fr: 'gêné', context: 'Émotion sociale' },
+                    { it: 'grato', fr: 'reconnaissant', context: 'Émotion' },
+                    { it: 'preoccupato', fr: 'inquiet', context: 'Émotion' },
+                    { it: 'rassicurante', fr: 'rassurant', context: 'Ton' },
+                    { it: 'delicato', fr: 'délicat', context: 'Sujet sensible' },
+                    { it: 'affettuoso', fr: 'affectueux', context: 'Lien' },
+                    { it: 'rancoroso', fr: 'rancunier', context: 'Caractère' }
+                ]
+            },
+            {
+                id: 'lvl4-lex-traits',
+                title: 'Qualités et défauts',
+                pairs: [
+                    { it: 'affidabile', fr: 'fiable', context: 'Qualité' },
+                    { it: 'premuroso', fr: 'prévenant', context: 'Qualité' },
+                    { it: 'socievole', fr: 'sociable', context: 'Qualité' },
+                    { it: 'introverso', fr: 'introverti', context: 'Caractère' },
+                    { it: 'estroverso', fr: 'extraverti', context: 'Caractère' },
+                    { it: 'puntuale', fr: 'ponctuel', context: 'Habitude' },
+                    { it: 'altruista', fr: 'altruiste', context: 'Qualité' },
+                    { it: 'testardo', fr: 'têtu', context: 'Défaut' },
+                    { it: 'disponibile', fr: 'disponible', context: 'Relation' },
+                    { it: 'superficiale', fr: 'superficiel', context: 'Défaut' },
+                    { it: 'generoso', fr: 'généreux', context: 'Qualité' },
+                    { it: 'invidioso', fr: 'envieux', context: 'Défaut' }
+                ]
+            },
+            {
+                id: 'lvl4-lex-social-actions',
+                title: 'Actions sociales',
+                pairs: [
+                    { it: 'presentare qualcuno', fr: 'présenter quelqu’un', context: 'Présentation' },
+                    { it: 'fare un complimento', fr: 'faire un compliment', context: 'Interaction' },
+                    { it: 'chiedere scusa', fr: 'demander pardon', context: 'Réparation' },
+                    { it: 'ringraziare', fr: 'remercier', context: 'Politesse' },
+                    { it: 'consolare', fr: 'consoler', context: 'Soutien' },
+                    { it: 'incoraggiare', fr: 'encourager', context: 'Soutien' },
+                    { it: 'consigliare', fr: 'conseiller', context: 'Aide' },
+                    { it: 'sconsigliare', fr: 'déconseiller', context: 'Aide' },
+                    { it: 'evitare un argomento', fr: 'éviter un sujet', context: 'Gestion' },
+                    { it: 'cambiare discorso', fr: 'changer de sujet', context: 'Gestion' }
+                ]
+            },
+            {
+                id: 'lvl4-lex-phrases',
+                title: 'Expressions de politesse avancée',
+                pairs: [
+                    { it: 'la ringrazio in anticipo', fr: 'je vous remercie d’avance', context: 'Politesse formelle' },
+                    { it: 'mi permetto di chiederle', fr: 'je me permets de vous demander', context: 'Demande formelle' },
+                    { it: 'ci tenevo a dirti', fr: 'je tenais à te dire', context: 'Message personnel' },
+                    { it: 'fammi sapere', fr: 'fais-moi savoir', context: 'Suivi' },
+                    { it: 'restiamo in contatto', fr: 'on reste en contact', context: 'Clôture' },
+                    { it: 'scusa il disturbo', fr: 'désolé du dérangement', context: 'Excuse' },
+                    { it: 'non volevo importunarti', fr: 'je ne voulais pas te déranger', context: 'Excuse' },
+                    { it: 'sei stato di grande aiuto', fr: 'tu as été d’une grande aide', context: 'Reconnaissance' },
+                    { it: 'a disposizione', fr: 'à disposition', context: 'Offre d’aide' },
+                    { it: 'gradirei', fr: 'j\'aimerais (cond.)', context: 'Demande polie' }
+                ]
+            },
+            {
+                id: 'lvl4-lex-connectors',
+                title: 'Connecteurs conversationnels',
+                pairs: [
+                    { it: 'innanzitutto', fr: 'tout d’abord', context: 'Organisation' },
+                    { it: 'tra l\'altro', fr: 'd\'ailleurs', context: 'Digression' },
+                    { it: 'comunque', fr: 'de toute façon', context: 'Redirection' },
+                    { it: 'a proposito', fr: 'à propos', context: 'Transition' },
+                    { it: 'in ogni caso', fr: 'en tout cas', context: 'Conclusion partielle' },
+                    { it: 'da una parte', fr: 'd’un côté', context: 'Nuance' },
+                    { it: 'dall\'altra', fr: 'de l’autre', context: 'Nuance' },
+                    { it: 'nel frattempo', fr: 'entre-temps', context: 'Temps' },
+                    { it: 'per quanto riguarda', fr: 'en ce qui concerne', context: 'Thème' },
+                    { it: 'alla fine', fr: 'au final', context: 'Conclusion' }
+                ]
+            }
+        ],
+        verbs: [
+            {
+                id: 'lvl4-verb-reciprocal',
+                title: 'Verbes pronominaux réciproques',
+                pairs: [
+                    { it: 'ci vediamo', fr: 'on se voit', context: 'Planification' },
+                    { it: 'ci sentiamo', fr: 'on se tient au courant', context: 'Contact' },
+                    { it: 'ci abbracciamo', fr: 'on se serre dans les bras', context: 'Affection' },
+                    { it: 'ci sposiamo', fr: 'nous nous marions', context: 'Événement' },
+                    { it: 'ci lasciamo', fr: 'nous nous quittons', context: 'Séparation' },
+                    { it: 'ci aiutiamo', fr: 'nous nous aidons', context: 'Soutien' },
+                    { it: 'ci capiamo', fr: 'nous nous comprenons', context: 'Empathie' },
+                    { it: 'ci rispettiamo', fr: 'nous nous respectons', context: 'Respect' },
+                    { it: 'ci perdoniamo', fr: 'nous nous pardonnons', context: 'Réconciliation' },
+                    { it: 'ci frequentiamo', fr: 'nous nous fréquentons', context: 'Relation' }
+                ]
+            },
+            {
+                id: 'lvl4-verb-polite',
+                title: 'Formes polies (condizionale presente)',
+                pairs: [
+                    { it: 'vorrei', fr: 'je voudrais', context: 'Demande polie' },
+                    { it: 'potrei', fr: 'je pourrais', context: 'Proposition polie' },
+                    { it: 'le piacerebbe', fr: 'voudriez-vous', context: 'Invitation' },
+                    { it: 'gradirei', fr: 'j\'apprécierais', context: 'Souhait' },
+                    { it: 'mi servirebbe', fr: 'il me faudrait', context: 'Besoin' },
+                    { it: 'avrei bisogno di', fr: 'j’aurais besoin de', context: 'Demande' },
+                    { it: 'sarebbe possibile?', fr: 'serait-il possible ?', context: 'Permission' },
+                    { it: 'potremmo fissare', fr: 'pourrions-nous fixer', context: 'Organisation' },
+                    { it: 'dovremmo parlare', fr: 'nous devrions parler', context: 'Suggestion' },
+                    { it: 'non vorrei disturbare', fr: 'je ne voudrais pas déranger', context: 'Politesse' }
+                ]
+            },
+            {
+                id: 'lvl4-verb-discourse',
+                title: 'Rapporter une parole (présent)',
+                pairs: [
+                    { it: 'dice che', fr: 'il dit que', context: 'Discours rapporté' },
+                    { it: 'mi ha chiesto di', fr: 'il m’a demandé de', context: 'Demande indirecte' },
+                    { it: 'mi ha detto che', fr: 'il m’a dit que', context: 'Information' },
+                    { it: 'secondo lui', fr: 'd’après lui', context: 'Opinion' },
+                    { it: 'pare che', fr: 'il paraît que', context: 'Ouï-dire' },
+                    { it: 'sembra che', fr: 'il semble que', context: 'Ouï-dire' },
+                    { it: 'mi ha invitato a', fr: 'il m’a invité à', context: 'Invitation' },
+                    { it: 'ha promesso di', fr: 'il a promis de', context: 'Engagement' },
+                    { it: 'ha proposto di', fr: 'il a proposé de', context: 'Proposition' },
+                    { it: 'ha consigliato di', fr: 'il a conseillé de', context: 'Conseil' }
+                ]
+            }
+        ]
+    },
+    5: {
+        domaines: [
+            {
+                id: 'lvl5-dom-trip',
+                title: 'Raconter un voyage',
+                pairs: [
+                    { it: 'sono partito all\'alba', fr: 'je suis parti à l’aube', context: 'Passato prossimo' },
+                    { it: 'ho preso il treno', fr: 'j’ai pris le train', context: 'Transport' },
+                    { it: 'sono arrivato in ritardo', fr: 'je suis arrivé en retard', context: 'Incident' },
+                    { it: 'abbiamo visitato il centro storico', fr: 'nous avons visité le centre historique', context: 'Activité' },
+                    { it: 'mi sono perso', fr: 'je me suis perdu', context: 'Imprévu' },
+                    { it: 'ha piovuto tutto il giorno', fr: 'il a plu toute la journée', context: 'Météo' },
+                    { it: 'ho assaggiato piatti tipici', fr: 'j’ai goûté des plats typiques', context: 'Gastronomie' },
+                    { it: 'la serata è finita bene', fr: 'la soirée s’est bien terminée', context: 'Clôture' },
+                    { it: 'il viaggio è stato faticoso', fr: 'le voyage a été fatigant', context: 'Ressenti' },
+                    { it: 'ci siamo divertiti un sacco', fr: 'on s’est beaucoup amusés', context: 'Bilan' }
+                ]
+            },
+            {
+                id: 'lvl5-dom-childhood',
+                title: 'Souvenirs d’enfance',
+                pairs: [
+                    { it: 'da bambino giocavo in strada', fr: 'enfant je jouais dans la rue', context: 'Imperfetto' },
+                    { it: 'passavo le estati dai nonni', fr: 'je passais les étés chez mes grands-parents', context: 'Habitude' },
+                    { it: 'avevo un cane', fr: 'j’avais un chien', context: 'Possession passée' },
+                    { it: 'sognavo di viaggiare', fr: 'je rêvais de voyager', context: 'Rêve' },
+                    { it: 'stavo ore a leggere', fr: 'je passais des heures à lire', context: 'Durée' },
+                    { it: 'una volta mi sono perso al mercato', fr: 'une fois je me suis perdu au marché', context: 'Épisode' },
+                    { it: 'mi ricordo il profumo del pane', fr: 'je me souviens de l’odeur du pain', context: 'Souvenir sensoriel' },
+                    { it: 'la scuola era vicina', fr: 'l’école était proche', context: 'Description passée' },
+                    { it: 'gli amici venivano a casa', fr: 'les amis venaient à la maison', context: 'Habitude' },
+                    { it: 'non avevamo internet', fr: 'nous n’avions pas internet', context: 'Contexte' }
+                ]
+            },
+            {
+                id: 'lvl5-dom-incidents',
+                title: 'Imprévus et galères',
+                pairs: [
+                    { it: 'mi si è rotto il telefono', fr: 'mon téléphone s’est cassé', context: 'Incident' },
+                    { it: 'ho perso il portafoglio', fr: 'j’ai perdu mon portefeuille', context: 'Perte' },
+                    { it: 'ci hanno cancellato il volo', fr: 'ils ont annulé notre vol', context: 'Transport' },
+                    { it: 'ho dovuto aspettare ore', fr: 'j’ai dû attendre des heures', context: 'Attente' },
+                    { it: 'non funzionava la carta', fr: 'la carte ne marchait pas', context: 'Paiement' },
+                    { it: 'si è scaricata la batteria', fr: 'la batterie s’est vidée', context: 'Technique' },
+                    { it: 'mi sono fatto male', fr: 'je me suis fait mal', context: 'Santé' },
+                    { it: 'alla fine abbiamo trovato una soluzione', fr: 'au final on a trouvé une solution', context: 'Résolution' },
+                    { it: 'è stato un incubo', fr: 'ça a été un cauchemar', context: 'Ressenti' },
+                    { it: 'ora ci rido sopra', fr: 'maintenant j’en ris', context: 'Bilan' }
+                ]
+            },
+            {
+                id: 'lvl5-dom-workstudy',
+                title: 'Parcours pro et études',
+                pairs: [
+                    { it: 'mi sono laureato nel 2020', fr: 'j’ai été diplômé en 2020', context: 'Études' },
+                    { it: 'ho fatto uno stage', fr: 'j’ai fait un stage', context: 'Expérience' },
+                    { it: 'lavoravo part-time', fr: 'je travaillais à temps partiel', context: 'Habitude' },
+                    { it: 'ho cambiato lavoro', fr: 'j’ai changé de travail', context: 'Transition' },
+                    { it: 'gestivo un piccolo team', fr: 'je gérais une petite équipe', context: 'Responsabilité' },
+                    { it: 'ho imparato tanto', fr: 'j’ai beaucoup appris', context: 'Bilan' },
+                    { it: 'mi occupavo di clienti', fr: 'je m’occupais des clients', context: 'Tâche' },
+                    { it: 'ho fallito un progetto', fr: 'j’ai raté un projet', context: 'Échec' },
+                    { it: 'poi ho riprovato', fr: 'puis j’ai recommencé', context: 'Persévérance' },
+                    { it: 'alla fine sono cresciuto', fr: 'au final j’ai grandi', context: 'Bilan' }
+                ]
+            }
+        ],
+        lexical: [
+            {
+                id: 'lvl5-lex-time-past',
+                title: 'Marqueurs temporels du passé',
+                pairs: [
+                    { it: 'ieri', fr: 'hier', context: 'Récent' },
+                    { it: 'l\'altro ieri', fr: 'avant-hier', context: 'Récent' },
+                    { it: 'la settimana scorsa', fr: 'la semaine dernière', context: 'Période' },
+                    { it: 'un mese fa', fr: 'il y a un mois', context: 'Distance' },
+                    { it: 'qualche anno fa', fr: 'il y a quelques années', context: 'Distance' },
+                    { it: 'all\'improvviso', fr: 'soudain', context: 'Rupture' },
+                    { it: 'nel frattempo', fr: 'pendant ce temps', context: 'Simultanéité' },
+                    { it: 'mentre', fr: 'pendant que', context: 'Imperfetto' },
+                    { it: 'poi', fr: 'puis', context: 'Séquence' },
+                    { it: 'alla fine', fr: 'à la fin', context: 'Clôture' }
+                ]
+            },
+            {
+                id: 'lvl5-lex-connectors-story',
+                title: 'Connecteurs narratifs',
+                pairs: [
+                    { it: 'prima', fr: 'd’abord', context: 'Séquence' },
+                    { it: 'dopo', fr: 'ensuite', context: 'Séquence' },
+                    { it: 'in seguito', fr: 'par la suite', context: 'Séquence' },
+                    { it: 'improvvisamente', fr: 'soudainement', context: 'Rupture' },
+                    { it: 'per fortuna', fr: 'heureusement', context: 'Commentaire' },
+                    { it: 'purtroppo', fr: 'malheureusement', context: 'Commentaire' },
+                    { it: 'infatti', fr: 'en effet', context: 'Justification' },
+                    { it: 'così', fr: 'ainsi', context: 'Conséquence' },
+                    { it: 'quindi', fr: 'donc', context: 'Conséquence' },
+                    { it: 'in conclusione', fr: 'en conclusion', context: 'Clôture' }
+                ]
+            },
+            {
+                id: 'lvl5-lex-feelings-after',
+                title: 'Ressentis après coup',
+                pairs: [
+                    { it: 'ero esausto', fr: 'j’étais épuisé', context: 'Imperfetto' },
+                    { it: 'mi sono sentito sollevato', fr: 'je me suis senti soulagé', context: 'Passato prossimo' },
+                    { it: 'ero agitato', fr: 'j’étais agité', context: 'Imperfetto' },
+                    { it: 'mi sono vergognato', fr: 'j’ai eu honte', context: 'Émotion' },
+                    { it: 'ero orgoglioso', fr: 'j’étais fier', context: 'Émotion' },
+                    { it: 'mi sono pentito', fr: 'je l’ai regretté', context: 'Émotion' },
+                    { it: 'ero tranquillo', fr: 'j’étais tranquille', context: 'État' },
+                    { it: 'mi sentivo al sicuro', fr: 'je me sentais en sécurité', context: 'État' },
+                    { it: 'ero frustrato', fr: 'j’étais frustré', context: 'Émotion' },
+                    { it: 'mi è sembrato interminabile', fr: 'cela m’a semblé interminable', context: 'Perception' }
+                ]
+            },
+            {
+                id: 'lvl5-lex-transport',
+                title: 'Transport et déplacement',
+                pairs: [
+                    { it: 'il volo è in ritardo', fr: 'le vol est en retard', context: 'Avion' },
+                    { it: 'ho perso la coincidenza', fr: 'j’ai raté la correspondance', context: 'Train/avion' },
+                    { it: 'il bagaglio', fr: 'le bagage', context: 'Voyage' },
+                    { it: 'il biglietto', fr: 'le billet', context: 'Voyage' },
+                    { it: 'la prenotazione', fr: 'la réservation', context: 'Voyage' },
+                    { it: 'l\'albergo era pieno', fr: 'l’hôtel était complet', context: 'Hébergement' },
+                    { it: 'abbiamo noleggiato un\'auto', fr: 'nous avons loué une voiture', context: 'Transport' },
+                    { it: 'sono rimasto bloccato nel traffico', fr: 'je suis resté bloqué dans le trafic', context: 'Incident' },
+                    { it: 'il treno era affollato', fr: 'le train était bondé', context: 'Contexte' },
+                    { it: 'abbiamo fatto autostop', fr: 'nous avons fait de l’auto-stop', context: 'Solution' }
+                ]
+            },
+            {
+                id: 'lvl5-lex-weather',
+                title: 'Météo pour un récit',
+                pairs: [
+                    { it: 'c\'era nebbia', fr: 'il y avait du brouillard', context: 'Imperfetto' },
+                    { it: 'tirava vento', fr: 'il y avait du vent', context: 'Imperfetto' },
+                    { it: 'ha nevicato tutta la notte', fr: 'il a neigé toute la nuit', context: 'Passato prossimo' },
+                    { it: 'faceva un caldo tremendo', fr: 'il faisait une chaleur terrible', context: 'Imperfetto' },
+                    { it: 'il cielo era coperto', fr: 'le ciel était couvert', context: 'Imperfetto' },
+                    { it: 'è scoppiato un temporale', fr: 'un orage a éclaté', context: 'Passato prossimo' },
+                    { it: 'la strada era ghiacciata', fr: 'la route était verglacée', context: 'Description' },
+                    { it: 'l\'aria era umida', fr: 'l’air était humide', context: 'Description' },
+                    { it: 'si è alzato il vento', fr: 'le vent s’est levé', context: 'Évolution' },
+                    { it: 'si è rasserenato', fr: 'le temps s’est éclairci', context: 'Évolution' }
+                ]
+            }
+        ],
+        verbs: [
+            {
+                id: 'lvl5-verb-passato-prossimo',
+                title: 'Passato prossimo (régulier/irrégulier)',
+                pairs: [
+                    { it: 'ho mangiato', fr: 'j’ai mangé', context: 'Régulier' },
+                    { it: 'ho visto', fr: 'j’ai vu', context: 'Irrégulier' },
+                    { it: 'ho fatto', fr: 'j’ai fait', context: 'Irrégulier' },
+                    { it: 'ho detto', fr: 'j’ai dit', context: 'Irrégulier' },
+                    { it: 'sono andato', fr: 'je suis allé', context: 'Verbe de mouvement' },
+                    { it: 'sono arrivato', fr: 'je suis arrivé', context: 'Verbe de mouvement' },
+                    { it: 'sono rimasto', fr: 'je suis resté', context: 'État' },
+                    { it: 'sono diventato', fr: 'je suis devenu', context: 'Changement' },
+                    { it: 'ho preso', fr: 'j’ai pris', context: 'Irrégulier' },
+                    { it: 'ho scritto', fr: 'j’ai écrit', context: 'Irrégulier' }
+                ]
+            },
+            {
+                id: 'lvl5-verb-imperfetto',
+                title: 'Imperfetto pour le décor',
+                pairs: [
+                    { it: 'ero', fr: 'j’étais', context: 'Être' },
+                    { it: 'avevo', fr: 'j’avais', context: 'Avoir' },
+                    { it: 'faceva caldo', fr: 'il faisait chaud', context: 'Météo' },
+                    { it: 'camminavo spesso', fr: 'je marchais souvent', context: 'Habitude' },
+                    { it: 'aspettavo', fr: 'j’attendais', context: 'Action longue' },
+                    { it: 'leggevo', fr: 'je lisais', context: 'Action longue' },
+                    { it: 'stavamo parlando', fr: 'nous étions en train de parler', context: 'Progressif' },
+                    { it: 'giocavano fuori', fr: 'ils jouaient dehors', context: 'Habitude' },
+                    { it: 'c\'era silenzio', fr: 'il y avait du silence', context: 'Décor' },
+                    { it: 'la città era vuota', fr: 'la ville était vide', context: 'Décor' }
+                ]
+            },
+            {
+                id: 'lvl5-verb-sequencing',
+                title: 'Enchaîner passé composé et imparfait',
+                pairs: [
+                    { it: 'stavo cenando quando è arrivato', fr: 'je dînais quand il est arrivé', context: 'Action longue + rupture' },
+                    { it: 'pioveva ma siamo usciti', fr: 'il pleuvait mais nous sommes sortis', context: 'Concession' },
+                    { it: 'leggevo e mi sono addormentato', fr: 'je lisais et je me suis endormi', context: 'Succession' },
+                    { it: 'mi annoiavo, allora ho chiamato', fr: 'je m’ennuyais, alors j’ai appelé', context: 'Conséquence' },
+                    { it: 'aspettavamo quando hanno annunciato', fr: 'nous attendions quand ils ont annoncé', context: 'Rupture' },
+                    { it: 'faceva freddo, quindi ho chiuso', fr: 'il faisait froid, donc j’ai fermé', context: 'Conséquence' },
+                    { it: 'parlavamo quando è suonato il telefono', fr: 'nous parlions quand le téléphone a sonné', context: 'Interruption' },
+                    { it: 'stava andando bene finché', fr: 'ça allait bien jusqu’à ce que', context: 'Limite' },
+                    { it: 'pensavo a lui e mi ha scritto', fr: 'je pensais à lui et il m’a écrit', context: 'Hasard' },
+                    { it: 'viaggiavo spesso, poi mi sono fermato', fr: 'je voyageais souvent, puis je me suis arrêté', context: 'Changement' }
+                ]
+            }
+        ]
+    },
+    6: {
+        domaines: [
+            {
+                id: 'lvl6-dom-places',
+                title: 'Décrire des lieux avec nuance',
+                pairs: [
+                    { it: 'un quartiere vivace', fr: 'un quartier vivant', context: 'Ambiance' },
+                    { it: 'una strada alberata', fr: 'une rue bordée d’arbres', context: 'Détail visuel' },
+                    { it: 'un interno luminoso', fr: 'un intérieur lumineux', context: 'Lumière' },
+                    { it: 'un atmosfera ovattata', fr: 'une ambiance feutrée', context: 'Sensation' },
+                    { it: 'rumore di fondo', fr: 'bruit de fond', context: 'Perception' },
+                    { it: 'profumo di pane caldo', fr: 'parfum de pain chaud', context: 'Odeur' },
+                    { it: 'vista mozzafiato', fr: 'vue à couper le souffle', context: 'Évaluation' },
+                    { it: 'un contrasto netto', fr: 'un contraste marqué', context: 'Analyse' },
+                    { it: 'spazi ariosi', fr: 'espaces aérés', context: 'Volume' },
+                    { it: 'illuminazione tenue', fr: 'éclairage tamisé', context: 'Lumière' }
+                ]
+            },
+            {
+                id: 'lvl6-dom-people',
+                title: 'Portraits nuancés',
+                pairs: [
+                    { it: 'ha uno sguardo attento', fr: 'il a un regard attentif', context: 'Observation' },
+                    { it: 'parla con calma', fr: 'il parle calmement', context: 'Manière' },
+                    { it: 'ha un senso dell\'umorismo sottile', fr: 'il a un humour subtil', context: 'Caractère' },
+                    { it: 'è riservato ma empatico', fr: 'il est réservé mais empathique', context: 'Nuance' },
+                    { it: 'sa mediare', fr: 'il sait faire médiation', context: 'Compétence sociale' },
+                    { it: 'è schietto senza essere brusco', fr: 'il est franc sans être brusque', context: 'Nuance' },
+                    { it: 'porta con sé un\'aria serena', fr: 'il dégage une atmosphère sereine', context: 'Impression' },
+                    { it: 'ha reazioni misurate', fr: 'il a des réactions mesurées', context: 'Comportement' },
+                    { it: 'è esigente con se stesso', fr: 'il est exigeant avec lui-même', context: 'Caractère' },
+                    { it: 'tende a rimandare', fr: 'il a tendance à procrastiner', context: 'Habitude' }
+                ]
+            },
+            {
+                id: 'lvl6-dom-objects',
+                title: 'Objet, art, sensation',
+                pairs: [
+                    { it: 'trama avvincente', fr: 'intrigue captivante', context: 'Livre/film' },
+                    { it: 'colore pastello', fr: 'couleur pastel', context: 'Couleur' },
+                    { it: 'texture ruvida', fr: 'texture rugueuse', context: 'Toucher' },
+                    { it: 'linee essenziali', fr: 'lignes épurées', context: 'Design' },
+                    { it: 'suono ovattato', fr: 'son feutré', context: 'Audio' },
+                    { it: 'odore pungente', fr: 'odeur piquante', context: 'Odeur' },
+                    { it: 'gusto deciso', fr: 'goût prononcé', context: 'Goût' },
+                    { it: 'un ritmo incalzante', fr: 'un rythme soutenu', context: 'Narration' },
+                    { it: 'un finale aperto', fr: 'une fin ouverte', context: 'Analyse' },
+                    { it: 'sfumature di significato', fr: 'nuances de sens', context: 'Langage' }
+                ]
+            },
+            {
+                id: 'lvl6-dom-opinion',
+                title: 'Exprimer et nuancer une opinion',
+                pairs: [
+                    { it: 'a mio avviso', fr: 'à mon avis', context: 'Opinion' },
+                    { it: 'personalmente trovo che', fr: 'personnellement je trouve que', context: 'Opinion' },
+                    { it: 'non necessariamente', fr: 'pas nécessairement', context: 'Restriction' },
+                    { it: 'dipende dal contesto', fr: 'ça dépend du contexte', context: 'Condition' },
+                    { it: 'per quanto mi riguarda', fr: 'en ce qui me concerne', context: 'Opinion' },
+                    { it: 'fino a un certo punto', fr: 'jusqu’à un certain point', context: 'Nuance' },
+                    { it: 'in linea di massima', fr: 'dans l’ensemble', context: 'Nuance' },
+                    { it: 'con le dovute eccezioni', fr: 'avec les exceptions nécessaires', context: 'Restriction' },
+                    { it: 'non è così semplice', fr: 'ce n’est pas si simple', context: 'Mise en garde' },
+                    { it: 'vale la pena considerare', fr: 'il vaut la peine de considérer', context: 'Suggestion' }
+                ]
+            }
+        ],
+        lexical: [
+            {
+                id: 'lvl6-lex-adjectives',
+                title: 'Adjectifs précis et intensité',
+                pairs: [
+                    { it: 'nitido', fr: 'net (image)', context: 'Visuel' },
+                    { it: 'soffuso', fr: 'diffus', context: 'Lumière' },
+                    { it: 'acre', fr: 'âcre', context: 'Odeur' },
+                    { it: 'delicato', fr: 'délicat', context: 'Goût/odeur' },
+                    { it: 'untuoso', fr: 'gras/huileux', context: 'Texture' },
+                    { it: 'croccante', fr: 'croquant', context: 'Texture' },
+                    { it: 'abbastanza', fr: 'assez', context: 'Intensité' },
+                    { it: 'piuttosto', fr: 'plutôt', context: 'Intensité' },
+                    { it: 'parecchio', fr: 'pas mal', context: 'Intensité' },
+                    { it: 'estremamente', fr: 'extrêmement', context: 'Intensité' }
+                ]
+            },
+            {
+                id: 'lvl6-lex-concessive',
+                title: 'Connecteurs de nuance et concession',
+                pairs: [
+                    { it: 'anche se', fr: 'même si', context: 'Concession' },
+                    { it: 'nonostante', fr: 'malgré', context: 'Concession' },
+                    { it: 'sebbene', fr: 'bien que', context: 'Subjonctif' },
+                    { it: 'pure', fr: 'quand même', context: 'Concession' },
+                    { it: 'a patto che', fr: 'à condition que', context: 'Condition' },
+                    { it: 'purché', fr: 'pourvu que', context: 'Condition' },
+                    { it: 'salvo che', fr: 'sauf si', context: 'Restriction' },
+                    { it: 'tranne che', fr: 'excepté que', context: 'Restriction' },
+                    { it: 'al contrario', fr: 'au contraire', context: 'Opposition' },
+                    { it: 'invece', fr: 'en revanche', context: 'Opposition' }
+                ]
+            },
+            {
+                id: 'lvl6-lex-register',
+                title: 'Registre et reformulation',
+                pairs: [
+                    { it: 'formalmente', fr: 'formellement', context: 'Registre' },
+                    { it: 'in modo informale', fr: 'de manière informelle', context: 'Registre' },
+                    { it: 'per dirla in breve', fr: 'pour le dire brièvement', context: 'Synthèse' },
+                    { it: 'in altre parole', fr: 'en d’autres termes', context: 'Reformulation' },
+                    { it: 'cioè', fr: 'c’est-à-dire', context: 'Reformulation' },
+                    { it: 'vale a dire', fr: 'à savoir', context: 'Précision' },
+                    { it: 'più o meno', fr: 'plus ou moins', context: 'Approximation' },
+                    { it: 'a grandi linee', fr: 'à grands traits', context: 'Approximation' },
+                    { it: 'in sostanza', fr: 'en substance', context: 'Synthèse' },
+                    { it: 'in pratica', fr: 'en pratique', context: 'Clarification' }
+                ]
+            },
+            {
+                id: 'lvl6-lex-analogy',
+                title: 'Comparaisons et analogies',
+                pairs: [
+                    { it: 'come se', fr: 'comme si', context: 'Comparaison' },
+                    { it: 'assomiglia a', fr: 'ressemble à', context: 'Comparaison' },
+                    { it: 'ricorda', fr: 'rappelle', context: 'Comparaison' },
+                    { it: 'paragonabile a', fr: 'comparable à', context: 'Comparaison' },
+                    { it: 'più che altro', fr: 'plutôt', context: 'Nuance' },
+                    { it: 'quasi', fr: 'presque', context: 'Approximation' },
+                    { it: 'come dire', fr: 'comment dire', context: 'Recherche' },
+                    { it: 'fa pensare a', fr: 'ça fait penser à', context: 'Référence' },
+                    { it: 'somiglia vagamente', fr: 'ça ressemble vaguement', context: 'Approximation' },
+                    { it: 'è l\'equivalente di', fr: 'c’est l’équivalent de', context: 'Comparaison' }
+                ]
+            },
+            {
+                id: 'lvl6-lex-structures',
+                title: 'Structures descriptives',
+                pairs: [
+                    { it: 'si compone di', fr: 'se compose de', context: 'Composition' },
+                    { it: 'è caratterizzato da', fr: 'est caractérisé par', context: 'Description' },
+                    { it: 'si distingue per', fr: 'se distingue par', context: 'Spécificité' },
+                    { it: 'consiste in', fr: 'consiste en', context: 'Définition' },
+                    { it: 'si basa su', fr: 'se base sur', context: 'Fondement' },
+                    { it: 'è collegato a', fr: 'est lié à', context: 'Relation' },
+                    { it: 'deriva da', fr: 'provient de', context: 'Origine' },
+                    { it: 'porta a', fr: 'conduit à', context: 'Conséquence' },
+                    { it: 'si manifesta con', fr: 'se manifeste par', context: 'Manifestation' },
+                    { it: 'si inserisce in', fr: 's’inscrit dans', context: 'Contexte' }
+                ]
+            }
+        ],
+        verbs: [
+            {
+                id: 'lvl6-verb-conditionnel',
+                title: 'Conditionnel pour nuancer',
+                pairs: [
+                    { it: 'sarebbe meglio', fr: 'ce serait mieux', context: 'Suggestion' },
+                    { it: 'potrei considerare', fr: 'je pourrais envisager', context: 'Hypothèse' },
+                    { it: 'dovresti forse', fr: 'tu devrais peut-être', context: 'Conseil nuancé' },
+                    { it: 'preferirei', fr: 'je préférerais', context: 'Préférence' },
+                    { it: 'mi piacerebbe', fr: 'ça me plairait', context: 'Souhait' },
+                    { it: 'non sarebbe male', fr: 'ce ne serait pas mal', context: 'Atténuation' },
+                    { it: 'sarebbe opportuno', fr: 'il serait opportun', context: 'Recommandation' },
+                    { it: 'potrebbe darsi', fr: 'il se pourrait', context: 'Probabilité' },
+                    { it: 'servirebbe', fr: 'il faudrait', context: 'Nécessité' },
+                    { it: 'sarebbe da valutare', fr: 'ce serait à évaluer', context: 'Prudence' }
+                ]
+            },
+            {
+                id: 'lvl6-verb-sembrare',
+                title: 'Verbes d\'apparence et d\'opinion',
+                pairs: [
+                    { it: 'sembra', fr: 'il semble', context: 'Apparence' },
+                    { it: 'pare', fr: 'il paraît', context: 'Apparence' },
+                    { it: 'risulta', fr: 'il ressort', context: 'Constat' },
+                    { it: 'mi pare che', fr: 'il me semble que', context: 'Opinion' },
+                    { it: 'mi sembra di', fr: 'il me semble', context: 'Opinion' },
+                    { it: 'a quanto pare', fr: 'apparemment', context: 'Ouï-dire' },
+                    { it: 'si dice che', fr: 'on dit que', context: 'Ouï-dire' },
+                    { it: 'ritengo che', fr: 'je considère que', context: 'Opinion' },
+                    { it: 'suppongo che', fr: 'je suppose que', context: 'Hypothèse' },
+                    { it: 'immagino che', fr: 'j’imagine que', context: 'Hypothèse' }
+                ]
+            },
+            {
+                id: 'lvl6-verb-congiuntivo',
+                title: 'Subjonctif présent (bases)',
+                pairs: [
+                    { it: 'penso che sia', fr: 'je pense qu’il soit', context: 'Opinion incertaine' },
+                    { it: 'credo che abbia', fr: 'je crois qu’il ait', context: 'Opinion incertaine' },
+                    { it: 'sebbene sia tardi', fr: 'bien qu’il soit tard', context: 'Concession' },
+                    { it: 'prima che parta', fr: 'avant qu’il parte', context: 'Antériorité' },
+                    { it: 'benché faccia freddo', fr: 'bien qu’il fasse froid', context: 'Concession' },
+                    { it: 'temo che succeda', fr: 'je crains que ça arrive', context: 'Crainte' },
+                    { it: 'voglio che tu venga', fr: 'je veux que tu viennes', context: 'Volonté' },
+                    { it: 'affinché capiscano', fr: 'afin qu’ils comprennent', context: 'But' },
+                    { it: 'qualunque cosa dicano', fr: 'quoi qu’ils disent', context: 'Indéfini' },
+                    { it: 'nonostante tu sia stanco', fr: 'malgré que tu sois fatigué', context: 'Concession' }
+                ]
+            }
+        ]
     }
 };

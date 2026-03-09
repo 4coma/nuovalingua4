@@ -1,13 +1,42 @@
 import { Injectable } from '@angular/core';
 import { SavedText, ComprehensionText } from '../models/vocabulary';
+import { FirebaseSyncService } from './firebase-sync.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SavedTextsService {
-  private readonly STORAGE_KEY = 'savedTexts';
+  private readonly LEGACY_STORAGE_KEY = 'savedTexts';
+  private readonly SCOPED_STORAGE_PREFIX = 'savedTexts__';
+  private currentUserId: string | null = null;
 
-  constructor() { }
+  constructor(private firebaseSync: FirebaseSyncService) {
+    this.currentUserId = this.firebaseSync.getCurrentUser()?.uid || null;
+    this.firebaseSync.authUser$.subscribe(user => {
+      this.currentUserId = user?.uid || null;
+    });
+  }
+
+  private getActiveStorageKey(): string {
+    if (this.currentUserId) {
+      return `${this.SCOPED_STORAGE_PREFIX}${this.currentUserId}`;
+    }
+    return `${this.SCOPED_STORAGE_PREFIX}guest`;
+  }
+
+  private ensureLegacyGuestMigration(): void {
+    if (this.currentUserId) {
+      return;
+    }
+    const guestKey = this.getActiveStorageKey();
+    if (localStorage.getItem(guestKey) !== null) {
+      return;
+    }
+    const legacyData = localStorage.getItem(this.LEGACY_STORAGE_KEY);
+    if (legacyData !== null) {
+      localStorage.setItem(guestKey, legacyData);
+    }
+  }
 
   /**
    * Sauvegarde un texte de compréhension
@@ -32,7 +61,7 @@ export class SavedTextsService {
       };
       
       savedTexts.push(newSavedText);
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(savedTexts));
+      localStorage.setItem(this.getActiveStorageKey(), JSON.stringify(savedTexts));
       return true;
     } catch {
       return false;
@@ -44,7 +73,8 @@ export class SavedTextsService {
    */
   getAllTexts(): SavedText[] {
     try {
-      const savedTextsJson = localStorage.getItem(this.STORAGE_KEY);
+      this.ensureLegacyGuestMigration();
+      const savedTextsJson = localStorage.getItem(this.getActiveStorageKey());
       return savedTextsJson ? JSON.parse(savedTextsJson) : [];
     } catch {
       return [];
@@ -70,7 +100,7 @@ export class SavedTextsService {
       if (textIndex !== -1) {
         savedTexts[textIndex].dateLastAccessed = Date.now();
         savedTexts[textIndex].accessCount++;
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(savedTexts));
+        localStorage.setItem(this.getActiveStorageKey(), JSON.stringify(savedTexts));
       }
     } catch {
     }
@@ -86,7 +116,7 @@ export class SavedTextsService {
       
       if (textIndex !== -1) {
         savedTexts[textIndex].isFavorite = !savedTexts[textIndex].isFavorite;
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(savedTexts));
+        localStorage.setItem(this.getActiveStorageKey(), JSON.stringify(savedTexts));
         return savedTexts[textIndex].isFavorite;
       }
       return false;
@@ -104,7 +134,7 @@ export class SavedTextsService {
       const filteredTexts = savedTexts.filter(text => text.id !== id);
       
       if (filteredTexts.length !== savedTexts.length) {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredTexts));
+        localStorage.setItem(this.getActiveStorageKey(), JSON.stringify(filteredTexts));
         return true;
       }
       return false;

@@ -153,25 +153,24 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       progress: 0,
       sections: {
         domaines: [
-          { label: 'Famille', progress: 0 },
-          { label: 'Relations sociales', progress: 0 },
-          { label: 'Travail et rôles sociaux', progress: 0 },
-          { label: 'Loisirs et activités', progress: 0 }
+          { id: 'lvl4-dom-family', label: 'Vie familiale', progress: 0 },
+          { id: 'lvl4-dom-friends', label: 'Amitiés et rencontres', progress: 0 },
+          { id: 'lvl4-dom-conflict', label: 'Accords et désaccords', progress: 0 },
+          { id: 'lvl4-dom-events', label: 'Vie sociale et sorties', progress: 0 }
         ],
         domainesProgress: 10,
         lexical: [
-          { label: 'Personnes et relations', progress: 0 },
-          { label: 'Professions', progress: 0 },
-          { label: 'Activités sociales', progress: 0 },
-          { label: 'Adjectifs qualificatifs', progress: 0 },
-          { label: 'Comparaison simple', progress: 0 }
+          { id: 'lvl4-lex-emotions', label: 'Émotions et sentiments', progress: 0 },
+          { id: 'lvl4-lex-traits', label: 'Qualités et défauts', progress: 0 },
+          { id: 'lvl4-lex-social-actions', label: 'Actions sociales', progress: 0 },
+          { id: 'lvl4-lex-phrases', label: 'Politesse avancée', progress: 0 },
+          { id: 'lvl4-lex-connectors', label: 'Connecteurs conversationnels', progress: 0 }
         ],
         lexicalProgress: 10,
         verbs: [
-          { label: 'Verbes relationnels au présent', progress: 0 },
-          { label: 'Présent descriptif', progress: 0 },
-          { label: 'Introduction au passé composé (formes isolées)', progress: 0 },
-          { label: 'Passé composé pour faits ponctuels simples', progress: 0 }
+          { id: 'lvl4-verb-reciprocal', label: 'Verbes pronominaux réciproques', progress: 0 },
+          { id: 'lvl4-verb-polite', label: 'Conditionnel de politesse', progress: 0 },
+          { id: 'lvl4-verb-discourse', label: 'Rapporter une parole (présent)', progress: 0 }
         ],
         verbsProgress: 9
       },
@@ -184,24 +183,24 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       progress: 0,
       sections: {
         domaines: [
-          { label: 'Expériences personnelles', progress: 0 },
-          { label: 'Souvenirs', progress: 0 },
-          { label: 'Événements passés', progress: 0 },
-          { label: 'Histoires simples', progress: 0 }
+          { id: 'lvl5-dom-trip', label: 'Raconter un voyage', progress: 0 },
+          { id: 'lvl5-dom-childhood', label: 'Souvenirs d’enfance', progress: 0 },
+          { id: 'lvl5-dom-incidents', label: 'Imprévus et galères', progress: 0 },
+          { id: 'lvl5-dom-workstudy', label: 'Parcours pro et études', progress: 0 }
         ],
         domainesProgress: 0,
         lexical: [
-          { label: 'Temps du passé', progress: 0 },
-          { label: 'Adverbes temporels', progress: 0 },
-          { label: 'Expressions chronologiques', progress: 0 },
-          { label: 'Lieux du passé', progress: 0 }
+          { id: 'lvl5-lex-time-past', label: 'Marqueurs temporels du passé', progress: 0 },
+          { id: 'lvl5-lex-connectors-story', label: 'Connecteurs narratifs', progress: 0 },
+          { id: 'lvl5-lex-feelings-after', label: 'Ressentis après coup', progress: 0 },
+          { id: 'lvl5-lex-transport', label: 'Transport et déplacement', progress: 0 },
+          { id: 'lvl5-lex-weather', label: 'Météo pour un récit', progress: 0 }
         ],
         lexicalProgress: 0,
         verbs: [
-          { label: 'Passé composé (avere / essere)', progress: 0 },
-          { label: 'Accord du participe passé', progress: 0 },
-          { label: 'Verbes de mouvement au passé composé', progress: 0 },
-          { label: 'Introduction à l’imparfait (description, habitudes)', progress: 0 }
+          { id: 'lvl5-verb-passato-prossimo', label: 'Passato prossimo (clés)', progress: 0 },
+          { id: 'lvl5-verb-imperfetto', label: 'Imperfetto (description/habitude)', progress: 0 },
+          { id: 'lvl5-verb-sequencing', label: 'Passé composé + imparfait enchaînés', progress: 0 }
         ],
         verbsProgress: 0
       },
@@ -214,23 +213,24 @@ export class CategorySelectionComponent implements OnInit, OnDestroy {
       progress: 0,
       sections: {
         domaines: [
-          { label: 'Description de situations', progress: 0 },
-          { label: 'États, émotions, ambiances', progress: 0 },
-          { label: 'Habitudes passées', progress: 0 }
+          { id: 'lvl6-dom-places', label: 'Décrire des lieux', progress: 0 },
+          { id: 'lvl6-dom-people', label: 'Portraits nuancés', progress: 0 },
+          { id: 'lvl6-dom-objects', label: 'Objets / art / sensations', progress: 0 },
+          { id: 'lvl6-dom-opinion', label: 'Exprimer et nuancer une opinion', progress: 0 }
         ],
         domainesProgress: 0,
         lexical: [
-          { label: 'Émotions et états', progress: 0 },
-          { label: 'Adjectifs avancés', progress: 0 },
-          { label: 'Comparatifs et superlatifs', progress: 0 },
-          { label: 'Causes simples', progress: 0 }
+          { id: 'lvl6-lex-adjectives', label: 'Adjectifs précis et intensité', progress: 0 },
+          { id: 'lvl6-lex-concessive', label: 'Connecteurs de nuance et concession', progress: 0 },
+          { id: 'lvl6-lex-register', label: 'Registre et reformulation', progress: 0 },
+          { id: 'lvl6-lex-analogy', label: 'Comparaisons et analogies', progress: 0 },
+          { id: 'lvl6-lex-structures', label: 'Structures descriptives', progress: 0 }
         ],
         lexicalProgress: 0,
         verbs: [
-          { label: 'Imparfait (usages principaux)', progress: 0 },
-          { label: 'Passé composé vs imparfait', progress: 0 },
-          { label: 'Verbes d’état au passé', progress: 0 },
-          { label: 'Connecteurs causaux', progress: 0 }
+          { id: 'lvl6-verb-conditionnel', label: 'Conditionnel pour nuancer', progress: 0 },
+          { id: 'lvl6-verb-sembrare', label: 'Verbes d’apparence et opinion', progress: 0 },
+          { id: 'lvl6-verb-congiuntivo', label: 'Subjonctif présent (bases)', progress: 0 }
         ],
         verbsProgress: 0
       },

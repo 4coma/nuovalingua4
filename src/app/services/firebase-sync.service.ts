@@ -21,13 +21,17 @@ import {
   signInAnonymously, 
   User,
   onAuthStateChanged,
-  signOut
+  signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  EmailAuthProvider,
+  linkWithCredential
 } from 'firebase/auth';
-import { BehaviorSubject, Observable, from, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 import { StorageService } from './storage.service';
 import { DictionaryWord } from './personal-dictionary.service';
 import { DiscussionTurn, DiscussionContext } from './discussion.service';
+import { environment } from '../../environments/environment';
 
 export interface FirebaseConfig {
   apiKey: string;
@@ -112,6 +116,7 @@ export class FirebaseSyncService {
   private currentUser: User | null = null;
   private unsubscribeAuth: Unsubscribe | null = null;
   private unsubscribeSync: Unsubscribe | null = null;
+  private authUserSubject = new BehaviorSubject<User | null>(null);
   
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isConnected: false,
@@ -119,18 +124,23 @@ export class FirebaseSyncService {
   });
   
   public syncStatus$ = this.syncStatusSubject.asObservable();
+  public authUser$ = this.authUserSubject.asObservable();
 
   constructor(private storageService: StorageService) {
     this.initializeFirebase();
   }
 
   /**
-   * Initialise Firebase avec la configuration utilisateur
+   * Initialise Firebase avec la configuration embarquée (ou legacy en fallback)
    */
   private async initializeFirebase(): Promise<void> {
     try {
-      const config = this.getFirebaseConfig();
+      const config = this.getResolvedFirebaseConfig();
       if (!config) {
+        this.updateSyncStatus({
+          isConnected: false,
+          error: 'Firebase non configuré dans l’application'
+        });
         return;
       }
 
@@ -144,32 +154,33 @@ export class FirebaseSyncService {
 
       this.db = getFirestore(this.app);
       this.auth = getAuth(this.app);
-
-      // Se connecter anonymement ou avec UID personnalisé
-      await this.connectAnonymously();
-      
-      // Écouter les changements d'authentification (seulement pour les vrais utilisateurs Firebase)
-      this.unsubscribeAuth = onAuthStateChanged(this.auth, (user) => {
-        // Ne traiter que les vrais utilisateurs Firebase (pas nos utilisateurs simulés)
-        const customUid = this.storageService.get('firebaseCustomUid');
-        if (!customUid || !customUid.trim()) {
+      // Écouter les changements d'authentification
+      await new Promise<void>((resolve) => {
+        let firstAuthEventReceived = false;
+        this.unsubscribeAuth = onAuthStateChanged(this.auth!, (user) => {
           this.currentUser = user;
-          this.updateSyncStatus({ isConnected: !!user });
-          
+          this.authUserSubject.next(user);
+
           if (user) {
+            this.updateSyncStatus({
+              isConnected: true,
+              error: undefined
+            });
             this.setupRealtimeSync();
           } else {
             this.stopRealtimeSync();
+            this.updateSyncStatus({
+              isConnected: false,
+              error: 'Utilisateur Firebase non authentifié'
+            });
           }
-        }
+
+          if (!firstAuthEventReceived) {
+            firstAuthEventReceived = true;
+            resolve();
+          }
+        });
       });
-      
-      // Si on utilise un UID personnalisé, mettre à jour le statut manuellement
-      const customUid = this.storageService.get('firebaseCustomUid');
-      if (customUid && customUid.trim() && this.currentUser) {
-        this.updateSyncStatus({ isConnected: true });
-        this.setupRealtimeSync();
-      }
 
     } catch (error) {
       console.error('🔍 [FirebaseSync] Erreur d\'initialisation:', error);
@@ -181,81 +192,113 @@ export class FirebaseSyncService {
   }
 
   /**
-   * Récupère la configuration Firebase depuis le localStorage
+   * Vérifie qu'une config Firebase est complète
    */
-  private getFirebaseConfig(): FirebaseConfig | null {
-    const isEnabled = this.storageService.get('firebaseEnabled') === 'true';
-    if (!isEnabled) {
-      return null;
+  private isConfigComplete(config: Partial<FirebaseConfig> | null | undefined): config is FirebaseConfig {
+    if (!config) {
+      return false;
     }
+    return !!(
+      config.apiKey?.trim() &&
+      config.authDomain?.trim() &&
+      config.projectId?.trim() &&
+      config.storageBucket?.trim() &&
+      config.messagingSenderId?.trim() &&
+      config.appId?.trim()
+    );
+  }
 
-    const apiKey = this.storageService.get('firebaseApiKey');
-    const authDomain = this.storageService.get('firebaseAuthDomain');
-    const projectId = this.storageService.get('firebaseProjectId');
-    const storageBucket = this.storageService.get('firebaseStorageBucket');
-    const messagingSenderId = this.storageService.get('firebaseMessagingSenderId');
-    const appId = this.storageService.get('firebaseAppId');
-
-    if (!apiKey || !authDomain || !projectId || !storageBucket || !messagingSenderId || !appId) {
-      console.warn('🔍 [FirebaseSync] Configuration Firebase incomplète');
+  /**
+   * Récupère la configuration Firebase embarquée dans l'application
+   */
+  private getEmbeddedFirebaseConfig(): FirebaseConfig | null {
+    const embeddedConfig = environment.firebaseConfig as Partial<FirebaseConfig> | undefined;
+    if (!this.isConfigComplete(embeddedConfig)) {
       return null;
     }
 
     return {
-      apiKey,
-      authDomain,
-      projectId,
-      storageBucket,
-      messagingSenderId,
-      appId
+      apiKey: embeddedConfig.apiKey.trim(),
+      authDomain: embeddedConfig.authDomain.trim(),
+      projectId: embeddedConfig.projectId.trim(),
+      storageBucket: embeddedConfig.storageBucket.trim(),
+      messagingSenderId: embeddedConfig.messagingSenderId.trim(),
+      appId: embeddedConfig.appId.trim()
     };
   }
 
   /**
-   * Se connecte anonymement à Firebase
+   * Récupère la configuration Firebase legacy stockée localement
+   * (fallback pour conserver la compatibilité des installations existantes)
    */
-  private async connectAnonymously(): Promise<void> {
-    if (!this.auth) {
-      throw new Error('Firebase Auth non initialisé');
+  private getLegacyStoredFirebaseConfig(): FirebaseConfig | null {
+    const legacyConfig: Partial<FirebaseConfig> = {
+      apiKey: this.storageService.get('firebaseApiKey'),
+      authDomain: this.storageService.get('firebaseAuthDomain'),
+      projectId: this.storageService.get('firebaseProjectId'),
+      storageBucket: this.storageService.get('firebaseStorageBucket'),
+      messagingSenderId: this.storageService.get('firebaseMessagingSenderId'),
+      appId: this.storageService.get('firebaseAppId')
+    };
+
+    if (!this.isConfigComplete(legacyConfig)) {
+      return null;
     }
 
-    try {
-      // Vérifier s'il y a un UID personnalisé configuré
-      const customUid = this.storageService.get('firebaseCustomUid');
-      
-      if (customUid && customUid.trim()) {
-        // Utiliser l'UID personnalisé (simulation d'un utilisateur connecté)
-        this.currentUser = {
-          uid: customUid.trim(),
-          displayName: null,
-          email: null,
-          emailVerified: false,
-          isAnonymous: false,
-          phoneNumber: null,
-          photoURL: null,
-          providerId: 'custom',
-          metadata: {
-            creationTime: new Date().toISOString(),
-            lastSignInTime: new Date().toISOString()
-          },
-          providerData: [],
-          refreshToken: '',
-          tenantId: null,
-          delete: async () => {},
-          getIdToken: async () => '',
-          getIdTokenResult: async () => ({} as any),
-          reload: async () => {},
-          toJSON: () => ({})
-        } as User;
-      } else {
-        // Utiliser l'authentification anonyme normale
-        const userCredential = await signInAnonymously(this.auth);
-        this.currentUser = userCredential.user;
-      }
-    } catch (error) {
-      console.error('🔍 [FirebaseSync] Erreur de connexion anonyme:', error);
-      throw error;
+    return {
+      apiKey: legacyConfig.apiKey.trim(),
+      authDomain: legacyConfig.authDomain.trim(),
+      projectId: legacyConfig.projectId.trim(),
+      storageBucket: legacyConfig.storageBucket.trim(),
+      messagingSenderId: legacyConfig.messagingSenderId.trim(),
+      appId: legacyConfig.appId.trim()
+    };
+  }
+
+  /**
+   * Résout la configuration Firebase à utiliser
+   * Priorité: config embarquée -> config legacy locale
+   */
+  private getResolvedFirebaseConfig(): FirebaseConfig | null {
+    const embeddedConfig = this.getEmbeddedFirebaseConfig();
+    if (embeddedConfig) {
+      return embeddedConfig;
     }
+
+    const legacyConfig = this.getLegacyStoredFirebaseConfig();
+    if (legacyConfig) {
+      return legacyConfig;
+    }
+
+    console.warn('🔍 [FirebaseSync] Aucune configuration Firebase valide trouvée');
+    return null;
+  }
+
+  /**
+   * Indique si Firebase est correctement configuré
+   */
+  isFirebaseConfigured(): boolean {
+    return !!this.getResolvedFirebaseConfig();
+  }
+
+  /**
+   * Retourne le Project ID Firebase configuré
+   */
+  getConfiguredProjectId(): string {
+    return this.getResolvedFirebaseConfig()?.projectId || '';
+  }
+
+  /**
+   * Indique l'origine de la configuration Firebase active
+   */
+  getConfigSource(): 'embedded' | 'legacy' | 'none' {
+    if (this.getEmbeddedFirebaseConfig()) {
+      return 'embedded';
+    }
+    if (this.getLegacyStoredFirebaseConfig()) {
+      return 'legacy';
+    }
+    return 'none';
   }
 
   /**
@@ -267,23 +310,16 @@ export class FirebaseSyncService {
         throw new Error('Firebase non initialisé');
       }
 
-      // Vérifier si on a un utilisateur (anonyme ou personnalisé)
+      // Vérifier si on a un utilisateur authentifié Firebase
       if (!this.currentUser) {
-        // Essayer de se reconnecter si on a un UID personnalisé
-        const customUid = this.storageService.get('firebaseCustomUid');
-        if (customUid && customUid.trim()) {
-          await this.connectAnonymously();
-        }
-        
-        if (!this.currentUser) {
-          throw new Error('Utilisateur non connecté');
-        }
+        throw new Error('Utilisateur non connecté');
       }
 
-      // Test simple : essayer de lire un document
-      const testDocRef = doc(this.db, 'test', 'connection');
+      // Test simple : écrire un document de métadonnées lié à l'utilisateur
+      const testDocRef = doc(this.db, 'users', this.currentUser.uid, 'meta', 'connection');
       await setDoc(testDocRef, { 
         test: true, 
+        uid: this.currentUser.uid,
         timestamp: serverTimestamp() 
       }, { merge: true });
 
@@ -548,6 +584,7 @@ export class FirebaseSyncService {
     this.db = null;
     this.auth = null;
     this.currentUser = null;
+    this.authUserSubject.next(null);
     
     this.updateSyncStatus({
       isConnected: false,
@@ -570,10 +607,88 @@ export class FirebaseSyncService {
   }
 
   /**
+   * Crée un compte Firebase (email + mot de passe)
+   * Si l'utilisateur courant est anonyme, son compte est converti pour conserver le même UID.
+   */
+  async registerWithEmailPassword(email: string, password: string): Promise<User> {
+    if (!this.auth) {
+      throw new Error('Firebase Auth non initialisé');
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      throw new Error('Email et mot de passe requis');
+    }
+
+    if (this.currentUser?.isAnonymous) {
+      const credential = EmailAuthProvider.credential(normalizedEmail, password);
+      const linkedUserCredential = await linkWithCredential(this.currentUser, credential);
+      return linkedUserCredential.user;
+    }
+
+    const userCredential = await createUserWithEmailAndPassword(this.auth, normalizedEmail, password);
+    return userCredential.user;
+  }
+
+  /**
+   * Connecte un utilisateur Firebase (email + mot de passe)
+   */
+  async loginWithEmailPassword(email: string, password: string): Promise<User> {
+    if (!this.auth) {
+      throw new Error('Firebase Auth non initialisé');
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      throw new Error('Email et mot de passe requis');
+    }
+
+    const userCredential = await signInWithEmailAndPassword(this.auth, normalizedEmail, password);
+    return userCredential.user;
+  }
+
+  /**
+   * Connexion anonyme Firebase (compte authentifié sans email)
+   */
+  async loginAnonymously(): Promise<User> {
+    if (!this.auth) {
+      throw new Error('Firebase Auth non initialisé');
+    }
+
+    const userCredential = await signInAnonymously(this.auth);
+    return userCredential.user;
+  }
+
+  /**
+   * Déconnecte l'utilisateur courant en conservant l'initialisation Firebase
+   */
+  async logout(): Promise<void> {
+    if (!this.auth) {
+      throw new Error('Firebase Auth non initialisé');
+    }
+    await signOut(this.auth);
+  }
+
+  /**
+   * Retourne l'utilisateur Firebase courant
+   */
+  getCurrentUser(): User | null {
+    return this.currentUser;
+  }
+
+  /**
+   * Vérifie si un utilisateur Firebase est authentifié
+   */
+  isAuthenticated(): boolean {
+    return !!this.currentUser;
+  }
+
+  /**
    * Vérifie si Firebase est configuré et activé
    */
   isFirebaseEnabled(): boolean {
-    return this.storageService.get('firebaseEnabled') === 'true';
+    // Conservé pour compatibilité rétroactive avec le reste du code.
+    return this.isFirebaseConfigured();
   }
 
   /**
