@@ -123,6 +123,7 @@ export class FirebaseSyncService {
   private unsubscribeSync: Unsubscribe | null = null;
   private authUserSubject = new BehaviorSubject<User | null>(null);
   private userDocumentSubject = new BehaviorSubject<Record<string, any> | null>(null);
+  private authInitializedSubject = new BehaviorSubject<boolean>(false);
   
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isConnected: false,
@@ -132,6 +133,7 @@ export class FirebaseSyncService {
   public syncStatus$ = this.syncStatusSubject.asObservable();
   public authUser$ = this.authUserSubject.asObservable();
   public userDocument$ = this.userDocumentSubject.asObservable();
+  public authInitialized$ = this.authInitializedSubject.asObservable();
 
   constructor(private storageService: StorageService) {
     this.initializeFirebase();
@@ -144,6 +146,7 @@ export class FirebaseSyncService {
     try {
       const config = this.getResolvedFirebaseConfig();
       if (!config) {
+        this.authInitializedSubject.next(true);
         this.updateSyncStatus({
           isConnected: false,
           error: 'Firebase non configuré dans l’application'
@@ -185,12 +188,14 @@ export class FirebaseSyncService {
 
           if (!firstAuthEventReceived) {
             firstAuthEventReceived = true;
+            this.authInitializedSubject.next(true);
             resolve();
           }
         });
       });
 
     } catch (error) {
+      this.authInitializedSubject.next(true);
       console.error('🔍 [FirebaseSync] Erreur d\'initialisation:', error);
       this.updateSyncStatus({ 
         isConnected: false, 
@@ -589,6 +594,7 @@ export class FirebaseSyncService {
     this.currentUser = null;
     this.authUserSubject.next(null);
     this.userDocumentSubject.next(null);
+    this.authInitializedSubject.next(false);
     
     this.updateSyncStatus({
       isConnected: false,
@@ -701,6 +707,13 @@ export class FirebaseSyncService {
    */
   isAuthenticated(): boolean {
     return !!this.currentUser;
+  }
+
+  /**
+   * Indique si l'état d'authentification initial a déjà été résolu.
+   */
+  isAuthInitialized(): boolean {
+    return this.authInitializedSubject.value;
   }
 
   /**

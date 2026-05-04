@@ -119,6 +119,11 @@ export class AppComponent implements OnDestroy {
       this.isFirebaseAuthenticated = !!user;
       if (user) {
         void this.dataMigration.hydratePreferencesFromFirebase();
+        if (this.currentRoute === '/auth') {
+          void this.router.navigate(['/home']);
+        }
+      } else if (this.firebaseSync.isAuthInitialized() && this.currentRoute !== '/auth') {
+        void this.router.navigate(['/auth']);
       }
     });
   }
@@ -380,6 +385,7 @@ export class AppComponent implements OnDestroy {
   async logoutFirebaseFromMenu() {
     try {
       await this.firebaseSync.logout();
+      await this.router.navigate(['/auth']);
       const toast = await this.toastController.create({
         message: 'Déconnexion Firebase effectuée.',
         duration: 2000,

@@ -48,6 +48,10 @@ export class AuthComponent implements OnInit, OnDestroy {
       this.firebaseUserUid = user?.uid || '';
       this.firebaseUserEmail = user?.email || '';
       this.firebaseUserIsAnonymous = !!user?.isAnonymous;
+
+      if (user) {
+        void this.router.navigate(['/home']);
+      }
     });
   }
 
@@ -157,6 +161,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   async logout() {
     try {
       await this.firebaseSync.logout();
+      await this.router.navigate(['/auth']);
       await this.showToast('Déconnexion effectuée.', 'success');
     } catch (error) {
       console.error('Erreur déconnexion Firebase:', error);
