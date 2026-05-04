@@ -274,6 +274,7 @@ export class PreferencesComponent implements OnInit, OnDestroy {
     // Sauvegarder le délai POM (converti en minutes pour compatibilité)
     this.storageService.set('pomNotificationGraceMinutes', Math.round(pomNotificationGraceMinutes).toString());
 
+    void this.syncPreferencesToCloud();
     this.showToast('Préférences sauvegardées avec succès !');
   }
 
@@ -293,6 +294,7 @@ export class PreferencesComponent implements OnInit, OnDestroy {
     this.storageService.remove('oralComprehensionLength');
     this.storageService.remove('personalDictionaryWordsCount');
     this.storageService.remove('pomNotificationGraceMinutes');
+    void this.syncPreferencesToCloud();
     this.showToast('Préférences réinitialisées aux valeurs par défaut.');
   }
 
@@ -439,6 +441,7 @@ export class PreferencesComponent implements OnInit, OnDestroy {
       } else {
         this.showToast('Notifications quotidiennes désactivées.');
       }
+      await this.syncPreferencesToCloud();
     } catch (error) {
       console.error('Erreur lors du changement d\'état des notifications:', error);
       this.showToast('Erreur lors de la configuration des notifications.');
@@ -452,6 +455,7 @@ export class PreferencesComponent implements OnInit, OnDestroy {
     if (this.notificationsEnabled) {
       try {
         await this.notificationService.updateNotificationTime(this.notificationTime);
+        await this.syncPreferencesToCloud();
         this.showToast('Heure de notification mise à jour !');
       } catch (error) {
         console.error('Erreur lors de la mise à jour de l\'heure:', error);
@@ -474,6 +478,7 @@ export class PreferencesComponent implements OnInit, OnDestroy {
       } else {
         this.showToast('Notification quotidienne de compréhension désactivée.');
       }
+      await this.syncPreferencesToCloud();
     } catch (error) {
       console.error('Erreur lors du changement de notification compréhension:', error);
       this.showToast('Erreur lors de la configuration des notifications.');
@@ -487,6 +492,7 @@ export class PreferencesComponent implements OnInit, OnDestroy {
     if (this.comprehensionNotificationsEnabled) {
       try {
         await this.notificationService.updateComprehensionNotificationTime(this.comprehensionNotificationTime);
+        await this.syncPreferencesToCloud();
         this.showToast('Heure de notification mise à jour !');
       } catch (error) {
         console.error('Erreur lors de la mise à jour de l\'heure:', error);
@@ -502,6 +508,7 @@ export class PreferencesComponent implements OnInit, OnDestroy {
     if (this.notificationsEnabled) {
       try {
         await this.notificationService.updateNotificationMessage(this.notificationMessage);
+        await this.syncPreferencesToCloud();
         this.showToast('Message de notification mis à jour !');
       } catch (error) {
         console.error('Erreur lors de la mise à jour du message:', error);
@@ -861,5 +868,17 @@ Note : Vos données locales seront conservées.`,
 
   goToAuth() {
     window.location.href = '/auth';
+  }
+
+  private async syncPreferencesToCloud(): Promise<void> {
+    if (!this.firebaseSync.getCurrentUser()) {
+      return;
+    }
+
+    try {
+      await this.dataMigration.syncPreferencesToFirebase();
+    } catch (error) {
+      console.error('Erreur lors de la synchronisation cloud des préférences:', error);
+    }
   }
 }

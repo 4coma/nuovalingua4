@@ -66,7 +66,7 @@
   </ion-menu>
 
   <div class="ion-page" id="main-content">
-    <ion-header class="modern-header">
+    <ion-header *ngIf="!isHomeRoute" class="modern-header">
       <ion-toolbar class="modern-toolbar">
         <ion-buttons slot="start">
           <ion-menu-button menu="start" class="modern-menu-button"></ion-menu-button>
@@ -83,7 +83,7 @@
     </ion-content>
   </div>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="safe-area-fab">
+  <ion-fab *ngIf="!isHomeRoute" vertical="bottom" horizontal="end" slot="fixed" class="safe-area-fab">
     <ion-fab-button (click)="openActionSelection()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>

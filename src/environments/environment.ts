@@ -4,10 +4,15 @@
 
 export const environment = {
   production: false,
+  backendApiEnabled: true,
+  apiBaseUrl: '/api',
   openaiApiKey: 'REMOVED_API_KEY', // À remplir avec votre clé API OpenAI
   openaiModel: 'gpt-4.1-nano', // ou 'gpt-3.5-turbo' selon le modèle souhaité
-  openaiApiUrl: 'https://api.openai.com/v1/chat/completions',
-  llmApiUrl: 'https://api.openai.com/v1/chat/completions', // Même URL que openaiApiUrl en développement
+  openaiApiUrl: '/api/openai/chat',
+  openaiSpeechApiUrl: '/api/openai/speech',
+  openaiTranscriptionApiUrl: '/api/openai/transcriptions',
+  googleTtsApiUrl: '/api/google-tts',
+  llmApiUrl: '/api/openai/chat',
   // Configuration Firebase Web embarquée dans l'app (ne pas demander à l'utilisateur final).
   // Remplir ces valeurs avec le SDK config de l'app Web Firebase.
   firebaseConfig: {

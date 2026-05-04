@@ -2,7 +2,32 @@ import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
 import { FirebaseSyncService, UserData, UserStatistics, UserSettings } from './firebase-sync.service';
 import { DictionaryWord } from './personal-dictionary.service';
-import { DiscussionTurn, DiscussionContext } from './discussion.service';
+import { SavedText as CurrentSavedText } from '../models/vocabulary';
+import { WordMastery } from './vocabulary-tracking.service';
+import { Pom } from '../models/pom';
+
+export interface CloudUserPreferences {
+  notificationSettings: {
+    enabled: boolean;
+    time: string;
+    message: string;
+  };
+  comprehensionNotificationSettings: {
+    enabled: boolean;
+    time: string;
+  };
+  wordAssociationsCount: number;
+  oralComprehensionLength: number;
+  spacedRepetitionWordsCount: number;
+  personalDictionaryWordsCount: number;
+  openaiApiKey?: string;
+  googleTtsApiKey?: string;
+  dailyComprehensionThemes: string[];
+  comprehensionNotificationCustomPrompt?: string;
+  pomReviewFactor: number;
+  pomInitialIntervalSeconds: number;
+  pomNotificationGraceMinutes: number;
+}
 
 export interface SavedText {
   id: string;
@@ -23,6 +48,26 @@ export class DataMigrationService {
     private storageService: StorageService,
     private firebaseSync: FirebaseSyncService
   ) {}
+
+  private readonly defaultPreferences: CloudUserPreferences = {
+    notificationSettings: {
+      enabled: false,
+      time: '18:30',
+      message: 'Il est temps de pratiquer votre italien ! 🇮🇹'
+    },
+    comprehensionNotificationSettings: {
+      enabled: false,
+      time: '19:00'
+    },
+    wordAssociationsCount: 10,
+    oralComprehensionLength: 150,
+    spacedRepetitionWordsCount: 10,
+    personalDictionaryWordsCount: 8,
+    dailyComprehensionThemes: [],
+    pomReviewFactor: 2,
+    pomInitialIntervalSeconds: 43200,
+    pomNotificationGraceMinutes: 10
+  };
 
   /**
    * Récupère une valeur locale en privilégiant la clé scopée utilisateur
@@ -71,15 +116,22 @@ export class DataMigrationService {
     const personalDictionary = this.getPersonalDictionary();
     const conversations = this.getConversations();
     const savedTexts = this.getSavedTexts();
+    const vocabularyTracking = this.getVocabularyTracking();
+    const poms = this.getPoms();
     const statistics = this.getStatistics();
     const settings = this.getSettings();
+    const preferences = this.getPreferences();
 
     return {
       personalDictionary,
       conversations,
       statistics,
       settings,
-      savedTexts,
+      savedTexts: [],
+      savedTextsV2: savedTexts,
+      vocabularyTracking,
+      poms,
+      preferences,
       metadata: {
         createdAt: new Date(),
         lastSync: new Date(),
@@ -135,24 +187,41 @@ export class DataMigrationService {
   /**
    * Récupère les textes sauvegardés depuis le localStorage
    */
-  private getSavedTexts(): SavedText[] {
+  private getSavedTexts(): CurrentSavedText[] {
     try {
       const storedTexts = this.getScopedLocalStorage('savedTexts');
       if (!storedTexts) return [];
 
       const texts = JSON.parse(storedTexts);
-      
-      return texts.map((text: any) => ({
-        id: text.id,
-        title: text.title,
-        content: text.content,
-        language: text.language || 'it',
-        difficulty: text.difficulty || 'intermediate',
-        dateSaved: new Date(text.dateSaved),
-        wordCount: text.wordCount || 0
-      }));
+      return Array.isArray(texts) ? texts : [];
     } catch (error) {
       console.error('🔍 [DataMigration] Erreur récupération textes sauvegardés:', error);
+      return [];
+    }
+  }
+
+  private getVocabularyTracking(): WordMastery[] {
+    try {
+      const storedWords = this.getScopedLocalStorage('vocabulary_mastery');
+      if (!storedWords) return [];
+
+      const words = JSON.parse(storedWords);
+      return Array.isArray(words) ? words : [];
+    } catch (error) {
+      console.error('🔍 [DataMigration] Erreur récupération suivi vocabulaire:', error);
+      return [];
+    }
+  }
+
+  private getPoms(): Pom[] {
+    try {
+      const storedPoms = this.getScopedLocalStorage('poms');
+      if (!storedPoms) return [];
+
+      const poms = JSON.parse(storedPoms);
+      return Array.isArray(poms) ? poms : [];
+    } catch (error) {
+      console.error('🔍 [DataMigration] Erreur récupération POMs:', error);
       return [];
     }
   }
@@ -198,19 +267,104 @@ export class DataMigrationService {
    * Récupère les paramètres depuis le localStorage
    */
   private getSettings(): UserSettings {
+    const preferences = this.getPreferences();
     return {
-      notificationsEnabled: localStorage.getItem('notificationsEnabled') === 'true',
-      notificationTime: localStorage.getItem('notificationTime') || '18:30',
-      notificationMessage: localStorage.getItem('notificationMessage') || 'Il est temps de pratiquer votre italien ! 🇮🇹',
-      comprehensionNotificationsEnabled: localStorage.getItem('comprehensionNotificationsEnabled') === 'true',
-      comprehensionNotificationTime: localStorage.getItem('comprehensionNotificationTime') || '19:00',
-      wordAssociationsCount: parseInt(localStorage.getItem('wordAssociationsCount') || '10'),
-      oralComprehensionLength: parseInt(localStorage.getItem('oralComprehensionLength') || '150'),
-      spacedRepetitionWordsCount: parseInt(localStorage.getItem('spacedRepetitionWordsCount') || '10'),
-      personalDictionaryWordsCount: parseInt(localStorage.getItem('personalDictionaryWordsCount') || '8'),
-      openaiApiKey: localStorage.getItem('userOpenaiApiKey') || undefined,
-      googleTtsApiKey: localStorage.getItem('userGoogleTtsApiKey') || undefined
+      notificationsEnabled: preferences.notificationSettings.enabled,
+      notificationTime: preferences.notificationSettings.time,
+      notificationMessage: preferences.notificationSettings.message,
+      comprehensionNotificationsEnabled: preferences.comprehensionNotificationSettings.enabled,
+      comprehensionNotificationTime: preferences.comprehensionNotificationSettings.time,
+      wordAssociationsCount: preferences.wordAssociationsCount,
+      oralComprehensionLength: preferences.oralComprehensionLength,
+      spacedRepetitionWordsCount: preferences.spacedRepetitionWordsCount,
+      personalDictionaryWordsCount: preferences.personalDictionaryWordsCount,
+      openaiApiKey: preferences.openaiApiKey || undefined,
+      googleTtsApiKey: preferences.googleTtsApiKey || undefined
     };
+  }
+
+  getPreferences(): CloudUserPreferences {
+    const notificationSettings = this.storageService.get('notificationSettings');
+    const comprehensionSettings = this.storageService.get('comprehensionNotificationSettings');
+    const dailyThemes = this.storageService.get('dailyComprehensionThemes');
+
+    return {
+      notificationSettings: {
+        ...this.defaultPreferences.notificationSettings,
+        ...(notificationSettings || {})
+      },
+      comprehensionNotificationSettings: {
+        ...this.defaultPreferences.comprehensionNotificationSettings,
+        ...(comprehensionSettings || {})
+      },
+      wordAssociationsCount: this.parseNumberSetting(this.storageService.get('wordAssociationsCount'), this.defaultPreferences.wordAssociationsCount),
+      oralComprehensionLength: this.parseNumberSetting(this.storageService.get('oralComprehensionLength'), this.defaultPreferences.oralComprehensionLength),
+      spacedRepetitionWordsCount: this.parseNumberSetting(this.storageService.get('spacedRepetitionWordsCount'), this.defaultPreferences.spacedRepetitionWordsCount),
+      personalDictionaryWordsCount: this.parseNumberSetting(this.storageService.get('personalDictionaryWordsCount'), this.defaultPreferences.personalDictionaryWordsCount),
+      openaiApiKey: this.getOptionalStringSetting('userOpenaiApiKey'),
+      googleTtsApiKey: this.getOptionalStringSetting('userGoogleTtsApiKey'),
+      dailyComprehensionThemes: Array.isArray(dailyThemes)
+        ? dailyThemes
+        : this.parseStringArraySetting(dailyThemes),
+      comprehensionNotificationCustomPrompt: this.getOptionalStringSetting('comprehensionNotificationCustomPrompt'),
+      pomReviewFactor: this.parseNumberSetting(this.storageService.get('pomReviewFactor'), this.defaultPreferences.pomReviewFactor),
+      pomInitialIntervalSeconds: this.parseNumberSetting(this.storageService.get('pomInitialIntervalSeconds'), this.defaultPreferences.pomInitialIntervalSeconds),
+      pomNotificationGraceMinutes: this.parseNumberSetting(this.storageService.get('pomNotificationGraceMinutes'), this.defaultPreferences.pomNotificationGraceMinutes)
+    };
+  }
+
+  async syncPreferencesToFirebase(): Promise<void> {
+    if (!this.firebaseSync.isFirebaseEnabled() || !this.firebaseSync.getCurrentUser()) {
+      return;
+    }
+
+    await this.firebaseSync.syncUserDataPatch({
+      preferences: this.getPreferences(),
+      settings: this.getSettings(),
+      statistics: this.getStatistics()
+    });
+  }
+
+  async hydratePreferencesFromFirebase(): Promise<void> {
+    if (!this.firebaseSync.isFirebaseEnabled() || !this.firebaseSync.getCurrentUser()) {
+      return;
+    }
+
+    const userDocument = await this.firebaseSync.getUserDocumentData();
+    if (!userDocument) {
+      await this.syncPreferencesToFirebase();
+      return;
+    }
+
+    const localPreferences = this.getPreferences();
+    const remotePreferences = this.normalizeRemotePreferences(userDocument);
+    if (!remotePreferences) {
+      await this.syncPreferencesToFirebase();
+      return;
+    }
+
+    const mergedPreferences: CloudUserPreferences = {
+      ...localPreferences,
+      ...remotePreferences,
+      notificationSettings: {
+        ...localPreferences.notificationSettings,
+        ...remotePreferences.notificationSettings
+      },
+      comprehensionNotificationSettings: {
+        ...localPreferences.comprehensionNotificationSettings,
+        ...remotePreferences.comprehensionNotificationSettings
+      },
+      dailyComprehensionThemes: remotePreferences.dailyComprehensionThemes?.length
+        ? remotePreferences.dailyComprehensionThemes
+        : localPreferences.dailyComprehensionThemes
+    };
+
+    this.applyPreferencesToLocalStorage(mergedPreferences);
+    await this.firebaseSync.syncUserDataPatch({
+      preferences: mergedPreferences,
+      settings: this.getSettings(),
+      statistics: userDocument['statistics'] || this.getStatistics()
+    });
   }
 
   /**
@@ -270,6 +424,112 @@ export class DataMigrationService {
     }).length;
   }
 
+  private parseNumberSetting(value: any, fallback: number): number {
+    const parsed = typeof value === 'number' ? value : parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  private getOptionalStringSetting(key: string): string | undefined {
+    const value = this.storageService.get(key);
+    return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+  }
+
+  private parseStringArraySetting(value: any): string[] {
+    if (Array.isArray(value)) {
+      return value.filter(item => typeof item === 'string' && item.trim());
+    }
+
+    if (typeof value === 'string' && value.trim()) {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.filter(item => typeof item === 'string' && item.trim()) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  }
+
+  private normalizeRemotePreferences(userDocument: Record<string, any>): CloudUserPreferences | null {
+    const remotePreferences = userDocument['preferences'];
+    if (remotePreferences && typeof remotePreferences === 'object') {
+      return {
+        ...this.defaultPreferences,
+        ...remotePreferences,
+        notificationSettings: {
+          ...this.defaultPreferences.notificationSettings,
+          ...(remotePreferences['notificationSettings'] || {})
+        },
+        comprehensionNotificationSettings: {
+          ...this.defaultPreferences.comprehensionNotificationSettings,
+          ...(remotePreferences['comprehensionNotificationSettings'] || {})
+        },
+        dailyComprehensionThemes: this.parseStringArraySetting(remotePreferences['dailyComprehensionThemes'])
+      };
+    }
+
+    const legacySettings = userDocument['settings'];
+    if (!legacySettings || typeof legacySettings !== 'object') {
+      return null;
+    }
+
+    return {
+      ...this.defaultPreferences,
+      notificationSettings: {
+        enabled: !!legacySettings['notificationsEnabled'],
+        time: legacySettings['notificationTime'] || this.defaultPreferences.notificationSettings.time,
+        message: legacySettings['notificationMessage'] || this.defaultPreferences.notificationSettings.message
+      },
+      comprehensionNotificationSettings: {
+        enabled: !!legacySettings['comprehensionNotificationsEnabled'],
+        time: legacySettings['comprehensionNotificationTime'] || this.defaultPreferences.comprehensionNotificationSettings.time
+      },
+      wordAssociationsCount: this.parseNumberSetting(legacySettings['wordAssociationsCount'], this.defaultPreferences.wordAssociationsCount),
+      oralComprehensionLength: this.parseNumberSetting(legacySettings['oralComprehensionLength'], this.defaultPreferences.oralComprehensionLength),
+      spacedRepetitionWordsCount: this.parseNumberSetting(legacySettings['spacedRepetitionWordsCount'], this.defaultPreferences.spacedRepetitionWordsCount),
+      personalDictionaryWordsCount: this.parseNumberSetting(legacySettings['personalDictionaryWordsCount'], this.defaultPreferences.personalDictionaryWordsCount),
+      openaiApiKey: typeof legacySettings['openaiApiKey'] === 'string' ? legacySettings['openaiApiKey'] : undefined,
+      googleTtsApiKey: typeof legacySettings['googleTtsApiKey'] === 'string' ? legacySettings['googleTtsApiKey'] : undefined,
+      dailyComprehensionThemes: [],
+      comprehensionNotificationCustomPrompt: undefined,
+      pomReviewFactor: this.defaultPreferences.pomReviewFactor,
+      pomInitialIntervalSeconds: this.defaultPreferences.pomInitialIntervalSeconds,
+      pomNotificationGraceMinutes: this.defaultPreferences.pomNotificationGraceMinutes
+    };
+  }
+
+  private applyPreferencesToLocalStorage(preferences: CloudUserPreferences): void {
+    this.storageService.set('notificationSettings', preferences.notificationSettings);
+    this.storageService.set('comprehensionNotificationSettings', preferences.comprehensionNotificationSettings);
+    this.storageService.set('wordAssociationsCount', preferences.wordAssociationsCount);
+    this.storageService.set('oralComprehensionLength', preferences.oralComprehensionLength);
+    this.storageService.set('spacedRepetitionWordsCount', preferences.spacedRepetitionWordsCount);
+    this.storageService.set('personalDictionaryWordsCount', preferences.personalDictionaryWordsCount);
+    this.storageService.set('dailyComprehensionThemes', preferences.dailyComprehensionThemes);
+    this.storageService.set('pomReviewFactor', preferences.pomReviewFactor);
+    this.storageService.set('pomInitialIntervalSeconds', preferences.pomInitialIntervalSeconds);
+    this.storageService.set('pomNotificationGraceMinutes', preferences.pomNotificationGraceMinutes);
+
+    if (preferences.openaiApiKey?.trim()) {
+      this.storageService.set('userOpenaiApiKey', preferences.openaiApiKey.trim());
+    } else {
+      this.storageService.remove('userOpenaiApiKey');
+    }
+
+    if (preferences.googleTtsApiKey?.trim()) {
+      this.storageService.set('userGoogleTtsApiKey', preferences.googleTtsApiKey.trim());
+    } else {
+      this.storageService.remove('userGoogleTtsApiKey');
+    }
+
+    if (preferences.comprehensionNotificationCustomPrompt?.trim()) {
+      this.storageService.set('comprehensionNotificationCustomPrompt', preferences.comprehensionNotificationCustomPrompt.trim());
+    } else {
+      this.storageService.remove('comprehensionNotificationCustomPrompt');
+    }
+  }
+
   /**
    * Vérifie si des données locales existent
    */
@@ -277,12 +537,16 @@ export class DataMigrationService {
     const words = this.getPersonalDictionary();
     const conversations = this.getConversations();
     const texts = this.getSavedTexts();
+    const trackedWords = this.getVocabularyTracking();
+    const poms = this.getPoms();
     
     const hasWords = words.length > 0;
     const hasConversations = conversations.length > 0;
     const hasTexts = texts.length > 0;
+    const hasTrackedWords = trackedWords.length > 0;
+    const hasPoms = poms.length > 0;
     
-    return hasWords || hasConversations || hasTexts;
+    return hasWords || hasConversations || hasTexts || hasTrackedWords || hasPoms;
   }
 
   /**

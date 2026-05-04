@@ -35,6 +35,7 @@ export class LlmService {
   private apiUrl = environment.openaiApiUrl;
   private apiKey = environment.openaiApiKey;
   private model = environment.openaiModel;
+  private backendApiEnabled = environment.backendApiEnabled;
 
   // Direction de traduction par défaut (FR vers IT)
   private _translationDirection: TranslationDirection = 'fr2it';
@@ -441,21 +442,20 @@ export class LlmService {
   }
 
   private callOpenAI<T>(prompt: string): Observable<T> {
-    // Vérifier si l'utilisateur a défini sa propre clé API
     const userApiKey = this.storageService.get('userOpenaiApiKey');
+    const apiKeyToUse = userApiKey || this.apiKey;
 
-    // Si aucune clé utilisateur n'est définie, afficher une notification
-    if (!userApiKey) {
+    if (!this.backendApiEnabled && !apiKeyToUse) {
       this.showApiKeyNotification();
       return throwError(() => new Error('Clé API non configurée'));
     }
 
-    const apiKeyToUse = userApiKey || this.apiKey;
-
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKeyToUse}`
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
     });
+    if (!this.backendApiEnabled && apiKeyToUse) {
+      headers = headers.set('Authorization', `Bearer ${apiKeyToUse}`);
+    }
 
     const body = {
       model: this.model,

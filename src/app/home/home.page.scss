@@ -1,146 +1,188 @@
-/**
- * Home Page - Design Moderne
- * Styles mis à jour avec le nouveau design system
- */
-
 .home-content {
-  --background: linear-gradient(180deg, #f8f9fc 0%, #ffffff 100%);
+  --background:
+    radial-gradient(circle at 18% 18%, rgba(38, 58, 52, 0.08) 0%, rgba(38, 58, 52, 0) 30%),
+    radial-gradient(circle at 82% 16%, rgba(146, 170, 143, 0.22) 0%, rgba(146, 170, 143, 0) 34%),
+    linear-gradient(180deg, #f7f2ea 0%, #f4efe7 100%);
 }
 
-.home-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: var(--ds-space-xl) var(--ds-space-sm);
+.home-minimal-shell {
   min-height: 100%;
   display: flex;
   align-items: center;
+  justify-content: center;
+  padding: 24px 18px 40px;
 }
 
-.priority-themes-section {
-  margin-top: var(--ds-space-lg);
-  padding-top: var(--ds-space-md);
-  border-top: 1px solid var(--ion-color-light);
-}
-
-.priority-themes-header {
+.home-minimal-layout {
+  width: min(100%, 920px);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: var(--ds-space-sm);
+  gap: 28px;
 }
 
-.priority-themes-title {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-xs);
-  font-size: var(--ds-font-size-base);
-  font-weight: var(--ds-font-weight-medium);
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.title-icon {
-  color: var(--ion-color-warning);
-  font-size: 16px;
-}
-
-.priority-themes-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--ds-space-xs);
-}
-
-.priority-theme-chip {
-  cursor: pointer;
-  transition: var(--ds-transition-base);
-  font-size: var(--ds-font-size-sm);
-  
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--ds-shadow-sm);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-.no-priority-themes {
-  text-align: center;
-  margin-top: var(--ds-space-lg);
-  padding-top: var(--ds-space-md);
-  border-top: 1px solid var(--ion-color-light);
-}
-
-.welcome-card {
+.circle-actions {
   width: 100%;
-}
-
-.welcome-title {
-  font-size: var(--ds-font-size-h2);
-  font-weight: var(--ds-font-weight-bold);
-  color: var(--color-text-primary);
-  text-align: center;
-  margin: 0 0 var(--ds-space-lg) 0;
-  line-height: var(--ds-line-height-tight);
-  letter-spacing: -0.02em;
-}
-
-
-.actions-grid {
   display: grid;
-  gap: var(--ds-space-sm);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(18px, 4vw, 40px);
+  align-items: center;
+  justify-items: center;
 }
 
-.action-link {
-  text-decoration: none;
-  display: block;
+.home-circle {
+  width: min(100%, 340px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(22, 31, 28, 0.14);
+  background: rgba(255, 255, 255, 0.52);
+  box-shadow: 0 22px 50px rgba(29, 31, 31, 0.08);
+  color: #1f241f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+
+  span {
+    display: block;
+    max-width: 8ch;
+    font-size: clamp(1.5rem, 3vw, 2.4rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+  }
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 60px rgba(29, 31, 31, 0.12);
+    border-color: rgba(22, 31, 28, 0.24);
+    outline: none;
+  }
 }
 
-// Styles pour les boutons Ionic directs (warning et success)
-.modern-action-button {
-  --border-radius: var(--ds-radius-md);
-  --padding-top: 18px;
-  --padding-bottom: 18px;
-  --padding-start: 24px;
-  --padding-end: 24px;
-  --box-shadow: none;
-  font-family: var(--ds-font-family-sans);
-  font-weight: var(--ds-font-weight-semibold);
-  letter-spacing: 0.01em;
-  text-transform: none;
-  transition: var(--ds-transition-base);
-  height: auto;
-  font-size: 1.125rem;
-  
-  &:hover {
+.circle-learning {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.65) 34%, rgba(255, 255, 255, 0.28) 100%),
+    #efe8dc;
+}
+
+.circle-practice {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.58) 34%, rgba(255, 255, 255, 0.18) 100%),
+    #dde7d8;
+}
+
+.menu-zone {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.dots-trigger {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 70px;
+  height: 36px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 14px 30px rgba(29, 31, 31, 0.09);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1f241f;
+    display: block;
+  }
+
+  &:hover,
+  &:focus-visible {
     transform: translateY(-2px);
-    box-shadow: var(--ds-shadow-sm);
+    box-shadow: 0 18px 34px rgba(29, 31, 31, 0.13);
+    outline: none;
   }
-  
-  &:active {
-    transform: translateY(0);
-  }
-  
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: transparent;
+}
+
+.floating-menu {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 50%;
+  z-index: 2;
+  width: min(88vw, 320px);
+  transform: translateX(-50%);
+  padding: 10px;
+  border-radius: 22px;
+  border: 1px solid rgba(22, 31, 28, 0.08);
+  background: rgba(255, 252, 247, 0.96);
+  box-shadow: 0 26px 60px rgba(29, 31, 31, 0.16);
+  backdrop-filter: blur(14px);
+}
+
+.floating-menu-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #1f241f;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.16s ease;
+
   ion-icon {
-    margin-right: 8px;
+    font-size: 1.1rem;
+    color: #4b5a4c;
+  }
+
+  span {
+    font-size: 0.98rem;
+    letter-spacing: -0.01em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(198, 210, 194, 0.28);
+    outline: none;
   }
 }
 
-// Responsive
-@media (max-width: 768px) {
-  .home-container {
-    padding: var(--ds-space-md) var(--ds-space-xs);
+@media (max-width: 760px) {
+  .home-minimal-shell {
+    padding-top: 32px;
+    padding-bottom: 32px;
   }
-  
-  .welcome-title {
-    font-size: 1.5rem;
-  }
-}
 
-// Dark mode
-@media (prefers-color-scheme: dark) {
-  .home-content {
-    --background: linear-gradient(180deg, #0f1117 0%, #1a1d2e 100%);
+  .circle-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .home-circle {
+    width: min(82vw, 330px);
+
+    span {
+      font-size: clamp(1.8rem, 8vw, 2.35rem);
+    }
   }
 }

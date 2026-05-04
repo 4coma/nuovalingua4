@@ -7,13 +7,16 @@ import { WordPair } from './llm.service';
 import { PersonalDictionaryService, DictionaryWord } from './personal-dictionary.service';
 import { COURSE_DATA } from '../data/course-data';
 import { Capacitor } from '@capacitor/core';
+import { FirebaseSyncService } from './firebase-sync.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PomService {
     private readonly STORAGE_KEY = 'poms';
+    private readonly SCOPED_STORAGE_PREFIX = 'poms__';
     private readonly MAX_REVIEWS_YEAR = 365; // Environ un an
+    private readonly MAX_POMS_PER_DAY = 2;
     private readonly NOTIFICATION_GRACE_KEY = 'pomNotificationGraceMinutes';
     private readonly DEFAULT_NOTIFICATION_GRACE_MINUTES = 10; // stocké en minutes
     private readonly POM_REVIEW_COUNTS_KEY = 'pomReviewCounts';
@@ -22,29 +25,112 @@ export class PomService {
     private readonly NIGHT_START_HOUR = 21;
     private readonly NIGHT_END_HOUR = 9;
     private readonly NIGHT_END_MINUTE = 30;
+    private currentUserId: string | null = null;
+    private isHydratingFromFirebase = false;
 
     constructor(
         private storageService: StorageService,
         private notificationService: NotificationService,
         private vocabularyTrackingService: VocabularyTrackingService,
-        private personalDictionaryService: PersonalDictionaryService
+        private personalDictionaryService: PersonalDictionaryService,
+        private firebaseSync: FirebaseSyncService
     ) {
+        this.currentUserId = this.firebaseSync.getCurrentUser()?.uid || null;
+
+        this.firebaseSync.authUser$.subscribe(user => {
+            const newUserId = user?.uid || null;
+            const previousUserId = this.currentUserId;
+            const didUserChange = newUserId !== previousUserId;
+
+            this.currentUserId = newUserId;
+
+            if (didUserChange && this.currentUserId) {
+                this.migrateGuestDataToUserScope(this.currentUserId, previousUserId);
+            }
+
+            this.refreshLegacyStorageMirror();
+
+            if (didUserChange && this.firebaseSync.isFirebaseEnabled() && this.currentUserId) {
+                void this.syncFromFirebase();
+            }
+        });
+
+        this.firebaseSync.syncStatus$.subscribe(status => {
+            if (status.isConnected && this.currentUserId) {
+                void this.syncFromFirebase();
+            }
+        });
+
         this.personalDictionaryService.dictionaryWords$.subscribe(words => {
             this.updateMasteredPoms(words);
         });
+    }
+
+    private getActiveStorageKey(): string {
+        if (this.currentUserId) {
+            return `${this.SCOPED_STORAGE_PREFIX}${this.currentUserId}`;
+        }
+        return `${this.SCOPED_STORAGE_PREFIX}guest`;
+    }
+
+    private getScopedStorageKeyForUser(userId: string | null): string {
+        return `${this.SCOPED_STORAGE_PREFIX}${userId || 'guest'}`;
+    }
+
+    private ensureLegacyGuestMigration(): void {
+        if (this.currentUserId) {
+            return;
+        }
+
+        const guestKey = this.getActiveStorageKey();
+        if (this.storageService.exists(guestKey)) {
+            return;
+        }
+
+        const legacyPoms = this.storageService.get(this.STORAGE_KEY);
+        if (Array.isArray(legacyPoms)) {
+            this.storageService.set(guestKey, legacyPoms);
+        }
+    }
+
+    private refreshLegacyStorageMirror(): void {
+        this.ensureLegacyGuestMigration();
+        const activePoms = this.storageService.get(this.getActiveStorageKey());
+        this.storageService.set(this.STORAGE_KEY, Array.isArray(activePoms) ? activePoms : []);
+    }
+
+    private migrateGuestDataToUserScope(userId: string, previousUserId: string | null): void {
+        if (previousUserId) {
+            return;
+        }
+
+        this.ensureLegacyGuestMigration();
+        const guestPoms = this.storageService.get(this.getScopedStorageKeyForUser(null));
+        if (!Array.isArray(guestPoms) || guestPoms.length === 0) {
+            return;
+        }
+
+        const existingUserPoms = this.storageService.get(this.getScopedStorageKeyForUser(userId));
+        const mergedPoms = this.mergePoms(Array.isArray(existingUserPoms) ? existingUserPoms : [], guestPoms);
+        this.storageService.set(this.getScopedStorageKeyForUser(userId), mergedPoms);
     }
 
     /**
      * Récupère tous les POMs
      */
     getAllPoms(): Pom[] {
-        return this.storageService.get(this.STORAGE_KEY) || [];
+        this.ensureLegacyGuestMigration();
+        const activePoms = this.storageService.get(this.getActiveStorageKey());
+        const normalizedPoms = Array.isArray(activePoms) ? activePoms : [];
+        this.storageService.set(this.STORAGE_KEY, normalizedPoms);
+        return normalizedPoms;
     }
 
     /**
      * Sauvegarde tous les POMs
      */
     private saveAllPoms(poms: Pom[]): void {
+        this.storageService.set(this.getActiveStorageKey(), poms);
         this.storageService.set(this.STORAGE_KEY, poms);
         const preview = poms
             .slice(0, 10)
@@ -52,6 +138,88 @@ export class PomService {
             .join(', ');
         const suffix = poms.length > 10 ? ` ...(+${poms.length - 10})` : '';
         console.log(`[POM DEBUG] saveAllPoms count=${poms.length} ids=${preview}${suffix}`);
+        if (!this.isHydratingFromFirebase) {
+            void this.syncToFirebase(poms);
+        }
+    }
+
+    private async syncToFirebase(poms: Pom[] = this.getAllPoms()): Promise<void> {
+        if (!this.firebaseSync.isFirebaseEnabled() || this.isHydratingFromFirebase || !this.currentUserId) {
+            return;
+        }
+
+        try {
+            await this.firebaseSync.syncUserDataPatch({ poms });
+        } catch (error) {
+            console.error('🔍 [PomService] Erreur de synchronisation vers Firebase:', error);
+        }
+    }
+
+    async syncFromFirebase(): Promise<void> {
+        if (!this.firebaseSync.isFirebaseEnabled() || !this.currentUserId) {
+            return;
+        }
+
+        try {
+            const userDocument = await this.firebaseSync.getUserDocumentData();
+            const cloudPoms = userDocument?.['poms'];
+            if (!Array.isArray(cloudPoms)) {
+                return;
+            }
+
+            this.isHydratingFromFirebase = true;
+
+            const mergedPoms = this.mergePoms(this.getAllPoms(), cloudPoms as Pom[]);
+            await this.persistPomsAndSyncNotifications(mergedPoms, {
+                rescheduleAllActive: true
+            });
+            await this.firebaseSync.syncUserDataPatch({ poms: mergedPoms });
+        } catch (error) {
+            console.error('🔍 [PomService] Erreur de synchronisation depuis Firebase:', error);
+        } finally {
+            this.isHydratingFromFirebase = false;
+        }
+    }
+
+    private mergePoms(localPoms: Pom[], remotePoms: Pom[]): Pom[] {
+        const merged = new Map<string, Pom>();
+
+        for (const pom of localPoms) {
+            merged.set(pom.id, pom);
+        }
+
+        for (const pom of remotePoms) {
+            const existing = merged.get(pom.id);
+            if (!existing) {
+                merged.set(pom.id, pom);
+                continue;
+            }
+
+            merged.set(pom.id, this.selectPreferredPom(existing, pom));
+        }
+
+        return Array.from(merged.values()).sort((a, b) => this.comparePomsForSchedule(a, b));
+    }
+
+    private selectPreferredPom(localPom: Pom, remotePom: Pom): Pom {
+        if (localPom.status !== remotePom.status) {
+            if (remotePom.status === 'completed' && localPom.status !== 'completed') {
+                return remotePom;
+            }
+            if (localPom.status === 'completed' && remotePom.status !== 'completed') {
+                return localPom;
+            }
+        }
+
+        if (remotePom.reviewCount !== localPom.reviewCount) {
+            return remotePom.reviewCount > localPom.reviewCount ? remotePom : localPom;
+        }
+
+        if (remotePom.nextReviewDate !== localPom.nextReviewDate) {
+            return remotePom.nextReviewDate >= localPom.nextReviewDate ? remotePom : localPom;
+        }
+
+        return remotePom.createdAt >= localPom.createdAt ? remotePom : localPom;
     }
 
     private getNotificationGraceMinutes(): number {
@@ -90,6 +258,104 @@ export class PomService {
         pom.nextReviewDate = adjusted;
         console.log(`[POM DEBUG] Night shift pomId=${pom.id} from=${before} to=${after}`);
         return true;
+    }
+
+    private getScheduleDayKey(dateMs: number): string {
+        const date = new Date(dateMs);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    private addDaysKeepingTime(dateMs: number, days: number): number {
+        const date = new Date(dateMs);
+        date.setDate(date.getDate() + days);
+        return date.getTime();
+    }
+
+    private comparePomsForSchedule(a: Pom, b: Pom): number {
+        if (a.nextReviewDate !== b.nextReviewDate) {
+            return a.nextReviewDate - b.nextReviewDate;
+        }
+        if (a.createdAt !== b.createdAt) {
+            return a.createdAt - b.createdAt;
+        }
+        return a.id.localeCompare(b.id);
+    }
+
+    private findNextAvailableReviewDate(dateMs: number, dailyCounts: Map<string, number>): number {
+        let candidate = this.adjustReviewDateForNight(dateMs);
+
+        while ((dailyCounts.get(this.getScheduleDayKey(candidate)) || 0) >= this.MAX_POMS_PER_DAY) {
+            candidate = this.adjustReviewDateForNight(this.addDaysKeepingTime(candidate, 1));
+        }
+
+        return candidate;
+    }
+
+    private rebalanceActivePomDates(poms: Pom[]): Set<string> {
+        const changedPomIds = new Set<string>();
+        const dailyCounts = new Map<string, number>();
+        const activePoms = poms
+            .filter(pom => pom.status === 'active')
+            .sort((a, b) => this.comparePomsForSchedule(a, b));
+
+        for (const pom of activePoms) {
+            const normalizedDate = this.adjustReviewDateForNight(pom.nextReviewDate);
+            const balancedDate = this.findNextAvailableReviewDate(normalizedDate, dailyCounts);
+            const dayKey = this.getScheduleDayKey(balancedDate);
+
+            if (balancedDate !== pom.nextReviewDate) {
+                console.log(
+                    `[POM DEBUG] Rebalanced pomId=${pom.id} from=${new Date(pom.nextReviewDate).toISOString()} ` +
+                    `to=${new Date(balancedDate).toISOString()}`
+                );
+                pom.nextReviewDate = balancedDate;
+                changedPomIds.add(pom.id);
+            }
+
+            dailyCounts.set(dayKey, (dailyCounts.get(dayKey) || 0) + 1);
+        }
+
+        return changedPomIds;
+    }
+
+    private async persistPomsAndSyncNotifications(
+        poms: Pom[],
+        options: {
+            rescheduleAllActive?: boolean;
+            extraPomIdsToSchedule?: string[];
+            pomIdsToCancel?: string[];
+        } = {}
+    ): Promise<void> {
+        const changedPomIds = this.rebalanceActivePomDates(poms);
+        const pomIdsToSchedule = new Set<string>(options.extraPomIdsToSchedule || []);
+        const pomIdsToCancel = new Set<string>(options.pomIdsToCancel || []);
+
+        changedPomIds.forEach(pomId => pomIdsToSchedule.add(pomId));
+
+        if (options.rescheduleAllActive) {
+            poms
+                .filter(pom => pom.status === 'active')
+                .forEach(pom => pomIdsToSchedule.add(pom.id));
+        }
+
+        this.saveAllPoms(poms);
+
+        for (const pomId of pomIdsToSchedule) {
+            const pom = poms.find(candidate => candidate.id === pomId);
+            if (!pom || pom.status !== 'active') {
+                pomIdsToCancel.add(pomId);
+                continue;
+            }
+            await this.schedulePomNotification(pom);
+        }
+
+        for (const pomId of pomIdsToCancel) {
+            if (pomIdsToSchedule.has(pomId)) continue;
+            await this.notificationService.cancelPomNotification(pomId);
+        }
     }
 
     private buildKnownWordIdSet(dictionaryWords?: DictionaryWord[]): Set<string> {
@@ -241,15 +507,12 @@ export class PomService {
         }
 
         poms.push(newPom);
-        this.saveAllPoms(poms);
         console.log(`[POM DEBUG] createPom newPomId=${newPom.id} wordCount=${newPom.wordIds.length}`);
+        await this.persistPomsAndSyncNotifications(poms, {
+            extraPomIdsToSchedule: newPom.status === 'active' ? [newPom.id] : []
+        });
 
-        if (newPom.status === 'active') {
-            // Planifier la notification
-            await this.schedulePomNotification(newPom);
-        }
-
-        return newPom;
+        return poms.find(pom => pom.id === newPom.id) || newPom;
     }
 
     /**
@@ -321,7 +584,7 @@ export class PomService {
         console.log(`[CORE DEBUG] Calculated newInterval: ${newInterval} days, nextReview: ${new Date(nextReview).toISOString()}`);
 
         // Vérifier si on dépasse un an (environ 365 jours)
-        if (newInterval > 365) {
+        if (newInterval > this.MAX_REVIEWS_YEAR) {
             console.log(`[CORE DEBUG] POM completed (interval > 365 days)`);
             pom.status = 'completed';
         } else {
@@ -329,13 +592,13 @@ export class PomService {
             pom.nextReviewDate = nextReview;
             pom.reviewCount++;
             console.log(`[CORE DEBUG] Updated POM: reviewCount=${pom.reviewCount}, nextReviewDate=${new Date(pom.nextReviewDate).toISOString()}`);
-
-            // Planifier la prochaine notification
-            await this.schedulePomNotification(pom);
         }
 
         poms[index] = pom;
-        this.saveAllPoms(poms);
+        await this.persistPomsAndSyncNotifications(poms, {
+            extraPomIdsToSchedule: pom.status === 'active' ? [pom.id] : [],
+            pomIdsToCancel: pom.status === 'completed' ? [pom.id] : []
+        });
         console.log(`[CORE DEBUG] POM saved successfully.`);
     }
 
@@ -347,12 +610,12 @@ export class PomService {
             console.log(`[POM DEBUG] schedulePomNotification skipped pomId=${pom.id} status=${pom.status}`);
             return;
         }
+        await this.notificationService.cancelPomNotification(pom.id);
         const date = new Date(pom.nextReviewDate);
         const now = Date.now();
         const scheduledDate = date.getTime() < now ? new Date(now + 60000) : date;
         const delayMs = scheduledDate.getTime() - now;
         const graceMinutes = this.getNotificationGraceMinutes();
-        const graceLabel = graceMinutes > 1 ? 'minutes' : 'minute';
         console.log(
             `[POM DEBUG] schedulePomNotification pomId=${pom.id} nextReview=${date.toISOString()} ` +
             `scheduled=${scheduledDate.toISOString()} delayMs=${delayMs}`
@@ -443,10 +706,10 @@ export class PomService {
         pom.nextReviewDate = this.adjustReviewDateForNight(rescheduleAt);
 
         poms[index] = pom;
-        this.saveAllPoms(poms);
         console.log(`[POM DEBUG] Rescheduled missed pomId=${pomId} reason=${reason} next=${new Date(pom.nextReviewDate).toISOString()}`);
-
-        await this.schedulePomNotification(pom);
+        await this.persistPomsAndSyncNotifications(poms, {
+            extraPomIdsToSchedule: [pom.id]
+        });
     }
 
     /**
@@ -482,48 +745,38 @@ export class PomService {
     async reScheduleAllNotifications(): Promise<void> {
         this.updateMasteredPoms();
         const poms = this.getAllPoms();
-        const activePoms = poms.filter(p => p.status === 'active');
-        const platform = Capacitor.getPlatform();
-        const isWeb = platform === 'web';
-        const shiftedPomIds = new Set<string>();
+        const graceMinutes = this.getNotificationGraceMinutes();
+        const graceMs = graceMinutes * 60 * 1000;
+        const now = Date.now();
+        const pomIdsToCancel: string[] = [];
+        let activePomCount = 0;
 
-        for (const pom of activePoms) {
-            if (this.applyNightShiftIfNeeded(pom)) {
-                shiftedPomIds.add(pom.id);
-            }
-        }
+        for (const pom of poms) {
+            if (pom.status !== 'active') continue;
+            activePomCount++;
 
-        if (shiftedPomIds.size > 0) {
-            this.saveAllPoms(poms);
-        }
-
-        for (const pom of activePoms) {
-            if (this.completePomIfNoReviewableWords(pom.id)) {
-                continue;
-            }
-            const graceMinutes = this.getNotificationGraceMinutes();
-            const graceMs = graceMinutes * 60 * 1000;
-            const now = Date.now();
-
-            if (!isWeb) {
-                if (now > pom.nextReviewDate + graceMs) {
-                    await this.handleMissedPom(pom.id, pom.nextReviewDate, pom.reviewCount, 'startup');
-                }
-                if (shiftedPomIds.has(pom.id) && now <= pom.nextReviewDate + graceMs) {
-                    await this.schedulePomNotification(pom);
-                }
+            if (this.getPomWords(pom.id).length === 0) {
+                const knownIds = this.buildKnownWordIdSet();
+                const reason = this.areAllPomWordsKnown(pom, knownIds) ? 'all_known' : 'missing_words';
+                pom.status = 'completed';
+                pomIdsToCancel.push(pom.id);
+                console.log(`[POM DEBUG] Completed empty POM pomId=${pom.id} reason=${reason}`);
                 continue;
             }
 
             if (now > pom.nextReviewDate + graceMs) {
-                await this.handleMissedPom(pom.id, pom.nextReviewDate, pom.reviewCount, 'startup');
-                continue;
+                pom.nextReviewDate = this.adjustReviewDateForNight(now);
+                console.log(`[POM DEBUG] Startup reschedule pomId=${pom.id} next=${new Date(pom.nextReviewDate).toISOString()}`);
             }
-
-            await this.schedulePomNotification(pom);
         }
-        if (activePoms.length > 0) {
-            console.log(`[PomService] ${activePoms.length} notifications POM reprogrammées.`);
+
+        await this.persistPomsAndSyncNotifications(poms, {
+            rescheduleAllActive: true,
+            pomIdsToCancel
+        });
+
+        if (activePomCount > 0) {
+            console.log(`[PomService] ${poms.filter(p => p.status === 'active').length} notifications POM reprogrammées.`);
         }
     }
 
@@ -648,13 +901,10 @@ export class PomService {
         }
 
         poms[index] = pom;
-        this.saveAllPoms(poms);
-        if (pom.status === 'active') {
-            // Reprogrammer la notification
-            await this.schedulePomNotification(pom);
-        } else {
-            void this.notificationService.cancelPomNotification(pomId);
-        }
+        await this.persistPomsAndSyncNotifications(poms, {
+            extraPomIdsToSchedule: pom.status === 'active' ? [pom.id] : [],
+            pomIdsToCancel: pom.status === 'completed' ? [pom.id] : []
+        });
     }
 
     /**
@@ -664,5 +914,6 @@ export class PomService {
         let poms = this.getAllPoms();
         poms = poms.filter(p => p.id !== pomId);
         this.saveAllPoms(poms);
+        void this.notificationService.cancelPomNotification(pomId);
     }
 }

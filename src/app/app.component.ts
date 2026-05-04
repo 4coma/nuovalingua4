@@ -20,6 +20,7 @@ import { AddWordComponent } from './components/add-word/add-word.component';
 import { NewWordsModalComponent } from './components/new-words-modal/new-words-modal.component';
 import { PomService } from './services/pom.service';
 import { FirebaseSyncService } from './services/firebase-sync.service';
+import { DataMigrationService } from './services/data-migration.service';
 
 enum AppState {
   CATEGORY_SELECTION,
@@ -40,6 +41,7 @@ enum AppState {
 })
 export class AppComponent implements OnDestroy {
   currentState = AppState.CATEGORY_SELECTION;
+  currentRoute: string = '/home';
 
   // Store the current exercises
   vocabularyExercise: VocabularyExercise | null = null;
@@ -94,7 +96,8 @@ export class AppComponent implements OnDestroy {
     private actionSheetController: ActionSheetController,
     private alertController: AlertController,
     private pomService: PomService,
-    private firebaseSync: FirebaseSyncService
+    private firebaseSync: FirebaseSyncService,
+    private dataMigration: DataMigrationService
   ) {
     this.setupRouteListener();
     this.setupFirebaseAuthListener();
@@ -114,6 +117,9 @@ export class AppComponent implements OnDestroy {
   private setupFirebaseAuthListener() {
     this.firebaseAuthSubscription = this.firebaseSync.authUser$.subscribe(user => {
       this.isFirebaseAuthenticated = !!user;
+      if (user) {
+        void this.dataMigration.hydratePreferencesFromFirebase();
+      }
     });
   }
 
@@ -402,20 +408,28 @@ export class AppComponent implements OnDestroy {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      const currentRoute = event.urlAfterRedirects;
+      const currentRoute = event.urlAfterRedirects.split('?')[0];
       this.updateHeaderForRoute(currentRoute);
     });
+
+    this.updateHeaderForRoute(this.router.url.split('?')[0] || '/home');
   }
 
   /**
    * Met à jour le header quand la route change
    */
   private updateHeaderForRoute(route: string) {
+    this.currentRoute = route;
+
     // Mise à jour du titre
     this.currentPageTitle = this.pageTitles[route] || 'NuovaLingua';
 
     // Affichage du bouton retour
     this.showBackButton = this.routesWithBackButton.includes(route);
+  }
+
+  get isHomeRoute(): boolean {
+    return this.currentRoute === '/home';
   }
 
   /**

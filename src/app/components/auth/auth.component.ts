@@ -136,6 +136,24 @@ export class AuthComponent implements OnInit, OnDestroy {
     }
   }
 
+  async sendPasswordReset() {
+    if (!await this.ensureFirebaseReadyForAuth()) return;
+
+    const email = this.email.trim().toLowerCase();
+    if (!email) {
+      await this.showToast('Saisissez votre email pour recevoir un lien de réinitialisation.', 'warning');
+      return;
+    }
+
+    try {
+      await this.firebaseSync.sendPasswordReset(email);
+      await this.showToast('Email de réinitialisation envoyé.', 'success');
+    } catch (error) {
+      console.error('Erreur réinitialisation mot de passe Firebase:', error);
+      await this.showToast(this.getFirebaseAuthErrorMessage(error), 'danger');
+    }
+  }
+
   async logout() {
     try {
       await this.firebaseSync.logout();
@@ -174,6 +192,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     if (message.includes('auth/user-not-found')) return 'Aucun compte trouvé pour cet email.';
     if (message.includes('auth/wrong-password')) return 'Mot de passe incorrect.';
     if (message.includes('auth/operation-not-allowed')) return 'Méthode de connexion non activée dans Firebase Auth.';
+    if (message.includes('auth/too-many-requests')) return 'Trop de tentatives. Réessayez plus tard.';
     return `Erreur d'authentification: ${(error as Error)?.message || 'inconnue'}`;
   }
 

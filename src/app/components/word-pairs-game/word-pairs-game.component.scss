@@ -11,6 +11,40 @@ ion-content {
   min-height: 100vh;
 }
 
+.session-context {
+  margin-bottom: var(--ds-space-md);
+  padding: var(--ds-space-sm);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--color-surface) 92%, white 8%);
+
+  &__eyebrow {
+    margin-bottom: var(--ds-space-3xs);
+    color: var(--color-text-secondary);
+    font-size: var(--ds-font-size-caption);
+    font-weight: var(--ds-font-weight-semibold);
+    font-family: var(--ds-font-family-sans);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__title {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: var(--ds-font-size-h3);
+    font-weight: var(--ds-font-weight-semibold);
+    line-height: 1.2;
+    font-family: var(--ds-font-family-sans);
+  }
+
+  &__meta {
+    margin: var(--ds-space-3xs) 0 0;
+    color: var(--color-text-secondary);
+    font-size: var(--ds-font-size-body-sm);
+    font-family: var(--ds-font-family-sans);
+  }
+}
+
 // Section de configuration pliable
 .configuration-section {
   margin-bottom: var(--ds-space-md);

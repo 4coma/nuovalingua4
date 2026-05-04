@@ -216,6 +216,7 @@ export class NotificationService {
 
       // Générer un ID numérique unique à partir de l'ID du POM
       const notificationId = this.hashCode(pomId);
+      await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
 
       await LocalNotifications.schedule({
         notifications: [

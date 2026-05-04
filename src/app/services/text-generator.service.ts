@@ -32,6 +32,7 @@ export class TextGeneratorService {
   private apiUrl = environment.openaiApiUrl;
   private apiKey = environment.openaiApiKey;
   private model = environment.openaiModel;
+  private backendApiEnabled = environment.backendApiEnabled;
 
   constructor(
     private http: HttpClient,
@@ -321,21 +322,19 @@ export class TextGeneratorService {
   private callOpenAI<T>(prompt: string): Observable<T> {
     this.loadingService.showLoading('Traitement en cours...');
     
-    // Vérifier si l'utilisateur a défini sa propre clé API
     const userApiKey = this.storageService.get('userOpenaiApiKey');
+    const apiKeyToUse = userApiKey || this.apiKey;
     
-    // Si aucune clé utilisateur n'est définie, afficher une notification
-    if (!userApiKey) {
+    if (!this.backendApiEnabled && !apiKeyToUse) {
       this.loadingService.hideLoading();
       this.showApiKeyNotification();
       return throwError(() => new Error('Clé API non configurée'));
     }
-    
-    const apiKeyToUse = userApiKey || this.apiKey;
-    
-    const headers = new HttpHeaders()
-      .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${apiKeyToUse}`);
+
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    if (!this.backendApiEnabled && apiKeyToUse) {
+      headers = headers.set('Authorization', `Bearer ${apiKeyToUse}`);
+    }
     
     const data = {
       model: this.model,

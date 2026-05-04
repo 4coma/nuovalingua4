@@ -1,0 +1,8 @@
+[build]
+buildCommand = "npm run build:web"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5

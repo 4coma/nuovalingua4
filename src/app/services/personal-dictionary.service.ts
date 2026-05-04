@@ -46,6 +46,7 @@ export class PersonalDictionaryService {
   private apiUrl = environment.openaiApiUrl;
   private apiKey = environment.openaiApiKey;
   private model = environment.openaiModel;
+  private backendApiEnabled = environment.backendApiEnabled;
   private loading: HTMLIonLoadingElement | null = null;
   /**
    * File d'attente pour séquencer les mises à jour de notification et éviter les doublons
@@ -397,10 +398,10 @@ export class PersonalDictionaryService {
    * Traduit un mot d'une langue à une autre
    */
   translateWord(word: string, sourceLang: string, targetLang: string): Observable<TranslationResponse> {
-    // Vérifier si la clé API est configurée
     const userApiKey = this.storageService.get('userOpenaiApiKey');
+    const apiKeyToUse = userApiKey || this.apiKey;
 
-    if (!userApiKey) {
+    if (!this.backendApiEnabled && !apiKeyToUse) {
       this.showErrorToast('Clé API OpenAI non configurée. Veuillez configurer votre clé API dans les préférences.');
       return new Observable(observer => {
         observer.error(new Error('Clé API non configurée'));
@@ -461,13 +462,13 @@ export class PersonalDictionaryService {
   private callOpenAI<T>(prompt: string): Observable<T> {
     this.showLoading('Traduction en cours...');
 
-    // Récupérer la clé API utilisateur
     const userApiKey = this.storageService.get('userOpenaiApiKey');
     const apiKeyToUse = userApiKey || this.apiKey;
 
-    const headers = new HttpHeaders()
-      .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${apiKeyToUse}`);
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    if (!this.backendApiEnabled && apiKeyToUse) {
+      headers = headers.set('Authorization', `Bearer ${apiKeyToUse}`);
+    }
 
     const data = {
       model: this.model,

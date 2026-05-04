@@ -78,6 +78,10 @@
             {{ authMode === 'register' ? 'Créer un compte' : 'Se connecter' }}
           </ion-button>
 
+          <ion-button *ngIf="authMode === 'login'" expand="block" fill="clear" color="medium" (click)="sendPasswordReset()">
+            Réinitialiser le mot de passe
+          </ion-button>
+
           <ion-button expand="block" fill="clear" color="medium" (click)="loginAnonymously()">
             <ion-icon name="person-outline" slot="start"></ion-icon>
             Continuer en anonyme

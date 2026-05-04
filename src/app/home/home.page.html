@@ -1,74 +1,41 @@
 <ion-content [fullscreen]="true" class="home-content">
-  <div class="home-container">
-    
-    <app-card variant="glass" padding="large" class="welcome-card">
-      <h2 class="welcome-title">Quel type de révision veux-tu faire ?</h2>
+  <div class="home-minimal-shell">
+    <div class="home-minimal-layout">
+      <div class="circle-actions" [class.menu-open]="isMenuOpen">
+        <button type="button" class="home-circle circle-learning" (click)="startKeepLearning()">
+          <span>keep learning</span>
+        </button>
 
-      <div class="actions-grid">
-        <a routerLink="/category" class="action-link">
-          <app-button variant="primary" size="large" icon="apps-outline" expand="block">
-            Apprendre
-          </app-button>
-        </a>
-
-        <a routerLink="/personal-revision-setup" class="action-link">
-          <app-button variant="secondary" size="large" icon="book-outline" expand="block">
-            Réviser
-          </app-button>
-        </a>
-
-        <a routerLink="/comprehension-setup" class="action-link">
-          <ion-button expand="block" color="tertiary" class="modern-action-button">
-            <ion-icon slot="start" name="headset-outline"></ion-icon>
-            Compréhension
-          </ion-button>
-        </a>
-
-        <a routerLink="/full-revision-setup" class="action-link">
-          <ion-button expand="block" color="warning" class="modern-action-button">
-            <ion-icon slot="start" name="flag-outline"></ion-icon>
-            Révision complète
-          </ion-button>
-        </a>
-
-        <a routerLink="/discussion-context-selection" class="action-link">
-          <ion-button expand="block" color="success" class="modern-action-button">
-            <ion-icon slot="start" name="chatbubbles-outline"></ion-icon>
-            Discuter
-          </ion-button>
-        </a>
+        <button type="button" class="home-circle circle-practice" (click)="startKeepPractice()">
+          <span>practice</span>
+        </button>
       </div>
-      
-      <!-- Section Thèmes prioritaires -->
-      <div class="priority-themes-section" *ngIf="priorityThemes.length > 0">
-        <div class="priority-themes-header">
-          <h3 class="priority-themes-title">
-            <ion-icon name="star" class="title-icon"></ion-icon>
-            Thèmes prioritaires
-          </h3>
-          <ion-button fill="clear" size="small" color="primary" (click)="openThemeSelection()">
-            <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
-          </ion-button>
-        </div>
-        
-        <div class="priority-themes-list">
-          <ion-chip 
-            *ngFor="let theme of priorityThemes" 
-            class="priority-theme-chip"
-            [color]="theme.count > 10 ? 'success' : theme.count > 5 ? 'warning' : 'medium'"
-            (click)="filterByTheme(theme.name)">
-            <ion-label>{{ theme.name }} ({{ theme.count }})</ion-label>
-          </ion-chip>
+
+      <div class="menu-zone">
+        <button
+          type="button"
+          class="dots-trigger"
+          aria-label="Ouvrir le menu"
+          [attr.aria-expanded]="isMenuOpen"
+          (click)="toggleMenu()">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div *ngIf="isMenuOpen" class="menu-backdrop" (click)="closeMenu()"></div>
+
+        <div *ngIf="isMenuOpen" class="floating-menu" role="menu" aria-label="Menu d'accueil">
+          <button
+            type="button"
+            class="floating-menu-item"
+            *ngFor="let item of menuItems"
+            (click)="navigateTo(item.route)">
+            <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+            <span>{{ item.label }}</span>
+          </button>
         </div>
       </div>
-      
-      <!-- Bouton pour ajouter des thèmes si aucun n'est sélectionné -->
-      <div class="no-priority-themes" *ngIf="priorityThemes.length === 0">
-        <ion-button fill="outline" size="small" color="primary" (click)="openThemeSelection()">
-          <ion-icon name="add-outline" slot="start"></ion-icon>
-          Sélectionner des thèmes prioritaires
-        </ion-button>
-      </div>
-    </app-card>
+    </div>
   </div>
 </ion-content>

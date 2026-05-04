@@ -10,8 +10,9 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class SpeechService {
-  private apiUrl = 'https://api.openai.com/v1/audio/speech';
+  private apiUrl = environment.openaiSpeechApiUrl;
   private apiKey = environment.openaiApiKey;
+  private backendApiEnabled = environment.backendApiEnabled;
   private loading: HTMLIonLoadingElement | null = null;
   private audio: HTMLAudioElement | null = null;
 
@@ -47,12 +48,10 @@ export class SpeechService {
    * Convertit le texte en fichier audio et initialise la lecture
    */
   generateSpeech(text: string, voice: string = 'nova', speed: number = 1.0): Observable<string> {
-    // Récupérer la clé API éventuellement définie par l'utilisateur
     const userApiKey = this.storageService.get('userOpenaiApiKey');
     const apiKeyToUse = userApiKey || this.apiKey;
 
-    // Vérifier que la clé API est configurée
-    if (!apiKeyToUse) {
+    if (!this.backendApiEnabled && !apiKeyToUse) {
       this.showApiKeyAlert();
       return of('');
     }
@@ -60,9 +59,10 @@ export class SpeechService {
     // Suppression du loader global pour la génération d'audio
     // Le loader sera géré par le composant audio-player
 
-    const headers = new HttpHeaders()
-      .set('Content-Type', 'application/json')
-      .set('Authorization', `Bearer ${apiKeyToUse}`);
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    if (!this.backendApiEnabled && apiKeyToUse) {
+      headers = headers.set('Authorization', `Bearer ${apiKeyToUse}`);
+    }
 
     const data = {
       model: 'tts-1-hd',

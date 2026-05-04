@@ -25,7 +25,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   EmailAuthProvider,
-  linkWithCredential
+  linkWithCredential,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { BehaviorSubject } from 'rxjs';
 import { StorageService } from './storage.service';
@@ -98,6 +99,10 @@ export interface UserData {
   statistics: UserStatistics;
   settings: UserSettings;
   savedTexts: SavedText[];
+  savedTextsV2?: any[];
+  vocabularyTracking?: any[];
+  poms?: any[];
+  preferences?: Record<string, any>;
   metadata: {
     createdAt: Date;
     lastSync: Date;
@@ -117,6 +122,7 @@ export class FirebaseSyncService {
   private unsubscribeAuth: Unsubscribe | null = null;
   private unsubscribeSync: Unsubscribe | null = null;
   private authUserSubject = new BehaviorSubject<User | null>(null);
+  private userDocumentSubject = new BehaviorSubject<Record<string, any> | null>(null);
   
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isConnected: false,
@@ -125,6 +131,7 @@ export class FirebaseSyncService {
   
   public syncStatus$ = this.syncStatusSubject.asObservable();
   public authUser$ = this.authUserSubject.asObservable();
+  public userDocument$ = this.userDocumentSubject.asObservable();
 
   constructor(private storageService: StorageService) {
     this.initializeFirebase();
@@ -169,6 +176,7 @@ export class FirebaseSyncService {
             this.setupRealtimeSync();
           } else {
             this.stopRealtimeSync();
+            this.userDocumentSubject.next(null);
             this.updateSyncStatus({
               isConnected: false,
               error: 'Utilisateur Firebase non authentifié'
@@ -359,36 +367,54 @@ export class FirebaseSyncService {
     return data;
   }
 
+  private getUserDocRef() {
+    if (!this.db || !this.currentUser) {
+      throw new Error('Firebase non initialisé ou utilisateur non connecté');
+    }
+    return doc(this.db, 'users', this.currentUser.uid);
+  }
+
   /**
    * Synchronise toutes les données utilisateur vers Firebase
    */
   async syncAllUserData(userData: UserData): Promise<void> {
-    if (!this.db || !this.currentUser) {
-      throw new Error('Firebase non initialisé ou utilisateur non connecté');
-    }
+    await this.syncUserDataPatch(userData);
+  }
 
+  /**
+   * Synchronise un patch générique des données utilisateur vers Firebase
+   */
+  async syncUserDataPatch(payload: Record<string, any>): Promise<void> {
+    const userDocRef = this.getUserDocRef();
     this.updateSyncStatus({ isSyncing: true });
 
     try {
-      // Nettoyer les données avant de les envoyer à Firebase
-      const cleanedUserData = this.cleanDataForFirebase(userData);
-      
-      const userDocRef = doc(this.db, 'users', this.currentUser.uid);
+      const cleanedPayload = this.cleanDataForFirebase(payload);
+
       await setDoc(userDocRef, {
-        ...cleanedUserData,
+        ...cleanedPayload,
         lastSync: serverTimestamp(),
         syncVersion: 1
       }, { merge: true });
 
-      this.updateSyncStatus({ 
-        isSyncing: false, 
-        lastSync: new Date() 
+      const currentDoc = this.userDocumentSubject.value || {};
+      this.userDocumentSubject.next({
+        ...currentDoc,
+        ...cleanedPayload,
+        lastSync: new Date(),
+        syncVersion: 1
+      });
+
+      this.updateSyncStatus({
+        isSyncing: false,
+        lastSync: new Date(),
+        error: undefined
       });
     } catch (error) {
       console.error('🔍 [FirebaseSync] Erreur de synchronisation:', error);
-      this.updateSyncStatus({ 
-        isSyncing: false, 
-        error: 'Erreur de synchronisation' 
+      this.updateSyncStatus({
+        isSyncing: false,
+        error: 'Erreur de synchronisation'
       });
       throw error;
     }
@@ -398,54 +424,29 @@ export class FirebaseSyncService {
    * Synchronise le dictionnaire personnel vers Firebase (compatibilité)
    */
   async syncPersonalDictionary(words: DictionaryWord[]): Promise<void> {
-    if (!this.db || !this.currentUser) {
-      throw new Error('Firebase non initialisé ou utilisateur non connecté');
-    }
-
-    this.updateSyncStatus({ isSyncing: true });
-
-    try {
-      const userDocRef = doc(this.db, 'users', this.currentUser.uid);
-      await setDoc(userDocRef, {
-        personalDictionary: words,
-        lastSync: serverTimestamp(),
-        syncVersion: 1
-      }, { merge: true });
-
-      this.updateSyncStatus({ 
-        isSyncing: false, 
-        lastSync: new Date() 
-      });
-    } catch (error) {
-      console.error('🔍 [FirebaseSync] Erreur de synchronisation:', error);
-      this.updateSyncStatus({ 
-        isSyncing: false, 
-        error: 'Erreur de synchronisation' 
-      });
-      throw error;
-    }
+    await this.syncUserDataPatch({ personalDictionary: words });
   }
 
   /**
    * Récupère toutes les données utilisateur depuis Firebase
    */
   async getAllUserData(): Promise<UserData | null> {
-    if (!this.db || !this.currentUser) {
-      throw new Error('Firebase non initialisé ou utilisateur non connecté');
-    }
-
     try {
-      const userDocRef = doc(this.db, 'users', this.currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
+      const userDoc = await getDoc(this.getUserDocRef());
       
       if (userDoc.exists()) {
         const data = userDoc.data();
+        this.userDocumentSubject.next(data);
         const userData: UserData = {
           personalDictionary: data['personalDictionary'] || [],
           conversations: data['conversations'] || [],
           statistics: data['statistics'] || this.getDefaultStatistics(),
           settings: data['settings'] || this.getDefaultSettings(),
           savedTexts: data['savedTexts'] || [],
+          savedTextsV2: data['savedTextsV2'] || [],
+          vocabularyTracking: data['vocabularyTracking'] || [],
+          poms: data['poms'] || [],
+          preferences: data['preferences'] || {},
           metadata: {
             createdAt: data['metadata']?.createdAt || new Date(),
             lastSync: new Date(),
@@ -468,16 +469,12 @@ export class FirebaseSyncService {
    * Récupère le dictionnaire personnel depuis Firebase (compatibilité)
    */
   async getPersonalDictionary(): Promise<DictionaryWord[]> {
-    if (!this.db || !this.currentUser) {
-      throw new Error('Firebase non initialisé ou utilisateur non connecté');
-    }
-
     try {
-      const userDocRef = doc(this.db, 'users', this.currentUser.uid);
-      const userDoc = await getDoc(userDocRef);
+      const userDoc = await getDoc(this.getUserDocRef());
       
       if (userDoc.exists()) {
         const data = userDoc.data();
+        this.userDocumentSubject.next(data);
         const words = data['personalDictionary'] || [];
         return words;
       } else {
@@ -534,8 +531,14 @@ export class FirebaseSyncService {
       this.unsubscribeSync = onSnapshot(userDocRef, (doc) => {
         if (doc.exists()) {
           const data = doc.data();
-          // Ici, on pourrait émettre un événement pour mettre à jour l'UI
-          // ou déclencher une synchronisation locale
+          this.userDocumentSubject.next(data);
+          this.updateSyncStatus({
+            isConnected: true,
+            error: undefined,
+            lastSync: data['lastSync']?.toDate?.() || this.syncStatusSubject.value.lastSync
+          });
+        } else {
+          this.userDocumentSubject.next(null);
         }
       });
     } catch (error) {
@@ -585,6 +588,7 @@ export class FirebaseSyncService {
     this.auth = null;
     this.currentUser = null;
     this.authUserSubject.next(null);
+    this.userDocumentSubject.next(null);
     
     this.updateSyncStatus({
       isConnected: false,
@@ -648,6 +652,22 @@ export class FirebaseSyncService {
   }
 
   /**
+   * Déclenche un email de réinitialisation de mot de passe
+   */
+  async sendPasswordReset(email: string): Promise<void> {
+    if (!this.auth) {
+      throw new Error('Firebase Auth non initialisé');
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      throw new Error('Email requis');
+    }
+
+    await sendPasswordResetEmail(this.auth, normalizedEmail);
+  }
+
+  /**
    * Connexion anonyme Firebase (compte authentifié sans email)
    */
   async loginAnonymously(): Promise<User> {
@@ -696,5 +716,32 @@ export class FirebaseSyncService {
    */
   getCurrentSyncStatus(): SyncStatus {
     return this.syncStatusSubject.value;
+  }
+
+  /**
+   * Retourne le document utilisateur courant tel que reçu depuis Firebase
+   */
+  getCachedUserDocument(): Record<string, any> | null {
+    return this.userDocumentSubject.value;
+  }
+
+  /**
+   * Récupère le document utilisateur brut depuis Firebase
+   */
+  async getUserDocumentData(): Promise<Record<string, any> | null> {
+    try {
+      const userDoc = await getDoc(this.getUserDocRef());
+      if (!userDoc.exists()) {
+        this.userDocumentSubject.next(null);
+        return null;
+      }
+
+      const data = userDoc.data();
+      this.userDocumentSubject.next(data);
+      return data;
+    } catch (error) {
+      console.error('🔍 [FirebaseSync] Erreur de récupération du document brut:', error);
+      throw error;
+    }
   }
 }

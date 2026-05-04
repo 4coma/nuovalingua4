@@ -1,12 +1,17 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, MenuController, ModalController } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { PersonalDictionaryService } from '../services/personal-dictionary.service';
-import { PriorityThemesService, PriorityTheme } from '../services/priority-themes.service';
-import { ButtonComponent, CardComponent } from '../components/atoms';
-import { PriorityThemesSelectionComponent } from '../components/priority-themes-selection/priority-themes-selection.component';
+import { COURSE_DATA, StaticLesson } from '../data/course-data';
+import { LlmService } from '../services/llm.service';
+import { PomService } from '../services/pom.service';
+import { Pom } from '../models/pom';
+
+type HomeMenuItem = {
+  label: string;
+  route: string;
+  icon: string;
+};
 
 @Component({
   selector: 'app-home',
@@ -16,98 +21,158 @@ import { PriorityThemesSelectionComponent } from '../components/priority-themes-
   imports: [
     CommonModule,
     IonicModule,
-    RouterModule,
-    ButtonComponent,
-    CardComponent
+    RouterModule
   ]
 })
-export class HomePage implements OnInit, OnDestroy {
-  pageTitle: string = 'Accueil';
-  
-  // Thèmes prioritaires affichés
-  priorityThemes: { name: string; count: number }[] = [];
-  
-  // Subscriptions
-  private dictionarySubscription?: Subscription;
-  private themesSubscription?: Subscription;
+export class HomePage {
+  pageTitle = 'Accueil';
+  isMenuOpen = false;
+
+  readonly menuItems: HomeMenuItem[] = [
+    { label: 'Apprendre', route: '/category', icon: 'sparkles-outline' },
+    { label: 'Réviser', route: '/personal-revision-setup', icon: 'refresh-outline' },
+    { label: 'Compréhension', route: '/comprehension-setup', icon: 'headset-outline' },
+    { label: 'Révision complète', route: '/full-revision-setup', icon: 'layers-outline' },
+    { label: 'Discussion', route: '/discussion-context-selection', icon: 'chatbubbles-outline' },
+    { label: 'Dictionnaire', route: '/personal-dictionary', icon: 'book-outline' },
+    { label: 'Conversations', route: '/saved-conversations', icon: 'bookmark-outline' },
+    { label: 'Mots récents', route: '/recent-words', icon: 'time-outline' },
+    { label: 'Textes sauvegardés', route: '/saved-texts', icon: 'document-text-outline' },
+    { label: 'POMs', route: '/poms', icon: 'albums-outline' },
+    { label: 'Préférences', route: '/preferences', icon: 'settings-outline' }
+  ];
 
   constructor(
-    private menuController: MenuController,
-    private personalDictionaryService: PersonalDictionaryService,
-    private priorityThemesService: PriorityThemesService,
-    private modalController: ModalController,
-    private router: Router
-  ) {
+    private router: Router,
+    private llmService: LlmService,
+    private pomService: PomService,
+    private toastController: ToastController
+  ) {}
+
+  toggleMenu(): void {
+    this.isMenuOpen = !this.isMenuOpen;
   }
 
-  ngOnInit() {
-    // S'abonner aux changements du dictionnaire pour mettre à jour les statistiques
-    this.dictionarySubscription = this.personalDictionaryService.dictionaryWords$.subscribe(() => {
-      this.updatePriorityThemes();
+  closeMenu(): void {
+    this.isMenuOpen = false;
+  }
+
+  navigateTo(route: string): void {
+    this.closeMenu();
+    this.router.navigateByUrl(route);
+  }
+
+  async startKeepLearning(): Promise<void> {
+    const nextLesson = this.getNextLessonInSequence();
+
+    if (!nextLesson) {
+      await this.presentToast('Toutes les leçons POM disponibles ont déjà été lancées.');
+      return;
+    }
+
+    const wordPairs = nextLesson.lesson.pairs;
+    localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
+    localStorage.setItem('lessonId', nextLesson.lesson.id);
+    localStorage.setItem('sessionInfo', JSON.stringify({
+      category: 'Leçon',
+      topic: nextLesson.lesson.title,
+      date: new Date().toISOString(),
+      translationDirection: this.llmService.translationDirection
+    }));
+
+    this.clearReviewFlags();
+    await this.router.navigate(['/word-pairs-game']);
+  }
+
+  async startKeepPractice(): Promise<void> {
+    const nextPom = this.getNextPlannedPom();
+
+    if (!nextPom) {
+      await this.presentToast('Aucun POM actif à pratiquer pour le moment.');
+      return;
+    }
+
+    const pomWords = this.pomService.getPomWords(nextPom.id);
+    if (pomWords.length === 0) {
+      const completed = this.pomService.completePomIfNoReviewableWords(nextPom.id);
+      await this.presentToast(
+        completed
+          ? 'Ce POM n’a plus de mots à réviser.'
+          : 'Impossible de charger ce POM.'
+      );
+      return;
+    }
+
+    localStorage.setItem('sessionInfo', JSON.stringify({
+      category: 'Révision Espacée (POM)',
+      topic: this.pomService.getPomDisplayTitle(nextPom),
+      date: new Date().toISOString(),
+      translationDirection: 'fr2it'
+    }));
+    localStorage.setItem('wordPairs', JSON.stringify(pomWords));
+    localStorage.setItem('isPomReview', 'true');
+    localStorage.setItem('pomId', nextPom.id);
+    this.pomService.setPomReviewSessionMeta(nextPom.id);
+    localStorage.setItem('isPersonalDictionaryRevision', 'false');
+    localStorage.setItem('fullRevisionActive', 'false');
+
+    await this.router.navigate(['/word-pairs-game'], { queryParams: { pomStart: Date.now() } });
+  }
+
+  private getNextLessonInSequence(): { levelId: number; lesson: StaticLesson } | null {
+    const seenLessonIds = new Set(
+      this.pomService.getAllPoms()
+        .filter(pom => !!pom.lessonId)
+        .map(pom => pom.lessonId as string)
+    );
+
+    const levelIds = Object.keys(COURSE_DATA)
+      .map(id => Number(id))
+      .sort((a, b) => a - b);
+
+    for (const levelId of levelIds) {
+      const level = COURSE_DATA[levelId];
+      const orderedLessons = [
+        ...level.domaines,
+        ...level.lexical,
+        ...level.verbs
+      ];
+
+      const nextLesson = orderedLessons.find(lesson => !seenLessonIds.has(lesson.id));
+      if (nextLesson) {
+        return { levelId, lesson: nextLesson };
+      }
+    }
+
+    return null;
+  }
+
+  private getNextPlannedPom(): Pom | null {
+    const activePoms = this.pomService.getAllPoms()
+      .filter(pom => pom.status === 'active')
+      .sort((a, b) => a.nextReviewDate - b.nextReviewDate);
+
+    return activePoms[0] || null;
+  }
+
+  private clearReviewFlags(): void {
+    localStorage.removeItem('isPomReview');
+    localStorage.removeItem('pomId');
+    localStorage.removeItem('pomReviewCounts');
+    localStorage.removeItem('pomReviewDueAt');
+    localStorage.removeItem('pomReviewWindowEnd');
+    localStorage.removeItem('isPersonalDictionaryRevision');
+    localStorage.removeItem('fullRevisionActive');
+    localStorage.removeItem('fullRevisionSessionId');
+  }
+
+  private async presentToast(message: string): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2200,
+      position: 'bottom'
     });
 
-    // S'abonner aux changements des thèmes prioritaires
-    this.themesSubscription = this.priorityThemesService.selectedThemes$.subscribe(() => {
-      this.updatePriorityThemes();
-    });
-
-    // Charger les thèmes prioritaires au démarrage
-    this.updatePriorityThemes();
-  }
-
-  ngOnDestroy() {
-    // Nettoyer les subscriptions
-    if (this.dictionarySubscription) {
-      this.dictionarySubscription.unsubscribe();
-    }
-    if (this.themesSubscription) {
-      this.themesSubscription.unsubscribe();
-    }
-  }
-
-  /**
-   * Met à jour la liste des thèmes prioritaires affichés
-   */
-  private updatePriorityThemes(): void {
-    this.priorityThemes = this.priorityThemesService.getPriorityThemesStats();
-  }
-
-  /**
-   * Ouvre la modal de sélection des thèmes prioritaires
-   */
-  async openThemeSelection(): Promise<void> {
-    const modal = await this.modalController.create({
-      component: PriorityThemesSelectionComponent,
-      cssClass: 'priority-themes-modal'
-    });
-
-    await modal.present();
-  }
-
-  /**
-   * Filtre les exercices par thème sélectionné
-   */
-  filterByTheme(themeName: string): void {
-    console.log('Filtrage par thème:', themeName);
-    
-    // Sauvegarder le thème présélectionné dans le localStorage
-    // pour que le composant personal-revision-setup puisse le récupérer
-    localStorage.setItem('preselectedTheme', themeName);
-    
-    // Naviguer vers la page de révision personnalisée
-    this.router.navigate(['/personal-revision-setup']);
-  }
-
-
-  onDiscussionClick() {
-  }
-
-  async forceOpenMenu() {
-    try {
-      await this.menuController.enable(true);
-      await this.menuController.open();
-    } catch (error) {
-      console.error('Error forcing menu open:', error);
-    }
+    await toast.present();
   }
 }

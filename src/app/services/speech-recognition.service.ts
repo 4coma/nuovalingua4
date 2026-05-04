@@ -16,7 +16,8 @@ export interface TranscriptionResult {
   providedIn: 'root'
 })
 export class SpeechRecognitionService {
-  private apiUrl = 'https://api.openai.com/v1/audio/transcriptions';
+  private apiUrl = environment.openaiTranscriptionApiUrl;
+  private backendApiEnabled = environment.backendApiEnabled;
 
   constructor(
     private http: HttpClient,
@@ -36,7 +37,7 @@ export class SpeechRecognitionService {
    */
   transcribeAudio(audioBlob: Blob, language: string = 'it'): Observable<TranscriptionResult> {
     const apiKey = this.getApiKey();
-    if (!apiKey) {
+    if (!this.backendApiEnabled && !apiKey) {
       this.showErrorToast('Clé API OpenAI non configurée. Veuillez configurer votre clé API dans les paramètres.');
       return throwError(() => new Error('Clé API OpenAI non configurée'));
     }
@@ -47,8 +48,10 @@ export class SpeechRecognitionService {
     formData.append('language', language);
     formData.append('response_format', 'json');
 
-    const headers = new HttpHeaders()
-      .set('Authorization', `Bearer ${apiKey}`);
+    let headers = new HttpHeaders();
+    if (!this.backendApiEnabled && apiKey) {
+      headers = headers.set('Authorization', `Bearer ${apiKey}`);
+    }
 
     return this.http.post<any>(this.apiUrl, formData, { headers }).pipe(
       map(response => ({
@@ -72,7 +75,7 @@ export class SpeechRecognitionService {
    */
   transcribeAudioAutoLanguage(audioBlob: Blob): Observable<TranscriptionResult> {
     const apiKey = this.getApiKey();
-    if (!apiKey) {
+    if (!this.backendApiEnabled && !apiKey) {
       this.showErrorToast('Clé API OpenAI non configurée. Veuillez configurer votre clé API dans les paramètres.');
       return throwError(() => new Error('Clé API OpenAI non configurée'));
     }
@@ -82,8 +85,10 @@ export class SpeechRecognitionService {
     formData.append('model', 'whisper-1');
     formData.append('response_format', 'json');
 
-    const headers = new HttpHeaders()
-      .set('Authorization', `Bearer ${apiKey}`);
+    let headers = new HttpHeaders();
+    if (!this.backendApiEnabled && apiKey) {
+      headers = headers.set('Authorization', `Bearer ${apiKey}`);
+    }
 
     return this.http.post<any>(this.apiUrl, formData, { headers }).pipe(
       map(response => ({
@@ -106,6 +111,9 @@ export class SpeechRecognitionService {
    * Vérifie si la clé API est configurée
    */
   isApiKeyConfigured(): boolean {
+    if (this.backendApiEnabled) {
+      return true;
+    }
     const apiKey = this.getApiKey();
     return !!apiKey;
   }

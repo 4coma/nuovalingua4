@@ -6,7 +6,6 @@ import { Router, RouterModule } from '@angular/router';
 import { TextGeneratorService } from '../../services/text-generator.service';
 import { StorageService } from '../../services/storage.service';
 import { WordPair } from '../../services/llm.service';
-import { ButtonComponent, CardComponent } from '../atoms';
 
 interface SavedPrompt {
   id: string;
@@ -23,8 +22,7 @@ interface SavedPrompt {
     CommonModule,
     IonicModule,
     FormsModule,
-    RouterModule,
-    CardComponent
+    RouterModule
   ]
 })
 export class ComprehensionSetupComponent implements OnInit {
@@ -215,4 +213,3 @@ export class ComprehensionSetupComponent implements OnInit {
     }
   }
 }
-

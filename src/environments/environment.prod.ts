@@ -1,9 +1,14 @@
 export const environment = {
   production: true,
-  llmApiUrl: 'https://api.example.com/llm',  // Replace with actual LLM API endpoint
+  backendApiEnabled: true,
+  apiBaseUrl: '/api',
+  llmApiUrl: '/api/openai/chat',
   openaiApiKey: 'REMOVED_API_KEY', // Clé API pour production
   openaiModel: 'gpt-4.1-nano', // Modèle à utiliser en production
-  openaiApiUrl: 'https://api.openai.com/v1/chat/completions',
+  openaiApiUrl: '/api/openai/chat',
+  openaiSpeechApiUrl: '/api/openai/speech',
+  openaiTranscriptionApiUrl: '/api/openai/transcriptions',
+  googleTtsApiUrl: '/api/google-tts',
   // Configuration Firebase Web embarquée dans l'app (ne pas demander à l'utilisateur final).
   // Remplir ces valeurs avec le SDK config de l'app Web Firebase.
   firebaseConfig: {

@@ -5,9 +5,11 @@
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port 44091",
+    "start": "node server.js",
+    "start:dev": "ng serve --port 44091",
     "build": "ng build",
     "build:web": "ng build --configuration production",
+    "build:railway": "npm run build:web",
     "deploy:web:app": "npm run build:web && npx firebase-tools deploy --only hosting:nuovalingua-app",
     "deploy:web:landing": "npx firebase-tools deploy --only hosting:nuovalingua-web",
     "deploy:web:all": "npm run build:web && npx firebase-tools deploy --only hosting:nuovalingua-web,hosting:nuovalingua-app",

@@ -20,6 +20,8 @@ import { AddTextModalComponent } from '../add-text-modal/add-text-modal.componen
 import { TextPreviewModalComponent } from '../text-preview-modal/text-preview-modal.component';
 import { FullRevisionService } from '../../services/full-revision.service';
 import { PomService } from '../../services/pom.service';
+import { COURSE_DATA, StaticLesson } from '../../data/course-data';
+import { environment } from '../../../environments/environment';
 
 interface GamePair {
   id: number;
@@ -36,6 +38,12 @@ interface RevisedWord {
   context?: string;
   revisionDelay?: string; // '1j', '3j', '7j', '15j', '1m', '3m', '6m'
   isKnown?: boolean; // Indique si le mot est déjà connu
+}
+
+interface SessionLessonDetails {
+  levelId: number;
+  sectionLabel: string;
+  lesson: StaticLesson;
 }
 
 @Component({
@@ -108,6 +116,8 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     date: string;
     translationDirection: TranslationDirection;
   } | null = null;
+  sessionDisplayTitle: string = '';
+  sessionDisplaySubtitle: string = '';
 
   // Statistiques
   matchedPairs: number = 0;
@@ -129,6 +139,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
   // Variable globale pour la clé API
   private googleTtsApiKey: string | null = null;
+  private readonly backendGoogleTtsEnabled = environment.backendApiEnabled && !!environment.googleTtsApiUrl;
 
   constructor(
     private router: Router,
@@ -323,6 +334,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
         // Préparer le jeu
         this.totalPairs = this.wordPairs.length;
+        this.updateSessionDisplay();
         this.setupCurrentGameRound();
         this.updateConversationTargetVocabularyStorage();
 
@@ -352,7 +364,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
     // Récupérer la clé API Google TTS depuis le StorageService
     this.googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
-    if (!this.googleTtsApiKey && this.audioEnabled) {
+    if (!this.backendGoogleTtsEnabled && !this.googleTtsApiKey && this.audioEnabled) {
       await this.showApiKeyAlert();
       return;
     }
@@ -402,6 +414,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
       // Préparer le jeu
       this.totalPairs = this.wordPairs.length;
+      this.updateSessionDisplay();
       this.setupCurrentGameRound();
       this.updateConversationTargetVocabularyStorage();
 
@@ -418,6 +431,49 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
     localStorage.setItem('audioEnabled', JSON.stringify(this.audioEnabled));
   }
 
+  private updateSessionDisplay(): void {
+    if (!this.sessionInfo) {
+      this.sessionDisplayTitle = '';
+      this.sessionDisplaySubtitle = '';
+      return;
+    }
+
+    if (this.sessionInfo.category === 'Leçon' && this.lessonId) {
+      const lessonDetails = this.findLessonDetails(this.lessonId);
+      if (lessonDetails) {
+        this.sessionDisplayTitle = lessonDetails.lesson.title;
+        this.sessionDisplaySubtitle = `Niveau ${lessonDetails.levelId} • ${lessonDetails.sectionLabel}`;
+        return;
+      }
+    }
+
+    this.sessionDisplayTitle = this.sessionInfo.topic;
+    this.sessionDisplaySubtitle = this.sessionInfo.category;
+  }
+
+  private findLessonDetails(lessonId: string): SessionLessonDetails | null {
+    const sectionLabels: Record<string, string> = {
+      domaines: 'Domaines',
+      lexical: 'Lexique',
+      verbs: 'Verbes'
+    };
+
+    for (const [levelIdRaw, levelData] of Object.entries(COURSE_DATA)) {
+      for (const sectionKey of ['domaines', 'lexical', 'verbs'] as const) {
+        const lesson = levelData[sectionKey].find((item: StaticLesson) => item.id === lessonId);
+        if (lesson) {
+          return {
+            levelId: Number(levelIdRaw),
+            sectionLabel: sectionLabels[sectionKey],
+            lesson
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
   /**
    * Bascule l'état audio (mute/unmute)
    */
@@ -426,7 +482,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
 
     // Récupérer la clé API Google TTS depuis le StorageService
     this.googleTtsApiKey = this.storageService.get('userGoogleTtsApiKey');
-    if (!this.googleTtsApiKey && this.audioEnabled) {
+    if (!this.backendGoogleTtsEnabled && !this.googleTtsApiKey && this.audioEnabled) {
       await this.showApiKeyAlert();
       return;
     }
@@ -613,7 +669,7 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
       const italianWord = direction === 'fr2it' ? wordPair.it : wordPair.fr;
 
       // Vérifier la clé API Google TTS
-      if (!this.googleTtsApiKey) {
+      if (!this.backendGoogleTtsEnabled && !this.googleTtsApiKey) {
         await this.showApiKeyAlert();
         return;
       }
@@ -624,7 +680,11 @@ export class WordPairsGameComponent implements OnInit, OnDestroy {
         audioConfig: { audioEncoding: "MP3" },
       };
 
-      const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.googleTtsApiKey}`, {
+      const response = await fetch(
+        this.backendGoogleTtsEnabled
+          ? environment.googleTtsApiUrl
+          : `https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.googleTtsApiKey}`,
+        {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),

@@ -29,6 +29,7 @@ export class VocabularyTrackingService {
   private readonly SCOPED_STORAGE_PREFIX = 'vocabulary_mastery__';
   private readonly MAX_TRACKED_WORDS = 100;
   private currentUserId: string | null = null;
+  private isHydratingFromFirebase = false;
 
   constructor(
     private storageService: StorageService,
@@ -36,7 +37,25 @@ export class VocabularyTrackingService {
   ) {
     this.currentUserId = this.firebaseSync.getCurrentUser()?.uid || null;
     this.firebaseSync.authUser$.subscribe(user => {
-      this.currentUserId = user?.uid || null;
+      const newUserId = user?.uid || null;
+      const previousUserId = this.currentUserId;
+      const didUserChange = newUserId !== previousUserId;
+
+      this.currentUserId = newUserId;
+
+      if (didUserChange && this.currentUserId) {
+        this.migrateGuestDataToUserScope(this.currentUserId, previousUserId);
+      }
+
+      if (didUserChange && this.firebaseSync.isFirebaseEnabled() && this.currentUserId) {
+        this.syncFromFirebase();
+      }
+    });
+
+    this.firebaseSync.syncStatus$.subscribe(status => {
+      if (status.isConnected && this.currentUserId) {
+        this.syncFromFirebase();
+      }
     });
   }
 
@@ -67,6 +86,30 @@ export class VocabularyTrackingService {
     if (legacyWords && Array.isArray(legacyWords)) {
       this.storageService.set(guestKey, legacyWords);
     }
+  }
+
+  private getScopedStorageKeyForUser(userId: string | null): string {
+    return `${this.SCOPED_STORAGE_PREFIX}${userId || 'guest'}`;
+  }
+
+  private writeTrackedWords(words: WordMastery[]): void {
+    this.storageService.set(this.getActiveStorageKey(), words);
+  }
+
+  private migrateGuestDataToUserScope(userId: string, previousUserId: string | null): void {
+    if (previousUserId) {
+      return;
+    }
+
+    this.ensureLegacyGuestMigration();
+    const guestWords = this.storageService.get(this.getScopedStorageKeyForUser(null));
+    if (!Array.isArray(guestWords) || guestWords.length === 0) {
+      return;
+    }
+
+    const userWords = this.storageService.get(this.getScopedStorageKeyForUser(userId));
+    const mergedWords = this.mergeWords(Array.isArray(userWords) ? userWords : [], guestWords);
+    this.storageService.set(this.getScopedStorageKeyForUser(userId), mergedWords);
   }
 
   /**
@@ -163,7 +206,8 @@ export class VocabularyTrackingService {
       const limitedWords = allWords.slice(0, this.MAX_TRACKED_WORDS);
 
       // Sauvegarder dans le stockage scoped utilisateur
-      this.storageService.set(this.getActiveStorageKey(), limitedWords);
+      this.writeTrackedWords(limitedWords);
+      this.syncToFirebase();
     } catch (error) {
       console.error('Erreur lors du suivi d\'un mot:', error);
     }
@@ -246,9 +290,72 @@ export class VocabularyTrackingService {
       const limitedWords = words.slice(0, this.MAX_TRACKED_WORDS);
 
       // Sauvegarder dans le stockage scoped utilisateur
-      this.storageService.set(this.getActiveStorageKey(), limitedWords);
+      this.writeTrackedWords(limitedWords);
+      this.syncToFirebase();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des mots:', error);
     }
+  }
+
+  private async syncToFirebase(): Promise<void> {
+    if (!this.firebaseSync.isFirebaseEnabled() || this.isHydratingFromFirebase || !this.currentUserId) {
+      return;
+    }
+
+    try {
+      await this.firebaseSync.syncUserDataPatch({
+        vocabularyTracking: this.getAllTrackedWords()
+      });
+    } catch (error) {
+      console.error('🔍 [VocabularyTracking] Erreur de synchronisation vers Firebase:', error);
+    }
+  }
+
+  async syncFromFirebase(): Promise<void> {
+    if (!this.firebaseSync.isFirebaseEnabled() || !this.currentUserId) {
+      return;
+    }
+
+    try {
+      const userDocument = await this.firebaseSync.getUserDocumentData();
+      const cloudWords = userDocument?.['vocabularyTracking'];
+      if (!Array.isArray(cloudWords)) {
+        return;
+      }
+
+      this.isHydratingFromFirebase = true;
+
+      const mergedWords = this.mergeWords(this.getAllTrackedWords(), cloudWords as WordMastery[]);
+      this.writeTrackedWords(mergedWords);
+      await this.firebaseSync.syncUserDataPatch({ vocabularyTracking: mergedWords });
+    } catch (error) {
+      console.error('🔍 [VocabularyTracking] Erreur de synchronisation depuis Firebase:', error);
+    } finally {
+      this.isHydratingFromFirebase = false;
+    }
+  }
+
+  private mergeWords(localWords: WordMastery[], remoteWords: WordMastery[]): WordMastery[] {
+    const merged = new Map<string, WordMastery>();
+
+    for (const word of localWords) {
+      merged.set(word.id, word);
+    }
+
+    for (const word of remoteWords) {
+      const existing = merged.get(word.id);
+      if (!existing) {
+        merged.set(word.id, word);
+        continue;
+      }
+
+      const existingReviewed = existing.lastReviewed || 0;
+      const remoteReviewed = word.lastReviewed || 0;
+      merged.set(word.id, remoteReviewed >= existingReviewed ? word : existing);
+    }
+
+    return Array.from(merged.values())
+      .sort((a, b) => b.lastReviewed - a.lastReviewed)
+      .slice(0, this.MAX_TRACKED_WORDS);
   }
 }
